@@ -4,7 +4,10 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
+
+import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public interface PacketHandler {
 	enum Display {
@@ -14,8 +17,14 @@ public interface PacketHandler {
 			location = loc;
 		}
 	}
+	void setGunsmoke( Gunsmoke plugin );
 	boolean onPacketInterceptOut( Player player, Object packet );
 	boolean onPacketInterceptIn( Player player, Object packet );
+	
+	void update( LivingEntity entity, boolean main );
+	void update( LivingEntity entity, EquipmentSlot slot );
+	
+	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );
 //	void updateBow( LivingEntity entity, Player viewer );

@@ -14,33 +14,42 @@ public class ItemStackMultiState {
 	protected ItemStackGunsmoke bow;
 	protected ItemStackGunsmoke trident;
 	
+	public ItemStackMultiState( ItemStackGunsmoke standard ) {
+		this.standard = standard;
+	}
+	
 	public ItemStack getItem( State state ) {
-		return getItemGunsmoke( state ).getItem();
+		ItemStackGunsmoke customItem = getItemGunsmoke( state );
+		if ( customItem == null ) {
+			return standard.getItem();
+		}
+		ItemStack item = getItemGunsmoke( state ).getItem();
+		return item == null ? standard.getItem() : item;
 	}
 	
 	public ItemStackGunsmoke getItemGunsmoke( State state ) {
 		switch ( state ) {
-			case DEFAULT: return standard;
-			case SHIELD: return shield;
-			case CROSSBOW: return crossbow;
-			case BOW: return bow;
-			case TRIDENT: return trident;
-			default: return standard;
+		case DEFAULT: return standard;
+		case SHIELD: return shield;
+		case CROSSBOW: return crossbow;
+		case BOW: return bow;
+		case TRIDENT: return trident;
+		default: return standard;
 		}
 	}
 	
 	public void setItem( State state, ItemStackGunsmoke item ) {
 		switch ( state ) {
-		case DEFAULT: standard = item; return;
-		case SHIELD: shield = item; return;
-		case CROSSBOW: crossbow = item; return;
-		case BOW: bow = item; return;
-		case TRIDENT: trident = item; return;
-		default: standard = item; return;
+		case DEFAULT: standard = item; break;
+		case SHIELD: shield = item; break;
+		case CROSSBOW: crossbow = item; break;
+		case BOW: bow = item; break;
+		case TRIDENT: trident = item; break;
+		default: standard = item; break;
 		}
 	}
 	
 	public static enum State {
-		DEFAULT, SHIELD, CROSSBOW, BOW, TRIDENT;
+		DEFAULT, SHIELD, CROSSBOW, BOW, TRIDENT, CUSTOM;
 	}
 }

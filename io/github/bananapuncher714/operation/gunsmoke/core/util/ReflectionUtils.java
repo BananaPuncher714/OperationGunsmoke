@@ -13,7 +13,7 @@ public class ReflectionUtils {
 	
 	public static PacketHandler getNewPacketHandlerInstance() {
 		try {
-			Class< ? > clazz = Class.forName( "io.github.bnanapuncher714.operation.gunsmoke.core.implementation." + VERSION + ".NMSHandler" );
+			Class< ? > clazz = Class.forName( "io.github.bananapuncher714.operation.gunsmoke.core.implementation." + VERSION + ".NMSHandler" );
 			return ( PacketHandler ) clazz.newInstance();
 		} catch ( ClassNotFoundException | InstantiationException | IllegalAccessException e ) {
 			e.printStackTrace();

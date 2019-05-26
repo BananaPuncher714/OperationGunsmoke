@@ -1,0 +1,12 @@
+name: Gunsmoke
+main: io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke
+version: 0.1
+description: The One Gun Plugin to Rule Them All
+api-version: 1.13
+author: BananaPuncher714
+authors:
+- "Jetp"
+
+commands:
+  gunsmoke:
+    aliases: []

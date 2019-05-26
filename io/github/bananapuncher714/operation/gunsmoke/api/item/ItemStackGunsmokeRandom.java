@@ -14,6 +14,6 @@ public class ItemStackGunsmokeRandom extends ItemStackGunsmoke {
 	
 	@Override
 	public ItemStack getItem() {
-		return items[ ThreadLocalRandom.current().nextInt() % items.length ].getItem();
+		return items[ ThreadLocalRandom.current().nextInt( items.length ) ].getItem();
 	}
 }
