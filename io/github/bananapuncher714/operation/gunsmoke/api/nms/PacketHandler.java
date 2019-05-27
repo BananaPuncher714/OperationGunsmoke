@@ -18,12 +18,16 @@ public interface PacketHandler {
 		}
 	}
 	void setGunsmoke( Gunsmoke plugin );
-	boolean onPacketInterceptOut( Player player, Object packet );
-	boolean onPacketInterceptIn( Player player, Object packet );
+	Object onPacketInterceptOut( Player player, Object packet );
+	Object onPacketInterceptIn( Player player, Object packet );
 	
 	void update( LivingEntity entity, boolean main );
+	void update( LivingEntity entity, boolean main, boolean updateSelf );
 	void update( LivingEntity entity, EquipmentSlot slot );
 	
+	
+	
+	void set( Player player, boolean down );
 	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );

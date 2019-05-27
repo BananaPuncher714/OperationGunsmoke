@@ -24,11 +24,11 @@ public class TinyProtocolGunsmoke extends TinyProtocol {
 	
 	@Override
 	public Object onPacketOutAsync( Player player, Channel channel, Object packet ) {
-		return handler.onPacketInterceptOut( player, packet ) ? packet : null;
+		return handler.onPacketInterceptOut( player, packet );
 	}
 
 	@Override
 	public Object onPacketInAsync( Player player, Channel channel, Object packet ) {
-		return handler.onPacketInterceptIn( player, packet ) ? packet : null;
+		return handler.onPacketInterceptIn( player, packet );
 	}
 }

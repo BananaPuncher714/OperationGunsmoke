@@ -15,7 +15,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiStat
 import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtils;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
+import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
 
 public class Gunsmoke extends JavaPlugin {
@@ -24,12 +25,13 @@ public class Gunsmoke extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-		PacketHandler handler = ReflectionUtils.getNewPacketHandlerInstance();
+		PacketHandler handler = ReflectionUtil.getNewPacketHandlerInstance();
 		protocol = new TinyProtocolGunsmoke( this, handler );
 		
 		entityManager = new EntityManager();
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
+		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
 	}
 	
 	/**
@@ -40,15 +42,23 @@ public class Gunsmoke extends JavaPlugin {
 		if ( sender instanceof Player ) {
 			Player player = ( Player ) sender;
 			
-			ItemStackGunsmoke standard = new ItemStackGunsmoke( new ItemStack( Material.TRIDENT ) );
+			ItemStackGunsmoke standard = new ItemStackGunsmoke( new ItemStack( Material.SHIELD ) );
 			ItemStackGunsmoke bow = new ItemStackGunsmoke( new ItemStack( Material.BOW ) );
 			
 			ItemStackMultiState compound = new ItemStackMultiState( standard );
 			compound.setItem( State.BOW, bow );
 
+			ItemStackGunsmoke standard2 = new ItemStackGunsmoke( new ItemStack( Material.TRIDENT ) );
+			ItemStackGunsmoke bow2 = new ItemStackGunsmoke( new ItemStack( Material.CROSSBOW ) );
+			ItemStackMultiState otherCompound = new ItemStackMultiState( standard2 );
+			otherCompound.setItem( State.BOW, bow2 );
+			
 			GunsmokeEntity entity = entityManager.getEntity( player.getUniqueId() );
-			entity.getMainHand().setItem( compound );
-			entity.getMainHand().setState( entity.getMainHand().getState() == State.DEFAULT ? State.BOW : State.DEFAULT );
+			//entity.getMainHand().setItem( compound );
+			//entity.getMainHand().setState( entity.getMainHand().getState() == State.DEFAULT ? State.BOW : State.DEFAULT );
+			
+			entity.getOffHand().setItem( otherCompound );
+			entity.getOffHand().setState( State.BOW );
 			
 			ItemStackGunsmokeRandom randomItem = new ItemStackGunsmokeRandom( new ItemStackGunsmoke[] { new ItemStackGunsmoke( new ItemStack( Material.CHAINMAIL_CHESTPLATE ) ), new ItemStackGunsmoke( new ItemStack( Material.DIAMOND_CHESTPLATE ) ) } );
 			entity.getEquipment().put( EquipmentSlot.CHEST, randomItem );

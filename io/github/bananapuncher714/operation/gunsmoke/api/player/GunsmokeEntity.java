@@ -19,6 +19,7 @@ public class GunsmokeEntity {
 	protected GunsmokeEntityHand offHand;
 	protected GunsmokeEntityHand mainHand;
 	protected Map< EquipmentSlot, ItemStackGunsmoke > equipment;
+	protected boolean isProne = false;
 	
 	public GunsmokeEntity( UUID uuid ) {
 		this.uuid = uuid;
@@ -35,6 +36,14 @@ public class GunsmokeEntity {
 		return equipment;
 	}
 	
+	public boolean isProne() {
+		return isProne;
+	}
+
+	public void setProne( boolean isProne ) {
+		this.isProne = isProne;
+	}
+
 	public ItemStack getWearing( EquipmentSlot slot ) {
 		ItemStackGunsmoke wearing = equipment.get( slot );
 		if ( wearing == null ) {
@@ -95,7 +104,7 @@ public class GunsmokeEntity {
 		}
 		
 		if ( entity instanceof LivingEntity ) {
-			Gunsmoke.getPlugin( Gunsmoke.class ).getProtocol().getHandler().update( ( LivingEntity ) entity, main );
+			Gunsmoke.getPlugin( Gunsmoke.class ).getProtocol().getHandler().update( ( LivingEntity ) entity, main, true );
 		}
 	}
 }
