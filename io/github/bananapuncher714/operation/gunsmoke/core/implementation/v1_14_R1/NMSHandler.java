@@ -151,12 +151,12 @@ public class NMSHandler implements PacketHandler {
 	/**
 	 * Edit the entity metadata packet so that the player's arms are in the right "state"
 	 */
-	@SuppressWarnings("unchecked")
 	private void handleMetadataPacket( Player player, PacketPlayOutEntityMetadata packet ) {
 		List< Item< ? > > items;
 		int id;
 		try {
 			items = ( List< Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			System.out.println( items );
 			if ( items == null ) {
 				return;
 			}
@@ -165,13 +165,20 @@ public class NMSHandler implements PacketHandler {
 			e.printStackTrace();
 			return;
 		}
+		
+		if ( ( ( CraftEntity ) player ).getEntityId() == id ) {
+			System.out.println( 5 );
+			return;
+		}
 
 		World world = player.getWorld();
 		org.bukkit.entity.Entity entity = NMSUtils.getEntityFromId( world, id );
 		
-		if ( player == entity || !( entity instanceof LivingEntity ) ) {
+		if ( !( entity instanceof LivingEntity ) ) {
+			System.out.println( 6 );
 			return;
 		}
+		System.out.println( 2 );
 		
 		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 		
@@ -185,24 +192,32 @@ public class NMSHandler implements PacketHandler {
 				break;
 			}
 		}
+		System.out.println( 1 );
 		if ( handStateMask != -1 ) {
-			items.remove( pos );
-			
 			byte bitmask = 0b000;
-			if ( ( handStateMask & 0b10 ) == 1 ) {
-				if ( gEntity.getOffHand().getState() == State.DEFAULT ) {
-					bitmask = 0b010;
-				} else {
-					bitmask = 0b011;
+			if ( ( handStateMask & 0b010 ) == 0 ) {
+				// This is optional; allows the player to use bows naturally
+				if ( gEntity.getMainHand().getItem() == null ) {
+					return;
 				}
-			} else {
 				if ( gEntity.getMainHand().getState() == State.DEFAULT ) {
 					bitmask = 0b000;
 				} else {
 					bitmask = 0b001;
 				}
+			} else {
+				// This is optional; allows the player to use bows naturally
+				if ( gEntity.getOffHand().getItem() == null ) {
+					return;
+				}
+				if ( gEntity.getOffHand().getState() == State.DEFAULT ) {
+					bitmask = 0b010;
+				} else {
+					bitmask = 0b011;
+				}
 			}
-			
+			System.out.println( bitmask );
+			items.remove( pos );
 			items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), bitmask ) );
 		}
 	}
@@ -245,9 +260,8 @@ public class NMSHandler implements PacketHandler {
 			item = gEntity.getWearing( equipment );
 		}
 		
-		// If the item is null, then set it to a blank item to avoid any NPEs
 		if ( item == null ) {
-			item = new org.bukkit.inventory.ItemStack( Material.AIR );
+			return;
 		}
 		
 		try {
@@ -262,9 +276,16 @@ public class NMSHandler implements PacketHandler {
 	 */
 	public void update( LivingEntity entity, boolean main ) {
 		int id = ( ( CraftEntity ) entity ).getEntityId();
+		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		if ( ( gEntity.getMainHand().getItem() == null && main ) || ( gEntity.getOffHand().getItem() == null && !main ) ) {
+			return;
+		}
+		
 		DataWatcher watcher = ( ( CraftEntity ) entity ).getHandle().getDataWatcher();
-		watcher.set( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), ( byte ) ( main ? 0b00 : 0b10 ) );
+		byte value = watcher.get( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ) );
+		watcher.set( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), ( byte ) ( ( value & 0b001 ) | ( main ? 0b001 : 0b010 ) ) );
 		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
+		
 		broadcastPacket( entity, packet );
 	}
 	
@@ -274,11 +295,20 @@ public class NMSHandler implements PacketHandler {
 	public void update( LivingEntity entity, EquipmentSlot slot ) {
 		EnumItemSlot NMSSlot = NMSUtils.getEnumItemSlot( slot );
 		int id = ( ( CraftEntity ) entity ).getEntityId();
-		org.bukkit.inventory.ItemStack item = plugin.getEntityManager().getEntity( entity.getUniqueId() ).getWearing( slot );
+		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		org.bukkit.inventory.ItemStack item = gEntity.getWearing( slot );
 		
-		PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment( id, NMSSlot, CraftItemStack.asNMSCopy( item ) );
+		if ( slot == EquipmentSlot.HAND ) {
+			item = gEntity.getMainHand().getHolding();
+		} else if ( slot == EquipmentSlot.OFF_HAND ) {
+			item = gEntity.getOffHand().getHolding();
+		}
 		
-		broadcastPacket( entity, packet );
+		if ( item != null ) {
+			PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment( id, NMSSlot, CraftItemStack.asNMSCopy( item ) );
+			
+			broadcastPacket( entity, packet );
+		}
 	}
 
 //	@Override
