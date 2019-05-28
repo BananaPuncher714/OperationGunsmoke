@@ -41,6 +41,7 @@ import net.minecraft.server.v1_14_R1.ChatMessageType;
 import net.minecraft.server.v1_14_R1.DataWatcher;
 import net.minecraft.server.v1_14_R1.DataWatcherObject;
 import net.minecraft.server.v1_14_R1.DataWatcherRegistry;
+import net.minecraft.server.v1_14_R1.DataWatcherSerializer;
 import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityHuman;
 import net.minecraft.server.v1_14_R1.EntityLiving;
@@ -187,78 +188,112 @@ public class NMSHandler implements PacketHandler {
 	 * "state"
 	 */
 	private Packet handleMetadataPacket(Player player, PacketPlayOutEntityMetadata packet) {
-		System.out.println("START");
-		List<Item<?>> items;
+		List< Item< ? > > items;
 		int id;
 		try {
-			items = (List<Item<?>>) ENTITYMETADATA_ITEMLIST.get(packet);
-			if (items == null) {
+			items = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			if ( items == null ) {
 				return packet;
 			}
-			id = (Integer) ENTITYMETADATA_ID.get(packet);
+			id = ( Integer ) ENTITYMETADATA_ID.get( packet );
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 			return packet;
 		}
 
 		World world = player.getWorld();
-		org.bukkit.entity.Entity entity = NMSUtils.getEntityFromId(world, id);
+		org.bukkit.entity.Entity entity = NMSUtils.getEntityFromId( world, id );
 
-		if (!(entity instanceof LivingEntity)) {
+		if ( !( entity instanceof LivingEntity ) ) {
 			return packet;
 		}
 
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity(entity.getUniqueId());
-
-		// TODO make this better
-		for (int index = 0; index < items.size(); index++) {
-			if (items.get(index).a().a() == 6 && gEntity.isProne()) {
-				items.remove(index);
+		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		
+		if ( entity == player ) {
+			return handleInternalMetadataPacket( player, items, gEntity ) ? packet : null;
+		} else {
+			return handleExternalMetadataPacket( player, ( LivingEntity ) entity, items, gEntity ) ? packet : null;
+		}
+	}
+	
+	private boolean handleInternalMetadataPacket( Player reciever, List< Item< ? > > items, GunsmokeEntity entity ) {
+		if ( entity.isProne() ) {
+			for ( int index = 0; index < items.size(); index++ ) {
+				if ( items.get( index ).a().a() == 6 ) {
+					items.remove( index );
+					break;
+				}
 			}
 		}
-
 		byte handStateMask = -1;
 		int pos = 0;
-		for (int index = 0; index < items.size(); index++) {
-			Item<?> item = items.get(index);
-			if (item.a().a() == HAND_STATE_INDEX) {
-				handStateMask = (Byte) item.b();
+		for ( int index = 0; index < items.size(); index++ ) {
+			Item< ? > item = items.get( index );
+			if ( item.a().a() == HAND_STATE_INDEX ) {
+				handStateMask = ( Byte ) item.b();
 				pos = index;
 				break;
 			}
 		}
-		if (handStateMask != -1) {
+		if ( handStateMask > -1 && handStateMask % 2 == 0 ) {
+			byte bitmask = ( byte ) ( ( handStateMask & 0b011 ) | ( entity.isProne() ? 0b100 : 0b000 ) );
+			items.remove( pos );
+			items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), bitmask ) );
+
+		}
+		return items.size() > 0;
+	}
+	
+	private boolean handleExternalMetadataPacket( Player reciever, LivingEntity livingEntity, List< Item< ? > > items, GunsmokeEntity entity ) {
+		// First confirm the player's hand
+		byte handStateMask = -1;
+		int pos = 0;
+		for ( int index = 0; index < items.size(); index++ ) {
+			Item< ? > item = items.get( index );
+			if ( item.a().a() == HAND_STATE_INDEX ) {
+				handStateMask = ( Byte ) item.b();
+				pos = index;
+				break;
+			}
+		}
+		if ( handStateMask != -1 ) {
 			byte bitmask = 0b000;
 			boolean main = true;
-			if ((handStateMask & 0b010) == 0) {
-				if (gEntity.getMainHand().getState() == State.DEFAULT) {
+			if ( ( handStateMask & 0b010 ) == 0 ) {
+				if ( entity.getMainHand().getState() == State.DEFAULT ) {
 					bitmask = 0b000;
 				} else {
 					bitmask = 0b001;
 				}
 			} else {
 				main = false;
-				if (gEntity.getOffHand().getState() == State.DEFAULT) {
+				if ( entity.getOffHand().getState() == State.DEFAULT ) {
 					bitmask = 0b010;
 				} else {
 					bitmask = 0b011;
 				}
 			}
-			if (player == entity) {
-				bitmask = handStateMask;
+			if ( GunsmokeUtil.canUpdate( entity, main ) ) {
+				bitmask = ( byte ) ( handStateMask & 0b011 );
 			}
-			if (gEntity.isProne()) {
-				bitmask |= 0b100;
-			} else {
-				bitmask = (byte) (bitmask & 0b011);
-			}
-			if (GunsmokeUtil.canUpdate(gEntity, main)) {
-				items.remove(pos);
-				items.add(
-						new Item<Byte>(new DataWatcherObject<Byte>(HAND_STATE_INDEX, DataWatcherRegistry.a), bitmask));
-			}
+			items.remove( pos );
+			items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), bitmask ) );
 		}
-		return packet;
+		
+		// We want to remove index 6 if the living entity is prone, aka cancel sneak/swim/sprint
+		// Then, we want to add number 6
+		if ( entity.isProne() ) {
+			for ( int index = 0; index < items.size(); index++ ) {
+				if ( items.get( index ).a().a() == 6 ) {
+					items.remove( index );
+					break;
+				}
+			}
+			items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), EntityPose.SWIMMING ) );
+		}
+		
+		return items.size() > 0;
 	}
 
 	/**
@@ -337,20 +372,30 @@ public class NMSHandler implements PacketHandler {
 	/**
 	 * Update the hand state according to the Gunsmoke Entity
 	 */
-	public void update(LivingEntity entity, boolean main, boolean updateSelf) {
-		int id = ((CraftEntity) entity).getEntityId();
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity(entity.getUniqueId());
+	public void update( LivingEntity entity, boolean main, boolean updateSelf ) {
+		int id = ( ( CraftEntity ) entity ).getEntityId();
+		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 		// When updating, there are several things to take into account
-		if (!GunsmokeUtil.canUpdate(gEntity, main)) {
+		if ( !GunsmokeUtil.canUpdate( gEntity, main ) ) {
 			return;
 		}
-		System.out.println("OK");
-		DataWatcher watcher = ((CraftEntity) entity).getHandle().getDataWatcher();
-		watcher.set(new DataWatcherObject<Byte>(HAND_STATE_INDEX, DataWatcherRegistry.a),
-				(byte) (main ? 0b001 : 0b010));
-		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata(id, watcher, false);
+		DataWatcher watcher = ( ( CraftEntity ) entity ).getHandle().getDataWatcher();
+		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
 
-		broadcastPacket(entity, packet, updateSelf);
+		List< Item< ? > > items = null;
+		try {
+			items = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			if ( items == null ) {
+				items = new ArrayList< Item< ? > >();
+				ENTITYMETADATA_ITEMLIST.set( packet, items );
+			}
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+		}
+		items.clear();
+		items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), ( byte ) ( main ? 0b000 : 0b010 ) ) );
+		
+		broadcastPacket( entity, packet, updateSelf );
 	}
 
 	/**
