@@ -15,6 +15,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiStat
 import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
 import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
@@ -57,8 +58,8 @@ public class Gunsmoke extends JavaPlugin {
 			//entity.getMainHand().setItem( compound );
 			//entity.getMainHand().setState( entity.getMainHand().getState() == State.DEFAULT ? State.BOW : State.DEFAULT );
 			
-			entity.getOffHand().setItem( otherCompound );
-			entity.getOffHand().setState( State.BOW );
+//			entity.getOffHand().setItem( otherCompound );
+//			entity.getOffHand().setState( State.BOW );
 			
 			ItemStackGunsmokeRandom randomItem = new ItemStackGunsmokeRandom( new ItemStackGunsmoke[] { new ItemStackGunsmoke( new ItemStack( Material.CHAINMAIL_CHESTPLATE ) ), new ItemStackGunsmoke( new ItemStack( Material.DIAMOND_CHESTPLATE ) ) } );
 			entity.getEquipment().put( EquipmentSlot.CHEST, randomItem );
@@ -75,6 +76,11 @@ public class Gunsmoke extends JavaPlugin {
 	private void run() {
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			GunsmokeEntity entity = entityManager.getEntity( player.getUniqueId() );
+			entity.update();
+			
+			NMSUtils.setNoFly( player );
+			player.setRemainingAir( 285 );
+//			protocol.getHandler().setAir( player, 285 );
 //			entity.update();
 		}
 	}

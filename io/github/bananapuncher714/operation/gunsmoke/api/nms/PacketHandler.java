@@ -28,6 +28,7 @@ public interface PacketHandler {
 	
 	
 	void set( Player player, boolean down );
+	void setAir( Player player, int ticks );
 	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );

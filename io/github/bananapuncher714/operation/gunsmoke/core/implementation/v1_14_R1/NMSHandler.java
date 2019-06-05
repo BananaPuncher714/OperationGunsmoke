@@ -1,6 +1,7 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_14_R1.util.CraftMagicNumbers;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -38,6 +40,7 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import net.minecraft.server.v1_14_R1.BlockPosition;
 import net.minecraft.server.v1_14_R1.ChatComponentText;
 import net.minecraft.server.v1_14_R1.ChatMessageType;
+import net.minecraft.server.v1_14_R1.ChunkProviderServer;
 import net.minecraft.server.v1_14_R1.DataWatcher;
 import net.minecraft.server.v1_14_R1.DataWatcherObject;
 import net.minecraft.server.v1_14_R1.DataWatcherRegistry;
@@ -47,11 +50,17 @@ import net.minecraft.server.v1_14_R1.EntityHuman;
 import net.minecraft.server.v1_14_R1.EntityLiving;
 import net.minecraft.server.v1_14_R1.EntityPlayer;
 import net.minecraft.server.v1_14_R1.EntityPose;
+import net.minecraft.server.v1_14_R1.EntityShulker;
 import net.minecraft.server.v1_14_R1.EntitySize;
+import net.minecraft.server.v1_14_R1.EntityTypes;
+import net.minecraft.server.v1_14_R1.EnumCreatureType;
 import net.minecraft.server.v1_14_R1.EnumHand;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
 import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.MinecraftKey;
+import net.minecraft.server.v1_14_R1.NBTBase;
+import net.minecraft.server.v1_14_R1.NBTTagCompound;
+import net.minecraft.server.v1_14_R1.NBTTagList;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInArmAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig;
@@ -62,6 +71,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_14_R1.PacketPlayOutChat;
+import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
@@ -69,6 +79,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutNamedSoundEffect;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
 import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntity;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldParticles;
+import net.minecraft.server.v1_14_R1.PlayerChunkMap;
 import net.minecraft.server.v1_14_R1.SoundEffect;
 import net.minecraft.server.v1_14_R1.DataWatcher.Item;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig.EnumPlayerDigType;
@@ -138,13 +149,18 @@ public class NMSHandler implements PacketHandler {
 			
             Map< EntityPose, EntitySize > poses = ( Map< EntityPose, EntitySize > ) universal.get( null );
             
-            for ( EntityPose pose : poses.keySet() ) {
-            	sizes.put( pose, poses.get( pose ) );
+            if ( !( poses instanceof HashMap ) ) {
+	            for ( EntityPose pose : poses.keySet() ) {
+	            	sizes.put( pose, poses.get( pose ) );
+	            }
+	            
+	            universal.set( null, sizes );
+            } else {
+            	sizes = poses;
             }
             
-            universal.set( null, sizes );
-            
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+            ChunkProviderServer.class.getDeclaredField( "lightEngine" );
+		} catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -162,11 +178,11 @@ public class NMSHandler implements PacketHandler {
 	 * or the EntityEquipment packet
 	 */
 	@Override
-	public Object onPacketInterceptOut(Player reciever, Object packet) {
-		if (packet instanceof PacketPlayOutEntityMetadata) {
-			return handleMetadataPacket(reciever, (PacketPlayOutEntityMetadata) packet);
-		} else if (packet instanceof PacketPlayOutEntityEquipment) {
-			return handleEntityEquipmentPacket(reciever, (PacketPlayOutEntityEquipment) packet);
+	public Object onPacketInterceptOut( Player reciever, Object packet ) {
+		if ( packet instanceof PacketPlayOutEntityMetadata ) {
+			return handleMetadataPacket( reciever, ( PacketPlayOutEntityMetadata ) packet );
+		} else if ( packet instanceof PacketPlayOutEntityEquipment ) {
+			return handleEntityEquipmentPacket( reciever, ( PacketPlayOutEntityEquipment ) packet );
 		}
 		return packet;
 	}
@@ -176,9 +192,9 @@ public class NMSHandler implements PacketHandler {
 	 * teleportations, and the BlockPlace and BlockDig for holding down right click
 	 */
 	@Override
-	public Object onPacketInterceptIn(Player reciever, Object packet) {
-		if (packet instanceof PacketPlayInFlying) {
-			return handleFlyingPacket(reciever, (PacketPlayInFlying) packet);
+	public Object onPacketInterceptIn( Player reciever, Object packet ) {
+		if ( packet instanceof PacketPlayInFlying ) {
+			return handleFlyingPacket( reciever, (PacketPlayInFlying ) packet );
 		}
 		return packet;
 	}
@@ -191,10 +207,13 @@ public class NMSHandler implements PacketHandler {
 		List< Item< ? > > items;
 		int id;
 		try {
-			items = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
-			if ( items == null ) {
+			List< Item< ? > > itemList = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			if ( itemList == null ) {
 				return packet;
 			}
+			items = new ArrayList< Item< ? > >( itemList );
+			ENTITYMETADATA_ITEMLIST.set( packet, items );
+			
 			id = ( Integer ) ENTITYMETADATA_ID.get( packet );
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -222,6 +241,9 @@ public class NMSHandler implements PacketHandler {
 			for ( int index = 0; index < items.size(); index++ ) {
 				if ( items.get( index ).a().a() == 6 ) {
 					items.remove( index );
+					if ( entity.isProne() ) {
+						set( reciever, entity.isProne() );
+					}
 					break;
 				}
 			}
@@ -236,7 +258,7 @@ public class NMSHandler implements PacketHandler {
 				break;
 			}
 		}
-		if ( handStateMask > -1 && handStateMask % 2 == 0 ) {
+		if ( handStateMask > -1 ) {
 			byte bitmask = ( byte ) ( ( handStateMask & 0b011 ) | ( entity.isProne() ? 0b100 : 0b000 ) );
 			items.remove( pos );
 			items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), bitmask ) );
@@ -305,9 +327,9 @@ public class NMSHandler implements PacketHandler {
 		EnumItemSlot slot;
 		// TODO move this somewhere nicer
 		try {
-			id = (Integer) ENTITYEQUIPMENT_ID.get(packet);
-			slot = (EnumItemSlot) ENTITYEQUIPMENT_SLOT.get(packet);
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+			id = ( Integer ) ENTITYEQUIPMENT_ID.get( packet );
+			slot = ( EnumItemSlot ) ENTITYEQUIPMENT_SLOT.get( packet );
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 			return packet;
 		}
@@ -365,8 +387,8 @@ public class NMSHandler implements PacketHandler {
 		return packet;
 	}
 
-	public void update(LivingEntity entity, boolean main) {
-		update(entity, main, false);
+	public void update( LivingEntity entity, boolean main ) {
+		update( entity, main, false );
 	}
 
 	/**
@@ -384,7 +406,7 @@ public class NMSHandler implements PacketHandler {
 
 		List< Item< ? > > items = null;
 		try {
-			items = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			items = ( List< Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
 			if ( items == null ) {
 				items = new ArrayList< Item< ? > >();
 				ENTITYMETADATA_ITEMLIST.set( packet, items );
@@ -392,8 +414,12 @@ public class NMSHandler implements PacketHandler {
 		} catch ( IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 		}
+		byte value = watcher.get( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ) );
+		
+		value = ( byte ) ( ( main ? 0b000 : 0b010 ) | ( value & 0b001 ) );
+		
 		items.clear();
-		items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), ( byte ) ( main ? 0b000 : 0b010 ) ) );
+		items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), value ) );
 		
 		broadcastPacket( entity, packet, updateSelf );
 	}
@@ -401,9 +427,9 @@ public class NMSHandler implements PacketHandler {
 	/**
 	 * Update the player's equipment slot
 	 */
-	public void update(LivingEntity entity, EquipmentSlot slot) {
-		EnumItemSlot NMSSlot = NMSUtils.getEnumItemSlot(slot);
-		int id = ((CraftEntity) entity).getEntityId();
+	public void update( LivingEntity entity, EquipmentSlot slot ) {
+		EnumItemSlot NMSSlot = NMSUtils.getEnumItemSlot( slot );
+		int id = ( ( CraftEntity ) entity ).getEntityId();
 		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity(entity.getUniqueId());
 		org.bukkit.inventory.ItemStack item = gEntity.getWearing(slot);
 
@@ -422,21 +448,48 @@ public class NMSHandler implements PacketHandler {
 
 	public void set( Player player, boolean down ) {
 		try {
-			
 			Field size = Entity.class.getDeclaredField( "size" );
 			size.setAccessible( true );
-
-			EntitySize original = sizes.get( EntityPose.SNEAKING );
-			sizes.put( EntityPose.SNEAKING, EntitySize.b( 0.6f, 0.6f ) );
+			Field height = Entity.class.getDeclaredField( "headHeight" );
+			height.setAccessible( true );
+			
+			EntityPose pose = ( ( CraftEntity ) player ).getHandle().getPose();
+			
+			EntitySize original = sizes.get( pose );
+			sizes.put( pose, EntitySize.b( 0.6f, 0.6f ) );
 
 			( ( CraftEntity ) player ).getHandle().updateSize();
 
-			sizes.put( EntityPose.SNEAKING, original );
+			EntitySize playerSize = ( EntitySize ) size.get( ( ( CraftEntity ) player ).getHandle() );
+			height.set( ( ( CraftEntity ) player ).getHandle(), playerSize.height * 0.85f );
+			
+			sizes.put( pose, original );
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		}
 	}
+	
+	public void setAir( Player player, int air ) {
+		int id = ( ( CraftEntity ) player ).getEntityId();
+		DataWatcher watcher = ( ( CraftEntity ) player ).getHandle().getDataWatcher();
+		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
 
+		List< Item< ? > > items = null;
+		try {
+			items = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			if ( items == null ) {
+				items = new ArrayList< Item< ? > >();
+				ENTITYMETADATA_ITEMLIST.set( packet, items );
+			}
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+		}
+		items.clear();
+		items.add( new Item< Integer >( new DataWatcherObject< Integer >( 1, DataWatcherRegistry.b ), air ) );
+		
+		plugin.getProtocol().sendPacket( player, packet );
+	}
+	
 	// @Override
 	// public void sendMessage( Player player, String message, Display display ) {
 	// PacketPlayOutChat packet = new PacketPlayOutChat( new ChatComponentText(
