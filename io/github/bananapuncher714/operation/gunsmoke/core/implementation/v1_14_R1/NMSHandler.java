@@ -171,7 +171,7 @@ public class NMSHandler implements PacketHandler {
 		this.plugin = plugin;
 	}
 
-	private Set<Integer> equipmentPackets = new HashSet<Integer>();
+	private Set< Integer > equipmentPackets = new HashSet< Integer >();
 
 	/**
 	 * Intercept outgoing packets; Edit them if they are the EntityMetadata packet
@@ -195,10 +195,22 @@ public class NMSHandler implements PacketHandler {
 	public Object onPacketInterceptIn( Player reciever, Object packet ) {
 		if ( packet instanceof PacketPlayInFlying ) {
 			return handleFlyingPacket( reciever, (PacketPlayInFlying ) packet );
+		} else if ( packet instanceof PacketPlayInBlockPlace ) {
+			return handleBlockPlacePacket( reciever, ( PacketPlayInBlockPlace ) packet );
+		} else if ( packet instanceof PacketPlayInBlockDig ) {
+			return handleBlockDigPacket( reciever, ( PacketPlayInBlockDig ) packet );
 		}
 		return packet;
 	}
 
+	private Packet handleBlockPlacePacket( Player player, PacketPlayInBlockPlace packet ) {
+		return packet;
+	}
+	
+	private Packet handleBlockDigPacket( Player player, PacketPlayInBlockDig packet ) {
+		return packet;
+	}
+	
 	/**
 	 * Edit the entity metadata packet so that the player's arms are in the right
 	 * "state"

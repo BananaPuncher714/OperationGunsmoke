@@ -23,6 +23,8 @@ import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGu
 public class Gunsmoke extends JavaPlugin {
 	protected TinyProtocolGunsmoke protocol;
 	protected EntityManager entityManager;
+	protected PlayerManager playerManager;
+	protected TaskManager taskManager;
 	
 	@Override
 	public void onEnable() {
@@ -30,6 +32,8 @@ public class Gunsmoke extends JavaPlugin {
 		protocol = new TinyProtocolGunsmoke( this, handler );
 		
 		entityManager = new EntityManager();
+		playerManager = new PlayerManager( this );
+		taskManager = new TaskManager( this );
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
@@ -91,5 +95,13 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public EntityManager getEntityManager() {
 		return entityManager;
+	}
+	
+	public PlayerManager getPlayerManager() {
+		return playerManager;
+	}
+	
+	public TaskManager getTaskManager() {
+		return taskManager;
 	}
 }

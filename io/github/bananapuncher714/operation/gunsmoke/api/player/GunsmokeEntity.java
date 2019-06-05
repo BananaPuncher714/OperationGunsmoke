@@ -20,6 +20,7 @@ public class GunsmokeEntity {
 	protected GunsmokeEntityHand mainHand;
 	protected Map< EquipmentSlot, ItemStackGunsmoke > equipment;
 	protected boolean isProne = false;
+	protected boolean isRightClicking = false;
 	
 	public GunsmokeEntity( UUID uuid ) {
 		this.uuid = uuid;
@@ -42,6 +43,14 @@ public class GunsmokeEntity {
 
 	public void setProne( boolean isProne ) {
 		this.isProne = isProne;
+	}
+	
+	public boolean isRightClicking() {
+		return isRightClicking;
+	}
+
+	public void setRightClicking( boolean isRightClicking ) {
+		this.isRightClicking = isRightClicking;
 	}
 
 	public ItemStack getWearing( EquipmentSlot slot ) {
