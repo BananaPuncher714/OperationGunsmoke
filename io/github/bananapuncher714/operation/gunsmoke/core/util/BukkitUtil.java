@@ -1,6 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.util;
 
-import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -22,6 +22,17 @@ public class BukkitUtil {
 			return entity.getEquipment().getItemInOffHand();
 		default:
 			return null;
+		}
+	}
+	
+	public final static boolean isRightClickable( Material material ) {
+		switch ( material ) {
+		case BOW:
+		case TRIDENT:
+		case SHIELD:
+			return true;
+		default:
+			return false;
 		}
 	}
 }

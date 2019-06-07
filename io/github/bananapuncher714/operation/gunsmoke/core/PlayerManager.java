@@ -7,16 +7,21 @@ import java.util.UUID;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.PlayerHoldRightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.PlayerLeftClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.PlayerReleaseRightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.PlayerRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.events.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.events.HoldRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.events.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.events.ReleaseRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.events.RightClickEvent;
 
 public class PlayerManager {
 	private final Map< UUID, Long > holdingRC = new HashMap< UUID, Long >();
+	private final Map< UUID, ItemStack[] > heldItems = new HashMap< UUID, ItemStack[] >();
 	private Gunsmoke plugin;
 	
 	protected PlayerManager( Gunsmoke plugin ) {
@@ -25,6 +30,7 @@ public class PlayerManager {
 	}
 	
 	private void updateHolding() {
+		// Detect right clicking and call appropriate events
 		for ( Iterator< Entry< UUID, Long > > it = holdingRC.entrySet().iterator(); it.hasNext(); ) {
 			Entry< UUID, Long > entry = it.next();
 			Player player = Bukkit.getPlayer( entry.getKey() );
@@ -32,8 +38,31 @@ public class PlayerManager {
 				it.remove();
 				continue;
 			}
-			PlayerHoldRightClickEvent event = new PlayerHoldRightClickEvent( player, entry.getValue() );
+			HoldRightClickEvent event = new HoldRightClickEvent( player, entry.getValue() );
 			Bukkit.getPluginManager().callEvent( event );
+		}
+		
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			ItemStack[] items = heldItems.get( player.getUniqueId() );
+			if ( items == null ) {
+				items = new ItemStack[] { new ItemStack( Material.AIR ), new ItemStack( Material.AIR ) };
+				heldItems.put( player.getUniqueId(), items );
+			}
+			
+			if ( player.getEquipment().getItemInMainHand().hashCode() != items[ 0 ].hashCode() ) {
+				EntityUpdateItemEvent event = new EntityUpdateItemEvent( player, items[ 0 ], EquipmentSlot.HAND );
+				
+				plugin.getTaskManager().callEventSync( event );
+			}
+			
+			if ( player.getEquipment().getItemInOffHand().hashCode() != items[ 1 ].hashCode() ) {
+				EntityUpdateItemEvent event = new EntityUpdateItemEvent( player, items[ 1 ], EquipmentSlot.OFF_HAND );
+				
+				plugin.getTaskManager().callEventSync( event );
+			}
+			
+			items[ 0 ] = player.getEquipment().getItemInMainHand();
+			items[ 1 ] = player.getEquipment().getItemInOffHand();
 		}
 	}
 	
@@ -44,15 +73,15 @@ public class PlayerManager {
 			if ( !holdingRC.containsKey( entity.getUniqueId() ) ) {
 				holdingRC.put( entity.getUniqueId(), System.currentTimeMillis() );
 				// Call the player press right click event if they are not already holding down right click
-				PlayerRightClickEvent event = new PlayerRightClickEvent( entity );
-				Bukkit.getPluginManager().callEvent( event );
+				RightClickEvent event = new RightClickEvent( entity );
+				plugin.getTaskManager().callEventSync( event );
 			}
 		} else {
 			if ( holdingRC.containsKey( entity.getUniqueId() ) ) {
 				holdingRC.remove( entity.getUniqueId() );
 				// Call the player release right click event
-				PlayerReleaseRightClickEvent releaseClickEvent = new PlayerReleaseRightClickEvent( entity );
-				Bukkit.getPluginManager().callEvent( releaseClickEvent );
+				ReleaseRightClickEvent releaseClickEvent = new ReleaseRightClickEvent( entity );
+				plugin.getTaskManager().callEventSync( releaseClickEvent );
 			}
 		}
 	}
@@ -66,7 +95,7 @@ public class PlayerManager {
 	}
 	
 	public void leftClick( Player player ) {
-		PlayerLeftClickEvent event = new PlayerLeftClickEvent( player );
-		Bukkit.getPluginManager().callEvent( event );
+		LeftClickEvent event = new LeftClickEvent( player );
+		plugin.getTaskManager().callEventSync( event );
 	}
 }

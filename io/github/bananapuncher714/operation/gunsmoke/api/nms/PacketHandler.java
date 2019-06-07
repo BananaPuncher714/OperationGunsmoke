@@ -30,6 +30,8 @@ public interface PacketHandler {
 	void set( Player player, boolean down );
 	void setAir( Player player, int ticks );
 	
+	boolean isCurrentThreadMain();
+	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );
 //	void updateBow( LivingEntity entity, Player viewer );

@@ -1,13 +1,12 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.player.events;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-public class PlayerLeftClickEvent extends PlayerEvent implements Cancellable {
+public class HoldRightClickEvent extends PlayerEvent {
 	private static final HandlerList handlers = new HandlerList();
-	private boolean cancelled = false;
+	protected long ms;
 
 	@Override
 	public HandlerList getHandlers() {
@@ -18,17 +17,12 @@ public class PlayerLeftClickEvent extends PlayerEvent implements Cancellable {
 	    return handlers;
 	}
 	
-	public PlayerLeftClickEvent( Player player ) {
+	public HoldRightClickEvent( Player player, long ms ) {
 		super( player );
+		this.ms = ms;
 	}
 	
-	@Override
-	public boolean isCancelled() {
-		return cancelled;
-	}
-
-	@Override
-	public void setCancelled( boolean arg0 ) {
-		cancelled = arg0;
+	public long getHeldTime() {
+		return ms;
 	}
 }

@@ -4,10 +4,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-public class PlayerHoldRightClickEvent extends PlayerEvent {
+public class RightClickEvent extends PlayerEvent {
 	private static final HandlerList handlers = new HandlerList();
-	protected long ms;
-
+	
 	@Override
 	public HandlerList getHandlers() {
 	    return handlers;
@@ -17,12 +16,7 @@ public class PlayerHoldRightClickEvent extends PlayerEvent {
 	    return handlers;
 	}
 	
-	public PlayerHoldRightClickEvent( Player player, long ms ) {
+	public RightClickEvent( Player player ) {
 		super( player );
-		this.ms = ms;
-	}
-	
-	public long getHeldTime() {
-		return ms;
 	}
 }

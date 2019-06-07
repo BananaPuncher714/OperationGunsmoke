@@ -16,6 +16,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiStat
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
+import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
 import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
@@ -37,6 +38,7 @@ public class Gunsmoke extends JavaPlugin {
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
+		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
 	}
 	
 	/**
