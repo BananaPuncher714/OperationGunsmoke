@@ -12,12 +12,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.EntityUpdateItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.HoldRightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.LeftClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.ReleaseRightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.RightClickEvent;
 
 public class PlayerManager {
 	private final Map< UUID, Long > holdingRC = new HashMap< UUID, Long >();

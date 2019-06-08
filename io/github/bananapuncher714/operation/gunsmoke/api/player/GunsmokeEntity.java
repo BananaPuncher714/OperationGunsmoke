@@ -10,7 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackGunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class GunsmokeEntity {

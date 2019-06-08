@@ -2,8 +2,8 @@ package io.github.bananapuncher714.operation.gunsmoke.api.player;
 
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiState;
-import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiState.State;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 
 public class GunsmokeEntityHand {
 	protected State state;

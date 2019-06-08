@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class PlayerListener implements Listener {

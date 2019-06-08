@@ -1,4 +1,4 @@
-package io.github.bananapuncher714.operation.gunsmoke.api.player.events;
+package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;

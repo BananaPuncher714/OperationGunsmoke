@@ -3,7 +3,7 @@ package io.github.bananapuncher714.operation.gunsmoke.core.util;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiState.State;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 
 public class GunsmokeUtil {

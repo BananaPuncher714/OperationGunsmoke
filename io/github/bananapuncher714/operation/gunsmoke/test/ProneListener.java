@@ -1,10 +1,15 @@
 package io.github.bananapuncher714.operation.gunsmoke.test;
 
+import java.lang.reflect.Field;
+
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -12,16 +17,17 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.AdvancementOpenEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.DropItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.EntityUpdateItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.HoldRightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.LeftClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.ReleaseRightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
+import net.minecraft.server.v1_14_R1.Entity;
 
 public class ProneListener implements Listener {
 	Gunsmoke plugin;
@@ -99,7 +105,11 @@ public class ProneListener implements Listener {
 	
 	@EventHandler
 	public void onEvent( AdvancementOpenEvent event ) {
-		event.getPlayer().closeInventory();
+//		event.getPlayer().closeInventory();
 		System.out.println( "Advancement Done! " + event.getTab() );
+	}
+	
+	@EventHandler
+	public void onEvent( ProjectileLaunchEvent event ) {
 	}
 }

@@ -5,6 +5,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,21 +32,22 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackGunsmoke;
-import io.github.bananapuncher714.operation.gunsmoke.api.item.ItemStackMultiState.State;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntityHand;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.AdvancementOpenEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.DropItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.events.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import net.minecraft.server.v1_14_R1.BlockPosition;
 import net.minecraft.server.v1_14_R1.ChatComponentText;
 import net.minecraft.server.v1_14_R1.ChatMessageType;
+import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_14_R1.ChunkProviderServer;
 import net.minecraft.server.v1_14_R1.DataWatcher;
 import net.minecraft.server.v1_14_R1.DataWatcherObject;
@@ -61,6 +65,7 @@ import net.minecraft.server.v1_14_R1.EnumCreatureType;
 import net.minecraft.server.v1_14_R1.EnumHand;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
 import net.minecraft.server.v1_14_R1.ItemStack;
+import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftKey;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.NBTBase;
@@ -81,6 +86,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutChat;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
+import net.minecraft.server.v1_14_R1.PacketPlayOutEntityStatus;
+import net.minecraft.server.v1_14_R1.PacketPlayOutLightUpdate;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_14_R1.PacketPlayOutNamedSoundEffect;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
@@ -112,6 +119,8 @@ public class NMSHandler implements PacketHandler {
 	private static Field PLAYERABILITIES_FOV;
 
 	private static Map< EntityPose, EntitySize > sizes = new HashMap< EntityPose, EntitySize >();
+
+	private static Set< EnumPlayerTeleportFlags > TELEPORT_FLAGS;
 	
 	static {
 		try {
@@ -166,8 +175,8 @@ public class NMSHandler implements PacketHandler {
             	sizes = poses;
             }
             
-            ChunkProviderServer.class.getDeclaredField( "lightEngine" );
-		} catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
+            TELEPORT_FLAGS = Collections.unmodifiableSet( EnumSet.allOf( EnumPlayerTeleportFlags.class ) );
+        } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -432,7 +441,67 @@ public class NMSHandler implements PacketHandler {
 		}
 		return packet;
 	}
+	
+	
+	public void darkness( Player player ) {
+		LightEngine engine = ( ( CraftWorld ) player.getWorld() ).getHandle().getChunkProvider().getLightEngine();
+		int x = player.getLocation().getBlockX() >> 4;
+		int z = player.getLocation().getBlockZ() >> 4;
+		ChunkCoordIntPair coords = new ChunkCoordIntPair( x, z );
+		
+		PacketPlayOutLightUpdate packet = new PacketPlayOutLightUpdate( coords, engine );
+		
+		// 1x18
+		int val = 0b111111111111111111;
+		
+		try {
+			Field[] fields = new Field[ 8 ];
+			fields[ 0 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "a" );
+			fields[ 1 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "b" );
+			fields[ 2 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "c" );
+			fields[ 3 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "d" );
+			fields[ 4 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "e" );
+			fields[ 5 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "f" );
+			fields[ 6 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "g" );
+			fields[ 7 ] = PacketPlayOutLightUpdate.class.getDeclaredField( "h" );
+			
+			for ( Field field : fields ) {
+				field.setAccessible( true );
+			}
+			
+			List< byte[] > skyLevels = new ArrayList< byte[] >();
+			List< byte[] > groundLevels = new ArrayList< byte[] >();
+			for ( int i = 0; i < 18; i++ ) {
+				byte[] skyNibble = new byte[ 2048 ];
+				Arrays.fill( skyNibble, ( byte ) 0 );
+				skyLevels.add( skyNibble );
+				
+				byte[] groundNibble = new byte[ 2048 ];
+				Arrays.fill( groundNibble, ( byte ) 0 );
+				groundLevels.add( groundNibble );
+			}
+			
+			fields[ 2 ].set( packet, val );
+//			fields[ 3 ].set( packet, val );
+			fields[ 4 ].set( packet, 0 );
+//			fields[ 5 ].set( packet, 0 );
+			fields[ 6 ].set( packet, skyLevels );
+//			fields[ 7 ].set( packet, groundLevels );
+		} catch ( Exception exception ) {
+			exception.printStackTrace();
+		}
+		
+		plugin.getProtocol().sendPacket( player, packet );
+	}
+	
+	@Override
+	public void hurt( LivingEntity entity ) {
+		PacketPlayOutEntityStatus packet = new PacketPlayOutEntityStatus( ( ( CraftEntity ) entity ).getHandle(), ( byte ) 2 );
+		broadcastPacket( entity, packet, true );
+		
+	}
 
+	@Override
 	public void update( LivingEntity entity, boolean main ) {
 		update( entity, main, false );
 	}
@@ -492,6 +561,13 @@ public class NMSHandler implements PacketHandler {
 		}
 	}
 
+	@Override
+	public void teleportRelative( String player, Vector vector, float yaw, float pitch ) {
+		PacketPlayOutPosition packet = new PacketPlayOutPosition( vector.getX(), vector.getY(), vector.getZ(), yaw, pitch, TELEPORT_FLAGS, 0 );
+		plugin.getProtocol().sendPacket( player, packet );
+	}
+	
+	@Override
 	public void set( Player player, boolean down ) {
 		try {
 			Field size = Entity.class.getDeclaredField( "size" );
@@ -515,6 +591,7 @@ public class NMSHandler implements PacketHandler {
 		}
 	}
 	
+	@Override
 	public void setAir( Player player, int air ) {
 		int id = ( ( CraftEntity ) player ).getEntityId();
 		DataWatcher watcher = ( ( CraftEntity ) player ).getHandle().getDataWatcher();
