@@ -1,41 +1,40 @@
 package io.github.bananapuncher714.operation.gunsmoke.test;
 
-import java.lang.reflect.Field;
-
-import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
+import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.ProjectileLaunchEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.nms.PlayerJumpEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
-import net.minecraft.server.v1_14_R1.Entity;
 
 public class ProneListener implements Listener {
 	Gunsmoke plugin;
+	GunsmokeItem item;
 	
 	long lastSneak = 0;
 	
 	public ProneListener( Gunsmoke plugin ) {
 		this.plugin = plugin;
+		
+		item = new TestGunsmokeItemInteractable( plugin );
+		
+		plugin.getItemManager().register( item );
 	}
 	
 	@EventHandler
@@ -84,6 +83,16 @@ public class ProneListener implements Listener {
 	}
 	
 	@EventHandler
+	public void onEvent( LeftClickEntityEvent event ) {
+		System.out.println( "Left clicked entity!" );
+	}
+	
+	@EventHandler
+	public void onEvent( RightClickEntityEvent event ) {
+		System.out.println( "Right clicked entity!" );
+	}
+	
+	@EventHandler
 	public void onEvent( RightClickEvent event ) {
 		System.out.println( "Right clicked!" );
 	}
@@ -100,16 +109,25 @@ public class ProneListener implements Listener {
 	
 	@EventHandler
 	public void onEvent( DropItemEvent event ) {
+		if ( event.getPlayer().getEquipment().getItemInMainHand().getType() == Material.GOLDEN_CARROT ) {
+			event.setCancelled( true );
+			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
+		}
 		System.out.println( "Drop item event!" );
 	}
 	
 	@EventHandler
 	public void onEvent( AdvancementOpenEvent event ) {
-//		event.getPlayer().closeInventory();
 		System.out.println( "Advancement Done! " + event.getTab() );
 	}
 	
 	@EventHandler
-	public void onEvent( ProjectileLaunchEvent event ) {
+	public void onEvent( EntityDamageEvent event ) {
+		Entity entity = event.getEntity();
+		if ( entity instanceof LivingEntity ) {
+			LivingEntity livingEntity = ( LivingEntity ) entity;
+			livingEntity.setNoDamageTicks( 0 );
+			livingEntity.setMaximumNoDamageTicks( Integer.MIN_VALUE );
+		}
 	}
 }

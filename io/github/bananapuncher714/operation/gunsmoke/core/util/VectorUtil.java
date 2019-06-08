@@ -15,9 +15,9 @@ public final class VectorUtil {
 	
 	// This can be made so much faster since I know where the origin is
 	// This checks to see if a ray intersects with an entity
-	public static boolean rayIntersect( Entity entity, Vector ray, Location origin ) {
+	public static Location rayIntersect( Entity entity, Vector ray, Location origin ) {
 		if ( origin.getWorld() != entity.getWorld() ) {
-			return false;
+			return null;
 		}
 		Location location = entity.getLocation();
 		
@@ -27,49 +27,51 @@ public final class VectorUtil {
 		
 		Location lower = location.clone().subtract( rad, 0, rad );
 		Location upper = location.clone().add( rad, entity.getHeight(), rad );
+
+		// TODO Add a way to determine the entry and exit point?
 		
 		if ( lower.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zLow = calculateVector( lower, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zLow != null && zLow.getX() >= lower.getX() && zLow.getX() <= upper.getX() && zLow.getY() >= lower.getY() && zLow.getY() <= upper.getY() ) {
-				return true;
+				return zLow;
 			}
 		}
 		
 		if ( upper.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zHigh = calculateVector( upper, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zHigh != null && zHigh.getX() >= lower.getX() && zHigh.getX() <= upper.getX() && zHigh.getY() >= lower.getY() && zHigh.getY() <= upper.getY() ) {
-				return true;
+				return zHigh;
 			}
 		}
 
 		if ( lower.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xLow = calculateVector( lower, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xLow != null && xLow.getZ() >= lower.getZ() && xLow.getZ() <= upper.getZ() && xLow.getY() >= lower.getY() && xLow.getY() <= upper.getY() ) {
-				return true;
+				return xLow;
 			}
 		}
 
 		if ( upper.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xHigh = calculateVector( upper, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xHigh != null && xHigh.getZ() >= lower.getZ() && xHigh.getZ() <= upper.getZ() && xHigh.getY() >= lower.getY() && xHigh.getY() <= upper.getY() ) {
-				return true;
+				return xHigh;
 			}
 		}
 
 		if ( lower.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yLow = calculateVector( lower, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yLow != null && yLow.getX() >= lower.getX() && yLow.getX() <= upper.getX() && yLow.getZ() >= lower.getZ() && yLow.getZ() <= upper.getZ() ) {
-				return true;
+				return yLow;
 			}
 		}
 
 		if ( upper.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yHigh = calculateVector( upper, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yHigh != null && yHigh.getX() >= lower.getX() && yHigh.getX() <= upper.getX() && yHigh.getZ() >= lower.getZ() && yHigh.getZ() <= upper.getZ() ) {
-				return true;
+				return yHigh;
 			}
 		}
-		return false;
+		return null;
 	}
 	
 	/**

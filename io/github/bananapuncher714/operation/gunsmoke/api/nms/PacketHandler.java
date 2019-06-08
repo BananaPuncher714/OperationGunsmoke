@@ -34,6 +34,8 @@ public interface PacketHandler {
 	
 	void hurt( LivingEntity entity );
 	
+	int getServerTick();
+	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );
 //	void updateBow( LivingEntity entity, Player viewer );

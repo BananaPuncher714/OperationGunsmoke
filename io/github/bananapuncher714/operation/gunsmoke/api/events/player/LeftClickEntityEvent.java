@@ -1,20 +1,20 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
-public class AdvancementOpenEvent extends PlayerEvent {
+public class LeftClickEntityEvent extends LeftClickEvent {
 	private static final HandlerList handlers = new HandlerList();
-	private final String tab;
+	private final Entity hitEntity;
 	
-	public AdvancementOpenEvent( Player who, String tab ) {
-		super( who );
-		this.tab = tab;
+	public LeftClickEntityEvent( Player player, Entity entity ) {
+		super( player );
+		this.hitEntity = entity;
 	}
-	
-	public String getTab() {
-		return tab;
+
+	public Entity getHitEntity() {
+		return hitEntity;
 	}
 	
 	@Override

@@ -1,8 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,88 +14,61 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_14_R1.util.CraftMagicNumbers;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
-import io.github.bananapuncher714.operation.gunsmoke.api.nms.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntityHand;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
-import net.minecraft.server.v1_14_R1.BlockPosition;
-import net.minecraft.server.v1_14_R1.ChatComponentText;
-import net.minecraft.server.v1_14_R1.ChatMessageType;
+import net.minecraft.server.v1_14_R1.AttributeInstance;
 import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
-import net.minecraft.server.v1_14_R1.ChunkProviderServer;
 import net.minecraft.server.v1_14_R1.DataWatcher;
+import net.minecraft.server.v1_14_R1.DataWatcher.Item;
 import net.minecraft.server.v1_14_R1.DataWatcherObject;
 import net.minecraft.server.v1_14_R1.DataWatcherRegistry;
-import net.minecraft.server.v1_14_R1.DataWatcherSerializer;
 import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityHuman;
-import net.minecraft.server.v1_14_R1.EntityLiving;
-import net.minecraft.server.v1_14_R1.EntityPlayer;
 import net.minecraft.server.v1_14_R1.EntityPose;
-import net.minecraft.server.v1_14_R1.EntityShulker;
 import net.minecraft.server.v1_14_R1.EntitySize;
-import net.minecraft.server.v1_14_R1.EntityTypes;
-import net.minecraft.server.v1_14_R1.EnumCreatureType;
-import net.minecraft.server.v1_14_R1.EnumHand;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
+import net.minecraft.server.v1_14_R1.GenericAttributes;
 import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.LightEngine;
-import net.minecraft.server.v1_14_R1.MinecraftKey;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
-import net.minecraft.server.v1_14_R1.NBTBase;
-import net.minecraft.server.v1_14_R1.NBTTagCompound;
-import net.minecraft.server.v1_14_R1.NBTTagList;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements.Status;
-import net.minecraft.server.v1_14_R1.PacketPlayInArmAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig;
+import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig.EnumPlayerDigType;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockPlace;
 import net.minecraft.server.v1_14_R1.PacketPlayInFlying;
-import net.minecraft.server.v1_14_R1.PacketPlayInTeleportAccept;
 import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
-import net.minecraft.server.v1_14_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_14_R1.PacketPlayOutChat;
-import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityStatus;
 import net.minecraft.server.v1_14_R1.PacketPlayOutLightUpdate;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
-import net.minecraft.server.v1_14_R1.PacketPlayOutNamedSoundEffect;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
-import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntity;
-import net.minecraft.server.v1_14_R1.PacketPlayOutWorldParticles;
-import net.minecraft.server.v1_14_R1.PlayerChunkMap;
-import net.minecraft.server.v1_14_R1.SoundEffect;
-import net.minecraft.server.v1_14_R1.DataWatcher.Item;
-import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig.EnumPlayerDigType;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFlags;
+import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntity;
+import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
+import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes.AttributeSnapshot;
 
 public class NMSHandler implements PacketHandler {
 	private final static int HAND_STATE_INDEX = 7;
@@ -239,7 +210,24 @@ public class NMSHandler implements PacketHandler {
 		if ( packet.d() == EnumPlayerDigType.RELEASE_USE_ITEM ) {
 			plugin.getPlayerManager().setHolding( player, false );
 		} else if ( packet.d() == EnumPlayerDigType.DROP_ITEM ) {
-			plugin.getTaskManager().callEventSync( new DropItemEvent( player ) );
+			DropItemEvent event = new DropItemEvent( player );
+			
+			CountDownLatch latch = new CountDownLatch( 1 );
+			Bukkit.getScheduler().scheduleSyncDelayedTask( plugin, () -> {
+				Bukkit.getPluginManager().callEvent( event );
+				latch.countDown();
+			} );
+			
+			try {
+				latch.await();
+			} catch ( InterruptedException e ) {
+				e.printStackTrace();
+			}
+			
+			if ( event.isCancelled() ) {
+				player.getEquipment().setItemInMainHand( player.getEquipment().getItemInMainHand() );
+				return null;
+			}
 		}
 		return packet;
 	}
@@ -257,10 +245,9 @@ public class NMSHandler implements PacketHandler {
 				return packet;
 			}
 			items = new ArrayList< Item< ? > >( itemList );
-			ENTITYMETADATA_ITEMLIST.set( packet, items );
 			
 			id = ( Integer ) ENTITYMETADATA_ID.get( packet );
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 			return packet;
 		}
@@ -273,12 +260,20 @@ public class NMSHandler implements PacketHandler {
 		}
 
 		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
-		
+
+		Packet result;
 		if ( entity == player ) {
-			return handleInternalMetadataPacket( player, items, gEntity ) ? packet : null;
+			result = handleInternalMetadataPacket( player, items, gEntity ) ? packet : null;
 		} else {
-			return handleExternalMetadataPacket( player, ( LivingEntity ) entity, items, gEntity ) ? packet : null;
+			result = handleExternalMetadataPacket( player, ( LivingEntity ) entity, items, gEntity ) ? packet : null;
 		}
+		try {
+			ENTITYMETADATA_ITEMLIST.set( packet, items );
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 	
 	private boolean handleInternalMetadataPacket( Player reciever, List< Item< ? > > items, GunsmokeEntity entity ) {
@@ -286,6 +281,7 @@ public class NMSHandler implements PacketHandler {
 			for ( int index = 0; index < items.size(); index++ ) {
 				if ( items.get( index ).a().a() == 6 ) {
 					items.remove( index );
+					// Re-set the player's hitbox in case if they come out from under a block
 					if ( entity.isProne() ) {
 						set( reciever, entity.isProne() );
 					}
@@ -307,7 +303,6 @@ public class NMSHandler implements PacketHandler {
 			byte bitmask = ( byte ) ( ( handStateMask & 0b011 ) | ( entity.isProne() ? 0b100 : 0b000 ) );
 			items.remove( pos );
 			items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), bitmask ) );
-
 		}
 		return items.size() > 0;
 	}
@@ -496,9 +491,15 @@ public class NMSHandler implements PacketHandler {
 	
 	@Override
 	public void hurt( LivingEntity entity ) {
+		List< AttributeInstance > attributes = new ArrayList< AttributeInstance >();
+		attributes.add( ( ( CraftLivingEntity ) entity ).getHandle().getAttributeInstance( GenericAttributes.MAX_HEALTH ) );
+		PacketPlayOutUpdateAttributes attributePacket = new PacketPlayOutUpdateAttributes( entity.getEntityId(), attributes );
+		if ( entity instanceof Player ) {
+			plugin.getProtocol().sendPacket( ( Player ) entity , attributePacket );
+		}
+		
 		PacketPlayOutEntityStatus packet = new PacketPlayOutEntityStatus( ( ( CraftEntity ) entity ).getHandle(), ( byte ) 2 );
 		broadcastPacket( entity, packet, true );
-		
 	}
 
 	@Override
@@ -510,7 +511,7 @@ public class NMSHandler implements PacketHandler {
 	 * Update the hand state according to the Gunsmoke Entity
 	 */
 	public void update( LivingEntity entity, boolean main, boolean updateSelf ) {
-		int id = ( ( CraftEntity ) entity ).getEntityId();
+		int id = entity.getEntityId();
 		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 		// When updating, there are several things to take into account
 		if ( !GunsmokeUtil.canUpdate( gEntity, main ) ) {
@@ -593,7 +594,7 @@ public class NMSHandler implements PacketHandler {
 	
 	@Override
 	public void setAir( Player player, int air ) {
-		int id = ( ( CraftEntity ) player ).getEntityId();
+		int id = player.getEntityId();
 		DataWatcher watcher = ( ( CraftEntity ) player ).getHandle().getDataWatcher();
 		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
 
@@ -613,8 +614,14 @@ public class NMSHandler implements PacketHandler {
 		plugin.getProtocol().sendPacket( player, packet );
 	}
 	
+	@Override
 	public boolean isCurrentThreadMain() {
 		return Thread.currentThread() == MinecraftServer.getServer().serverThread;
+	}
+	
+	@Override
+	public int getServerTick() {
+		return MinecraftServer.currentTick;
 	}
 	
 	// @Override

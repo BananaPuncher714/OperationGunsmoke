@@ -3,19 +3,23 @@ package io.github.bananapuncher714.operation.gunsmoke.core;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.UUID;
 import java.util.Map.Entry;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 
@@ -94,8 +98,27 @@ public class PlayerManager {
 		return System.currentTimeMillis() - ( holdingRC.containsKey( player.getUniqueId() ) ? holdingRC.get( player.getUniqueId() ) : 0 );
 	}
 	
-	public void leftClick( Player player ) {
+	public void leftClick( Player player, Cancellable parent ) {
 		LeftClickEvent event = new LeftClickEvent( player );
 		plugin.getTaskManager().callEventSync( event );
+		if ( event.isCancelled() ) {
+			parent.setCancelled( true );
+		}
+	}
+	
+	public void rightClickEntity( Player player, Entity clicked, Cancellable parent ) {
+		RightClickEntityEvent event = new RightClickEntityEvent( player, clicked );
+		plugin.getTaskManager().callEventSync( event );
+		if ( event.isCancelled() ) {
+			parent.setCancelled( true );
+		}
+	}
+	
+	public void leftClickEntity( Player player, Entity clicked, Cancellable parent ) {
+		LeftClickEvent event = new LeftClickEntityEvent( player, clicked );
+		plugin.getTaskManager().callEventSync( event );
+		if ( event.isCancelled() ) {
+			parent.setCancelled( true );
+		}
 	}
 }

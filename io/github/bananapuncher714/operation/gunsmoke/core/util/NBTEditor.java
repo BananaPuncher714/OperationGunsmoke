@@ -93,6 +93,7 @@ public final class NBTEditor {
 			methodCache.put( "set", getNMSClass( "NBTTagCompound" ).getMethod( "set", String.class, getNMSClass( "NBTBase" ) ) );
 			methodCache.put( "hasKey", getNMSClass( "NBTTagCompound" ).getMethod( "hasKey", String.class ) );
 			methodCache.put( "setIndex", getNMSClass( "NBTTagList" ).getMethod( "a", int.class, getNMSClass( "NBTBase" ) ) );
+			methodCache.put( "size", getNMSClass( "NBTTagList" ).getMethod( "size" ) );
 			if ( VERSION.contains( "1_14" ) ) {
 				methodCache.put( "getTypeId", getNMSClass( "NBTBase" ).getMethod( "getTypeId" ) );
 				methodCache.put( "add", getNMSClass( "NBTTagList" ).getMethod( "add", int.class, getNMSClass( "NBTBase" ) ) );
@@ -950,8 +951,7 @@ public final class NBTEditor {
 			if ( index + 1 == keys.length ) {
 				if ( key == null ) {
 					if ( VERSION.contains( "1_14" ) ) {
-						int type = ( int ) getMethod( "getTypeId" ).invoke( notCompound );
-						getMethod( "add" ).invoke( compound, type, notCompound );
+						( ( List< Object > ) NBTListData.get( compound ) ).add( notCompound );
 					} else {
 						getMethod( "add" ).invoke( compound, notCompound );
 					}
@@ -984,10 +984,9 @@ public final class NBTEditor {
 				}
 				if ( oldCompound.getClass().getSimpleName().equals( "NBTTagList" ) ) {
 					if ( VERSION.contains( "1_14" ) ) {
-						int type = ( int ) getMethod( "getTypeId" ).invoke( notCompound );
-						getMethod( "add" ).invoke( compound, type, notCompound );
+						( ( List< Object > ) NBTListData.get( oldCompound ) ).add( notCompound );
 					} else {
-						getMethod( "add" ).invoke( compound, notCompound );
+						getMethod( "add" ).invoke( oldCompound, notCompound );
 					}
 				} else {
 					if ( notCompound == null ) {

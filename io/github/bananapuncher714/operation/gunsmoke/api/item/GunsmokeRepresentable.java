@@ -12,4 +12,7 @@ public abstract class GunsmokeRepresentable {
 	public UUID getUUID() {
 		return uuid;
 	}
+	
+	public void remove() {
+	}
 }

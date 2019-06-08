@@ -1,19 +1,13 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
-import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmokeRandom;
-import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
-import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
@@ -25,6 +19,7 @@ import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGu
 
 public class Gunsmoke extends JavaPlugin {
 	protected TinyProtocolGunsmoke protocol;
+	protected ItemManager itemManager;
 	protected EntityManager entityManager;
 	protected PlayerManager playerManager;
 	protected TaskManager taskManager;
@@ -34,6 +29,7 @@ public class Gunsmoke extends JavaPlugin {
 		PacketHandler handler = ReflectionUtil.getNewPacketHandlerInstance();
 		protocol = new TinyProtocolGunsmoke( this, handler );
 		
+		itemManager = new ItemManager( this );
 		entityManager = new EntityManager();
 		playerManager = new PlayerManager( this );
 		taskManager = new TaskManager( this );
@@ -54,7 +50,8 @@ public class Gunsmoke extends JavaPlugin {
 			player.sendMessage( "Finding..." );
 			for ( Entity nearEntity : player.getWorld().getEntities() ) {
 				if ( nearEntity != player ) {
-					if ( VectorUtil.rayIntersect( nearEntity, player.getLocation().getDirection(), player.getEyeLocation() ) ) {
+					Location hit = VectorUtil.rayIntersect( nearEntity, player.getLocation().getDirection(), player.getEyeLocation() );
+					if ( hit != null ) {
 						player.sendMessage( "Found: " + nearEntity.getName() + " at " + nearEntity.getLocation() );
 						protocol.getHandler().hurt( player );
 					}
@@ -94,10 +91,10 @@ public class Gunsmoke extends JavaPlugin {
 	private void run() {
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			GunsmokeEntity entity = entityManager.getEntity( player.getUniqueId() );
-			entity.update();
+//			entity.update();
 			
 			NMSUtils.setNoFly( player );
-			player.setRemainingAir( 285 );
+//			player.setRemainingAir( 285 );
 //			protocol.getHandler().setAir( player, 285 );
 //			entity.update();
 		}
@@ -105,6 +102,10 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public TinyProtocolGunsmoke getProtocol() {
 		return protocol;
+	}
+	
+	public ItemManager getItemManager() {
+		return itemManager;
 	}
 	
 	public EntityManager getEntityManager() {
