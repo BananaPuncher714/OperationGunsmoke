@@ -5,12 +5,18 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-public class LeftClickEvent extends PlayerEvent implements Cancellable {
+public class PlayerProneEvent extends PlayerEvent implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
-	protected boolean cancelled = false;
+	private boolean cancelled = false;
+	private final boolean isProne;
 	
-	public LeftClickEvent( Player player ) {
-		super( player );
+	public PlayerProneEvent( Player who, boolean isProne ) {
+		super( who );
+		this.isProne = isProne;
+	}
+
+	public boolean isProne() {
+		return isProne;
 	}
 	
 	@Override

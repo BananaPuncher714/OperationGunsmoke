@@ -1,40 +1,50 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.util;
 
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import java.util.List;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
+
+import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class GunsmokeUtil {
-	public final static boolean canUpdate( GunsmokeEntity entity, boolean main ) {
-		ItemStack mainHand = entity.getMainHand().getHolding();
-		if ( main ) {
-			return true;
+	private static Gunsmoke GUNSMOKE_INSTANCE;
+	
+	public static void flash( LivingEntity player ) {
+		player.addPotionEffect( new PotionEffect( PotionEffectType.NIGHT_VISION, 2, 0, true, false ) );
+		player.addPotionEffect( new PotionEffect( PotionEffectType.BLINDNESS, 4, 0, true, false ) );
+	}
+	
+	public static List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector ) {
+		return plugin().getProtocol().getHandler().getNearbyEntities( entity, location, vector );
+	}
+	
+	public static void teleportRelative( Player player, Vector vector, double yaw, double pitch ) {
+		plugin().getProtocol().getHandler().teleportRelative( player.getName(), vector, yaw, pitch );
+	}
+	
+	private static Gunsmoke plugin() {
+		if ( GUNSMOKE_INSTANCE == null ) {
+			GUNSMOKE_INSTANCE = Gunsmoke.getPlugin( Gunsmoke.class );
 		}
-		
-		ItemStack offHand = entity.getOffHand().getHolding();
-		if ( offHand == null ) {
-			return false;
-		}
-		if ( mainHand == null ) {
-			return entity.getOffHand().getState() != State.DEFAULT;
-		}
-		
-		// Now we can test for specific cases regarding crossbows, shields, tridents, and bows
-		Material mainType = mainHand.getType();
-		Material offType = offHand.getType();
-		
-		if ( mainType == Material.BOW ) {
-			return false;
-		} else if ( mainType == Material.CROSSBOW ) {
-			return false;
-		} else if ( mainType == Material.TRIDENT ) {
-			return false;
-		} else if ( mainType == Material.SHIELD ) {
-			return false;
-		} else {
-			return false;
-		}
+		return GUNSMOKE_INSTANCE;
+	}
+	
+	public static void callEventSync( Event event ) {
+		plugin().getTaskManager().callEventSync( event );
+	}
+	
+	public static Location rayTrace( Location start, Vector ray ) {
+		return plugin().getProtocol().getHandler().rayTrace( start, ray );
+	}
+	
+	public static Location rayTrace( Location start, Vector ray, double dist ) {
+		return plugin().getProtocol().getHandler().rayTrace( start, ray, dist );
 	}
 }

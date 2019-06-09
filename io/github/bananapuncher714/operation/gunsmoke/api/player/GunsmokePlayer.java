@@ -14,23 +14,23 @@ import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmo
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
-public class GunsmokeEntity {
+public class GunsmokePlayer {
 	protected UUID uuid;
 	
-	protected GunsmokeEntityHand offHand;
-	protected GunsmokeEntityHand mainHand;
+	protected GunsmokePlayerHand offHand;
+	protected GunsmokePlayerHand mainHand;
 	protected Map< EquipmentSlot, ItemStackGunsmoke > equipment;
 	protected boolean isProne = false;
 	protected boolean isRightClicking = false;
 	
-	public GunsmokeEntity( UUID uuid ) {
+	public GunsmokePlayer( UUID uuid ) {
 		this.uuid = uuid;
-		mainHand = new GunsmokeEntityHand();
-		offHand = new GunsmokeEntityHand();
+		mainHand = new GunsmokePlayerHand();
+		offHand = new GunsmokePlayerHand();
 		equipment = new ConcurrentHashMap< EquipmentSlot, ItemStackGunsmoke >();
 	}
 	
-	public UUID getUuid() {
+	public UUID getUUID() {
 		return uuid;
 	}
 
@@ -62,11 +62,11 @@ public class GunsmokeEntity {
 		return wearing.getItem();
 	}
 
-	public GunsmokeEntityHand getOffHand() {
+	public GunsmokePlayerHand getOffHand() {
 		return offHand;
 	}
 	
-	public GunsmokeEntityHand getMainHand() {
+	public GunsmokePlayerHand getMainHand() {
 		return mainHand;
 	}
 	
@@ -86,7 +86,10 @@ public class GunsmokeEntity {
 		update( EquipmentSlot.LEGS );
 		update( EquipmentSlot.FEET );
 
-		// Not the most elegant way of updating
+		updateHands();
+	}
+	
+	protected void updateHands() {
 		update( EquipmentSlot.HAND );
 		update( EquipmentSlot.OFF_HAND );
 		
@@ -118,9 +121,9 @@ public class GunsmokeEntity {
 	}
 	
 	public void setHandState( State state, boolean isMain ) {
-		GunsmokeEntityHand hand = isMain ? mainHand : offHand;
+		GunsmokePlayerHand hand = isMain ? mainHand : offHand;
 		hand.setState( state );
-		update();
+		updateHands();
 	}
 	
 	public void swingArm( boolean main ) {

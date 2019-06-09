@@ -10,6 +10,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class BukkitUtil {
 	public final static ItemStack getEquipment( LivingEntity entity, EquipmentSlot slot ) {
@@ -47,13 +49,11 @@ public class BukkitUtil {
 		ItemMeta meta = item.getItemMeta();
 		meta.addAttributeModifier( Attribute.GENERIC_ATTACK_SPEED, new AttributeModifier( UUID.randomUUID(), "Cooldown", attackSpeed, Operation.ADD_NUMBER, EquipmentSlot.HAND ) );
 		item.setItemMeta( meta );
-//		item = NBTEditor.set( item, "generic.attackSpeed", "AttributeModifiers", null, "AttributeName" );
-//		item = NBTEditor.set( item, "Blah", "AttributeModifiers", 0, "Name" );
-//		item = NBTEditor.set( item, attackSpeed, "AttributeModifiers", 0, "Amount" );
-//		item = NBTEditor.set( item, 0, "AttributeModifiers", 0, "Operation" );
-//		item = NBTEditor.set( item, "mainhand", "AttributeModifiers", 0, "Slot" );
-//		item = NBTEditor.set( item, 1l, "AttributeModifiers", 0, "UUIDMost" );
-//		item = NBTEditor.set( item, 1l, "AttributeModifiers", 0, "UUIDLeast" );
 		return item;
+	}
+	
+	public static void flash( LivingEntity player ) {
+		player.addPotionEffect( new PotionEffect( PotionEffectType.NIGHT_VISION, 2, 0, true, false ) );
+		player.addPotionEffect( new PotionEffect( PotionEffectType.BLINDNESS, 4, 0, true, false ) );
 	}
 }

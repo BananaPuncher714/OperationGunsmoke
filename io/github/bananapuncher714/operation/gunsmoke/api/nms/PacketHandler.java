@@ -1,5 +1,9 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.nms;
 
+import java.util.List;
+
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -23,7 +27,7 @@ public interface PacketHandler {
 	void update( LivingEntity entity, boolean main, boolean updateSelf );
 	void update( LivingEntity entity, EquipmentSlot slot );
 	
-	void teleportRelative( String player, Vector vector, float yaw, float pitch );
+	void teleportRelative( String player, Vector vector, double yaw, double pitch );
 	
 	void set( Player player, boolean down );
 	void setAir( Player player, int ticks );
@@ -35,6 +39,11 @@ public interface PacketHandler {
 	void hurt( LivingEntity entity );
 	
 	int getServerTick();
+	
+	Location rayTrace( Location start, Vector ray );
+	Location rayTrace( Location start, Vector ray, double dist );
+	
+	List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector );
 	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );

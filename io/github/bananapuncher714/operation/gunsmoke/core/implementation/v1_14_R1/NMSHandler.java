@@ -14,7 +14,9 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
@@ -24,18 +26,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
+import com.google.common.base.Predicate;
+
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntityHand;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import net.minecraft.server.v1_14_R1.AttributeInstance;
+import net.minecraft.server.v1_14_R1.AxisAlignedBB;
 import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_14_R1.DataWatcher;
 import net.minecraft.server.v1_14_R1.DataWatcher.Item;
@@ -50,6 +54,7 @@ import net.minecraft.server.v1_14_R1.GenericAttributes;
 import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
+import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements.Status;
@@ -68,7 +73,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFlags;
 import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntity;
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
-import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes.AttributeSnapshot;
+import net.minecraft.server.v1_14_R1.RayTrace;
+import net.minecraft.server.v1_14_R1.Vec3D;
 
 public class NMSHandler implements PacketHandler {
 	private final static int HAND_STATE_INDEX = 7;
@@ -158,8 +164,6 @@ public class NMSHandler implements PacketHandler {
 		this.plugin = plugin;
 	}
 
-	private Set< Integer > equipmentPackets = new HashSet< Integer >();
-
 	/**
 	 * Intercept outgoing packets; Edit them if they are the EntityMetadata packet
 	 * or the EntityEquipment packet
@@ -192,21 +196,21 @@ public class NMSHandler implements PacketHandler {
 		return packet;
 	}
 	
-	private Packet handleAdvancementPacket( Player player, PacketPlayInAdvancements packet ) {
+	private Packet< ? > handleAdvancementPacket( Player player, PacketPlayInAdvancements packet ) {
 		if ( packet.c() == Status.OPENED_TAB ) {
 			plugin.getTaskManager().callEventSync( new AdvancementOpenEvent( player, packet.d().getKey() ) );
 		}
 		return packet;
 	}
 
-	private Packet handleBlockPlacePacket( Player player, PacketPlayInBlockPlace packet ) {
+	private Packet< ? > handleBlockPlacePacket( Player player, PacketPlayInBlockPlace packet ) {
 		if ( BukkitUtil.isRightClickable( player.getEquipment().getItemInMainHand().getType() ) ) {
 			plugin.getPlayerManager().setHolding( player, true );
 		}
 		return packet;
 	}
 	
-	private Packet handleBlockDigPacket( Player player, PacketPlayInBlockDig packet ) {
+	private Packet< ? > handleBlockDigPacket( Player player, PacketPlayInBlockDig packet ) {
 		if ( packet.d() == EnumPlayerDigType.RELEASE_USE_ITEM ) {
 			plugin.getPlayerManager().setHolding( player, false );
 		} else if ( packet.d() == EnumPlayerDigType.DROP_ITEM ) {
@@ -236,7 +240,7 @@ public class NMSHandler implements PacketHandler {
 	 * Edit the entity metadata packet so that the player's arms are in the right
 	 * "state"
 	 */
-	private Packet handleMetadataPacket(Player player, PacketPlayOutEntityMetadata packet) {
+	private Packet< ? > handleMetadataPacket(Player player, PacketPlayOutEntityMetadata packet) {
 		List< Item< ? > > items;
 		int id;
 		try {
@@ -259,9 +263,9 @@ public class NMSHandler implements PacketHandler {
 			return packet;
 		}
 
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 
-		Packet result;
+		Packet< ? > result;
 		if ( entity == player ) {
 			result = handleInternalMetadataPacket( player, items, gEntity ) ? packet : null;
 		} else {
@@ -276,7 +280,7 @@ public class NMSHandler implements PacketHandler {
 		return result;
 	}
 	
-	private boolean handleInternalMetadataPacket( Player reciever, List< Item< ? > > items, GunsmokeEntity entity ) {
+	private boolean handleInternalMetadataPacket( Player reciever, List< Item< ? > > items, GunsmokePlayer entity ) {
 		if ( entity.isProne() ) {
 			for ( int index = 0; index < items.size(); index++ ) {
 				if ( items.get( index ).a().a() == 6 ) {
@@ -307,9 +311,7 @@ public class NMSHandler implements PacketHandler {
 		return items.size() > 0;
 	}
 	
-	private boolean handleExternalMetadataPacket( Player reciever, LivingEntity livingEntity, List< Item< ? > > items, GunsmokeEntity entity ) {
-		// TODO Figure out exactly how the left/right hand packet use thing works, because it's not doing it consistently
-		// especially after coming out of a prone or holding 2 items at once
+	private boolean handleExternalMetadataPacket( Player reciever, LivingEntity livingEntity, List< Item< ? > > items, GunsmokePlayer entity ) {
 		byte handStateMask = -1;
 		int pos = 0;
 		for ( int index = 0; index < items.size(); index++ ) {
@@ -323,7 +325,7 @@ public class NMSHandler implements PacketHandler {
 		if ( handStateMask != -1 ) {
 			byte bitmask = 0b000;
 			
-			// So firstly, do not send 10 or 00 unless both are DEFAULT state
+			// So, do not send 10 or 00 unless both are DEFAULT state
 			if ( entity.getMainHand().getState() == State.DEFAULT && entity.getOffHand().getState() == State.DEFAULT ) {
 				bitmask = 0b000;
 			} else if ( entity.getMainHand().getState() != State.DEFAULT ) {
@@ -362,7 +364,7 @@ public class NMSHandler implements PacketHandler {
 	 * Edit entity equipment including hand to show exactly what needs to be, as well as calling an update event when changing items to display
 	 * "displayed"
 	 */
-	private Packet handleEntityEquipmentPacket( Player player, PacketPlayOutEntityEquipment packet ) {
+	private Packet< ? > handleEntityEquipmentPacket( Player player, PacketPlayOutEntityEquipment packet ) {
 		int id;
 		EnumItemSlot slot;
 		ItemStack nmsItem;
@@ -396,16 +398,16 @@ public class NMSHandler implements PacketHandler {
 		}
 
 		EquipmentSlot equipment = NMSUtils.getEquipmentSlot( slot );
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 
 		// Now either disguise or something
 		// Temporary
 		org.bukkit.inventory.ItemStack item;
 		if ( equipment == EquipmentSlot.HAND ) {
-			GunsmokeEntityHand hand = gEntity.getMainHand();
+			GunsmokePlayerHand hand = gEntity.getMainHand();
 			item = hand.getHolding();
 		} else if ( equipment == EquipmentSlot.OFF_HAND ) {
-			GunsmokeEntityHand hand = gEntity.getOffHand();
+			GunsmokePlayerHand hand = gEntity.getOffHand();
 			item = hand.getHolding();
 		} else {
 			item = gEntity.getWearing( equipment );
@@ -423,7 +425,7 @@ public class NMSHandler implements PacketHandler {
 		return packet;
 	}
 
-	private Packet handleFlyingPacket(Player player, PacketPlayInFlying packet) {
+	private Packet< ? > handleFlyingPacket(Player player, PacketPlayInFlying packet) {
 		if (player.isOnGround() && !packet.b()
 				&& packet.b(player.getLocation().getY()) - player.getLocation().getY() > 0) {
 			PlayerJumpEvent event = new PlayerJumpEvent(player);
@@ -512,7 +514,6 @@ public class NMSHandler implements PacketHandler {
 	 */
 	public void update( LivingEntity entity, boolean main, boolean updateSelf ) {
 		int id = entity.getEntityId();
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 		DataWatcher watcher = ( ( CraftEntity ) entity ).getHandle().getDataWatcher();
 		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
 
@@ -542,7 +543,7 @@ public class NMSHandler implements PacketHandler {
 	public void update( LivingEntity entity, EquipmentSlot slot ) {
 		EnumItemSlot NMSSlot = NMSUtils.getEnumItemSlot( slot );
 		int id = ( ( CraftEntity ) entity ).getEntityId();
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity(entity.getUniqueId());
+		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity(entity.getUniqueId());
 		org.bukkit.inventory.ItemStack item = gEntity.getWearing(slot);
 
 		if (slot == EquipmentSlot.HAND) {
@@ -559,8 +560,9 @@ public class NMSHandler implements PacketHandler {
 	}
 
 	@Override
-	public void teleportRelative( String player, Vector vector, float yaw, float pitch ) {
-		PacketPlayOutPosition packet = new PacketPlayOutPosition( vector.getX(), vector.getY(), vector.getZ(), yaw, pitch, TELEPORT_FLAGS, 0 );
+	public void teleportRelative( String player, Vector vector, double yaw, double pitch ) {
+		vector = vector == null ? new Vector( 0, 0, 0 ) : vector;
+		PacketPlayOutPosition packet = new PacketPlayOutPosition( vector.getX(), vector.getY(), vector.getZ(), ( float ) yaw, ( float ) pitch, TELEPORT_FLAGS, 0 );
 		plugin.getProtocol().sendPacket( player, packet );
 	}
 	
@@ -596,7 +598,7 @@ public class NMSHandler implements PacketHandler {
 
 		List< Item< ? > > items = null;
 		try {
-			items = ( List<Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
+			items = ( List< Item< ? > > ) ENTITYMETADATA_ITEMLIST.get( packet );
 			if ( items == null ) {
 				items = new ArrayList< Item< ? > >();
 				ENTITYMETADATA_ITEMLIST.set( packet, items );
@@ -618,6 +620,48 @@ public class NMSHandler implements PacketHandler {
 	@Override
 	public int getServerTick() {
 		return MinecraftServer.currentTick;
+	}
+	
+	@Override
+	public Location rayTrace( Location location, Vector vector, double distance ) {
+		return rayTrace( location, vector.clone().normalize().multiply( distance ) );
+	}
+	
+	@Override
+	public Location rayTrace( Location location, Vector vector ) {
+		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
+		
+		Location dest = location.clone().add( vector );
+		
+		Vec3D start = new Vec3D( location.getX(), location.getY(), location.getZ() );
+		Vec3D end = new Vec3D( dest.getX(), dest.getY(), dest.getZ() );
+		
+		// Not sure what the difference between COLLIDER and OUTLINE is. Perhaps a intersection detection method?
+		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.COLLIDER, RayTrace.FluidCollisionOption.NONE, null );
+		
+		MovingObjectPositionBlock result = world.rayTrace( trace );
+
+		Vec3D fin = result.getPos();
+		
+		Location interception = new Location( location.getWorld(), fin.getX(), fin.getY(), fin.getZ() );
+		
+		return interception;
+	}
+	
+	@Override
+	public List< org.bukkit.entity.Entity > getNearbyEntities( org.bukkit.entity.Entity entity, Location location, Vector vector ) {
+		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
+	
+		AxisAlignedBB axis = new AxisAlignedBB( location.getX(), location.getY(), location.getZ(),
+				location.getX() + vector.getX(), location.getY() + vector.getY(), location.getZ() + vector.getZ() );
+		
+		Entity nmsEntity = entity == null ? null : ( ( CraftEntity ) entity ).getHandle();
+		
+		List< org.bukkit.entity.Entity > nearby = new ArrayList< org.bukkit.entity.Entity >();
+		for ( Entity nearbyEntity : world.getEntities( nmsEntity, axis ) ) {
+			nearby.add( nearbyEntity.getBukkitEntity() );
+		}
+		return nearby;
 	}
 	
 	// @Override

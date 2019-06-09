@@ -1,6 +1,10 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -15,7 +19,7 @@ public final class VectorUtil {
 	
 	// This can be made so much faster since I know where the origin is
 	// This checks to see if a ray intersects with an entity
-	public static Location rayIntersect( Entity entity, Vector ray, Location origin ) {
+	public static Location rayIntersect( Entity entity, Location origin, Vector ray ) {
 		if ( origin.getWorld() != entity.getWorld() ) {
 			return null;
 		}

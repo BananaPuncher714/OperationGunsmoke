@@ -6,18 +6,19 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 
 public abstract class GunsmokeItem extends GunsmokeRepresentable {
 	private final static Object[] CUSTOM = { "io", "github", "bananapuncher714", "operation", "gunsmoke", "item", "id" };
 	
 	protected LivingEntity holder;
-	protected GunsmokeEntity gunsmokeHolder;
+	protected GunsmokePlayer gunsmokeHolder;
 	protected EquipmentSlot slot;
 	protected boolean isEquipped = false;
 	
-	public void onEquip( LivingEntity entity, GunsmokeEntity gunsmokeEntity, EquipmentSlot slot ) {
+	public void onEquip( LivingEntity entity, GunsmokePlayer gunsmokeEntity, EquipmentSlot slot ) {
 		this.holder = entity;
 		this.gunsmokeHolder = gunsmokeEntity;
 		this.slot = slot;

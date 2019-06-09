@@ -4,20 +4,20 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 
 public class EntityManager {
-	Map< UUID, GunsmokeEntity > entities;
+	Map< UUID, GunsmokePlayer > entities;
 	
 	public EntityManager() {
-		entities = new ConcurrentHashMap< UUID, GunsmokeEntity >();
+		entities = new ConcurrentHashMap< UUID, GunsmokePlayer >();
 	}
 	
-	public GunsmokeEntity getEntity( UUID uuid ) {
+	public GunsmokePlayer getEntity( UUID uuid ) {
 		// TODO do something about properly filling out this information
-		GunsmokeEntity entity = entities.get( uuid );
+		GunsmokePlayer entity = entities.get( uuid );
 		if ( entity == null ) {
-			entity = new GunsmokeEntity( uuid );
+			entity = new GunsmokePlayer( uuid );
 			entities.put( uuid, entity );
 		}
 		

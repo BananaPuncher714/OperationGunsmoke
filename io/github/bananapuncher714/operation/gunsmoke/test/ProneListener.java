@@ -1,14 +1,11 @@
 package io.github.bananapuncher714.operation.gunsmoke.test;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
@@ -16,56 +13,18 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpd
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class ProneListener implements Listener {
 	Gunsmoke plugin;
 	GunsmokeItem item;
 	
-	long lastSneak = 0;
-	
 	public ProneListener( Gunsmoke plugin ) {
 		this.plugin = plugin;
-	}
-	
-	@EventHandler
-	public void onPlayerJump( PlayerJumpEvent event ) {
-		GunsmokeEntity entity = plugin.getEntityManager().getEntity( event.getPlayer().getUniqueId() );
-		if ( entity.isProne() ) {
-			entity.setProne( false );
-			plugin.getProtocol().getHandler().set( event.getPlayer(), false );
-			entity.update();
-			System.out.println( "Jump Event" );
-		}
-	}
-	
-	@EventHandler
-	public void onPlayerSneak( PlayerToggleSneakEvent event ) {
-		Player player = event.getPlayer();
-		GunsmokeEntity entity = plugin.getEntityManager().getEntity( event.getPlayer().getUniqueId() );
-		if ( event.isSneaking() ) {
-			if ( player.isOnGround() && !entity.isProne() ) {
-				if ( System.currentTimeMillis() - lastSneak < 500 ) {
-					entity.setProne( true );
-					plugin.getProtocol().getHandler().set( player, true );
-					entity.update();
-					System.out.println( "Sneak Event" );
-				}
-				lastSneak = System.currentTimeMillis();
-			}
-		} else {
-			if ( entity.isProne() ) {
-				entity.setProne( false );
-				plugin.getProtocol().getHandler().set( event.getPlayer(), false );
-				entity.update();
-			}
-		}
 	}
 	
 	@EventHandler

@@ -1,10 +1,8 @@
 package io.github.bananapuncher714.operation.gunsmoke.test;
 
-import java.util.HashSet;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.LivingEntity;
@@ -12,6 +10,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
@@ -20,11 +19,11 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemE
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.item.EnumInteractResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItemInteractable;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	Gunsmoke plugin;
@@ -38,51 +37,59 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	}
 	
 	@Override
-	public EnumInteractResult onClick( AdvancementOpenEvent event ) {
+	public EnumEventResult onClick( AdvancementOpenEvent event ) {
 		event.getPlayer().closeInventory();
 		event.getPlayer().setFireTicks( 20 );
-		return EnumInteractResult.COMPLETED;
+		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
-	public EnumInteractResult onClick( DropItemEvent event ) {
+	public EnumEventResult onClick( DropItemEvent event ) {
 		event.getPlayer().getLocation().getBlock().setType( Material.FIRE );
 		event.setCancelled( true );
-		return EnumInteractResult.COMPLETED;
+		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
-	public EnumInteractResult onClick( PlayerSwapHandItemsEvent event ) {
+	public EnumEventResult onClick( PlayerSwapHandItemsEvent event ) {
 		event.getPlayer().launchProjectile( Fireball.class );
-		return EnumInteractResult.COMPLETED;
+		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
-	public EnumInteractResult onClick( LeftClickEntityEvent event ) {
+	public EnumEventResult onClick( LeftClickEntityEvent event ) {
 		event.setCancelled( true );
 		if ( event.getHitEntity() instanceof LivingEntity ) {
 			LivingEntity lEntity = ( LivingEntity ) event.getHitEntity();
 			plugin.getProtocol().getHandler().hurt( lEntity );
 			lEntity.setHealth( lEntity.getHealth() - 1 );
 		}
-		return EnumInteractResult.COMPLETED;
+		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
-	public EnumInteractResult onClick( LeftClickEvent event ) {
+	public EnumEventResult onClick( LeftClickEvent event ) {
 		event.getPlayer().sendMessage( "Boop" );
 		event.setCancelled( true );
-		return EnumInteractResult.COMPLETED;
+		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
-	public EnumInteractResult onClick( HoldRightClickEvent event ) {
+	public EnumEventResult onClick( HoldRightClickEvent event ) {
 		event.getPlayer().launchProjectile( Arrow.class );
-		return EnumInteractResult.COMPLETED;
+		
+		GunsmokeUtil.flash( event.getPlayer() );
+		
+		double finYaw = ThreadLocalRandom.current().nextDouble() * 1 - ( 1 * .5 );
+		double pitch = -2;
+		
+		plugin.getProtocol().getHandler().teleportRelative( event.getPlayer().getName(), null, finYaw, pitch );
+		
+		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
-	public void onEquip( LivingEntity entity, GunsmokeEntity gunsmokeEntity, EquipmentSlot slot ) {
+	public void onEquip( LivingEntity entity, GunsmokePlayer gunsmokeEntity, EquipmentSlot slot ) {
 		super.onEquip( entity, gunsmokeEntity, slot );
 
 		entity.sendMessage( "Equipped in slot " + slot );

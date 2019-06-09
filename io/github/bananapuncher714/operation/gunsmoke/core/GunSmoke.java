@@ -2,6 +2,7 @@ package io.github.bananapuncher714.operation.gunsmoke.core;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -9,7 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
@@ -50,7 +51,7 @@ public class Gunsmoke extends JavaPlugin {
 			player.sendMessage( "Finding..." );
 			for ( Entity nearEntity : player.getWorld().getEntities() ) {
 				if ( nearEntity != player ) {
-					Location hit = VectorUtil.rayIntersect( nearEntity, player.getLocation().getDirection(), player.getEyeLocation() );
+					Location hit = VectorUtil.rayIntersect( nearEntity, player.getEyeLocation(), player.getLocation().getDirection() );
 					if ( hit != null ) {
 						player.sendMessage( "Found: " + nearEntity.getName() + " at " + nearEntity.getLocation() );
 						protocol.getHandler().hurt( player );
@@ -58,28 +59,8 @@ public class Gunsmoke extends JavaPlugin {
 				}
 			}
 			
-//			ItemStackGunsmoke standard = new ItemStackGunsmoke( new ItemStack( Material.SHIELD ) );
-//			ItemStackGunsmoke bow = new ItemStackGunsmoke( new ItemStack( Material.BOW ) );
-//			
-//			ItemStackMultiState compound = new ItemStackMultiState( standard );
-//			compound.setItem( State.BOW, bow );
-//
-//			ItemStackGunsmoke standard2 = new ItemStackGunsmoke( new ItemStack( Material.TRIDENT ) );
-//			ItemStackGunsmoke bow2 = new ItemStackGunsmoke( new ItemStack( Material.CROSSBOW ) );
-//			ItemStackMultiState otherCompound = new ItemStackMultiState( standard2 );
-//			otherCompound.setItem( State.BOW, bow2 );
-//			
-//			GunsmokeEntity entity = entityManager.getEntity( player.getUniqueId() );
-			//entity.getMainHand().setItem( compound );
-			//entity.getMainHand().setState( entity.getMainHand().getState() == State.DEFAULT ? State.BOW : State.DEFAULT );
-			
-//			entity.getOffHand().setItem( otherCompound );
-//			entity.getOffHand().setState( State.BOW );
-			
-//			ItemStackGunsmokeRandom randomItem = new ItemStackGunsmokeRandom( new ItemStackGunsmoke[] { new ItemStackGunsmoke( new ItemStack( Material.CHAINMAIL_CHESTPLATE ) ), new ItemStackGunsmoke( new ItemStack( Material.DIAMOND_CHESTPLATE ) ) } );
-//			entity.getEquipment().put( EquipmentSlot.CHEST, randomItem );
-//			
-//			entity.update();
+			Location location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+			location.getWorld().spawnParticle( Particle.VILLAGER_HAPPY, location, 0 );
 		}
 		
 		return false;
@@ -90,7 +71,7 @@ public class Gunsmoke extends JavaPlugin {
 	 */
 	private void run() {
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
-			GunsmokeEntity entity = entityManager.getEntity( player.getUniqueId() );
+			GunsmokePlayer entity = entityManager.getEntity( player.getUniqueId() );
 //			entity.update();
 			
 			NMSUtils.setNoFly( player );

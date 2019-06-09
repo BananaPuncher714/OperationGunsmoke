@@ -18,10 +18,11 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpd
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerProneEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 
 public class PlayerManager {
 	private final Map< UUID, Long > holdingRC = new HashMap< UUID, Long >();
@@ -71,7 +72,7 @@ public class PlayerManager {
 	}
 	
 	public void setHolding( Player entity, boolean isHolding ) {
-		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 		gEntity.setRightClicking( isHolding );
 		if ( isHolding ) {
 			if ( !holdingRC.containsKey( entity.getUniqueId() ) ) {
@@ -120,5 +121,21 @@ public class PlayerManager {
 		if ( event.isCancelled() ) {
 			parent.setCancelled( true );
 		}
+	}
+	
+	public void setProne( Player player, boolean prone ) {
+		GunsmokePlayer entity = plugin.getEntityManager().getEntity( player.getUniqueId() );
+		if ( entity.isProne() == prone ) {
+			return;
+		}
+		
+		PlayerProneEvent event = new PlayerProneEvent( player, prone );
+		plugin.getTaskManager().callEventSync( event );
+		if ( prone && event.isCancelled() ) {
+			return;
+		}
+		entity.setProne( prone );
+		plugin.getProtocol().getHandler().set( player, prone );
+		entity.update();
 	}
 }

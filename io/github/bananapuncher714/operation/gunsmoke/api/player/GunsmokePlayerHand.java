@@ -5,7 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 
-public class GunsmokeEntityHand {
+public class GunsmokePlayerHand {
 	protected State state = State.DEFAULT;
 	protected ItemStackMultiState item;
 	

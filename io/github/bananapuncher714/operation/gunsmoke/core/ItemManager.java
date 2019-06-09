@@ -7,17 +7,26 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerAnimationEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
@@ -27,12 +36,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClick
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.item.EnumInteractResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItemInteractable;
-import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeRepresentable;
-import io.github.bananapuncher714.operation.gunsmoke.api.item.Tickable;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class ItemManager implements Listener {
@@ -42,7 +48,10 @@ public class ItemManager implements Listener {
 	public ItemManager( Gunsmoke plugin ) {
 		this.plugin = plugin;
 		
+		// Tick timer for Tickables
 		Bukkit.getScheduler().runTaskTimer( plugin, this::update, 0, 1 );
+		
+		// This is to capture events to pass them onto whatever things are registered
 		Bukkit.getPluginManager().registerEvents( this, plugin );
 	}
 	
@@ -53,6 +62,7 @@ public class ItemManager implements Listener {
 			if ( item instanceof Tickable ) {
 				Tickable tickableItem = ( Tickable ) item;
 				if ( tickableItem.tick() == EnumTickResult.CANCEL ) {
+					item.remove();
 					iterator.remove();
 				}
 			}
@@ -72,6 +82,11 @@ public class ItemManager implements Listener {
 		if ( item != null ) {
 			item.remove();
 		}
+	}
+	
+	public GunsmokeRepresentable getRepresentable( Entity entity ) {
+		UUID uuid = entity.getUniqueId();
+		return get( uuid );
 	}
 	
 	public GunsmokeRepresentable getRepresentable( LivingEntity entity, EquipmentSlot slot ) {
@@ -109,7 +124,7 @@ public class ItemManager implements Listener {
 				gItem.onUnequip();
 			}
 			
-			GunsmokeEntity entity = plugin.getEntityManager().getEntity( event.getEntity().getUniqueId() );
+			GunsmokePlayer entity = plugin.getEntityManager().getEntity( event.getEntity().getUniqueId() );
 			gItem.onEquip( event.getEntity(), entity, event.getSlot() );
 		}
 	}
@@ -117,7 +132,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( AdvancementOpenEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -128,7 +143,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -159,7 +174,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( PlayerSwapHandItemsEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -170,7 +185,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -181,7 +196,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.COMPLETED ) {
+		if ( result == EnumEventResult.COMPLETED ) {
 			event.setCancelled( true );
 		}
 	}
@@ -189,7 +204,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( LeftClickEntityEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -200,7 +215,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -215,7 +230,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( LeftClickEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -226,7 +241,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -241,7 +256,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( RightClickEntityEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -252,7 +267,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -267,7 +282,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( RightClickEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -278,7 +293,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -293,7 +308,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( HoldRightClickEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -304,7 +319,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -319,7 +334,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( ReleaseRightClickEvent event ) {
 		Player player = event.getPlayer();
-		EnumInteractResult result = EnumInteractResult.SKIPPED;
+		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -330,7 +345,7 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		if ( result == EnumInteractResult.SKIPPED || result == EnumInteractResult.PROCESSED ) {
+		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
 			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
@@ -342,17 +357,42 @@ public class ItemManager implements Listener {
 		}
 	}
 	
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( EntityDamageEvent event ) {
+		GunsmokeRepresentable gEntity = getRepresentable( event.getEntity() );
+		EnumEventResult result = EnumEventResult.SKIPPED;
+		
+		if ( gEntity instanceof GunsmokeEntityWrapper ) {
+			GunsmokeEntityWrapper entity = ( GunsmokeEntityWrapper ) gEntity;
+			
+			result = entity.onEvent( event );
+		}
+		
+		if ( result == EnumEventResult.SKIPPED && event instanceof EntityDamageByEntityEvent ) {
+			EntityDamageByEntityEvent damageEvent = ( EntityDamageByEntityEvent ) event;
+			GunsmokeRepresentable damager = getRepresentable( damageEvent.getDamager() );
+			
+			if ( damager instanceof GunsmokeEntityWrapper ) {
+				GunsmokeEntityWrapper damagerWrapper = ( GunsmokeEntityWrapper ) damager;
+				
+				result = damagerWrapper.onEvent( event );
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( ProjectileHitEvent event ) {
+		GunsmokeRepresentable entity = getRepresentable( event.getEntity() );
+		
+		if ( entity instanceof GunsmokeEntityWrapperProjectile ) {
+			GunsmokeEntityWrapperProjectile projectile = ( GunsmokeEntityWrapperProjectile ) entity;
+			
+			projectile.onEvent( event );
+		}
+	}
+	
 	/*
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent() {
 		

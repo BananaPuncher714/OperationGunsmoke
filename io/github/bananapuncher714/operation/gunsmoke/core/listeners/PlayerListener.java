@@ -18,15 +18,19 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class PlayerListener implements Listener {
 	private Gunsmoke plugin;
 	
 	private Map< UUID, Integer > interactLastCalled = new HashMap< UUID, Integer >();
+	private Map< UUID, Long > lastSneak = new HashMap< UUID, Long >();
 	
 	public PlayerListener( Gunsmoke plugin ) {
 		this.plugin = plugin;
@@ -116,5 +120,27 @@ public class PlayerListener implements Listener {
 		interactLastCalled.put( player.getUniqueId(), currentTick );
 		
 		return canCall;
+	}
+	
+	@EventHandler
+	public void onPlayerJump( PlayerJumpEvent event ) {
+		plugin.getPlayerManager().setProne( event.getPlayer(), false );
+	}
+	
+	@EventHandler
+	public void onPlayerSneak( PlayerToggleSneakEvent event ) {
+		Player player = event.getPlayer();
+		GunsmokePlayer entity = plugin.getEntityManager().getEntity( event.getPlayer().getUniqueId() );
+		if ( event.isSneaking() ) {
+			if ( player.isOnGround() && !entity.isProne() ) {
+				long time = lastSneak.containsKey( player.getUniqueId() ) ? lastSneak.get( player.getUniqueId() ) : 0;
+				if ( System.currentTimeMillis() - time < 500 ) {
+					plugin.getPlayerManager().setProne( player, true );
+				}
+				lastSneak.put( player.getUniqueId(), System.currentTimeMillis() );
+			}
+		} else {
+			plugin.getPlayerManager().setProne( player, false );
+		}
 	}
 }
