@@ -1,5 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.test;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -31,10 +32,6 @@ public class ProneListener implements Listener {
 	
 	public ProneListener( Gunsmoke plugin ) {
 		this.plugin = plugin;
-		
-		item = new TestGunsmokeItemInteractable( plugin );
-		
-		plugin.getItemManager().register( item );
 	}
 	
 	@EventHandler
@@ -111,6 +108,11 @@ public class ProneListener implements Listener {
 	public void onEvent( DropItemEvent event ) {
 		if ( event.getPlayer().getEquipment().getItemInMainHand().getType() == Material.GOLDEN_CARROT ) {
 			event.setCancelled( true );
+			
+			item = new TestGunsmokeItemInteractable( plugin );
+			
+			plugin.getItemManager().register( item );
+			
 			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
 		}
 		System.out.println( "Drop item event!" );

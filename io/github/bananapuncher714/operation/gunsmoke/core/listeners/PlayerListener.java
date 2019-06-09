@@ -62,7 +62,7 @@ public class PlayerListener implements Listener {
 
 	// This is because bukkit has an abyssmal player left click detection system for adventure mode people
 	@EventHandler( ignoreCancelled = false )
-	private void onPlayerInteractEvent( PlayerAnimationEvent event ) {
+	private void onPlayerAnimationEvent( PlayerAnimationEvent event ) {
 		if ( event.getPlayer().getGameMode() == GameMode.ADVENTURE ) {
 			if ( callInteract( event.getPlayer() ) ) {
 				plugin.getPlayerManager().leftClick( event.getPlayer(), event );

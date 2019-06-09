@@ -308,7 +308,8 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	private boolean handleExternalMetadataPacket( Player reciever, LivingEntity livingEntity, List< Item< ? > > items, GunsmokeEntity entity ) {
-		// First confirm the player's hand
+		// TODO Figure out exactly how the left/right hand packet use thing works, because it's not doing it consistently
+		// especially after coming out of a prone or holding 2 items at once
 		byte handStateMask = -1;
 		int pos = 0;
 		for ( int index = 0; index < items.size(); index++ ) {
@@ -321,39 +322,38 @@ public class NMSHandler implements PacketHandler {
 		}
 		if ( handStateMask != -1 ) {
 			byte bitmask = 0b000;
-			boolean main = true;
-			if ( ( handStateMask & 0b010 ) == 0 ) {
-				if ( entity.getMainHand().getState() == State.DEFAULT ) {
-					bitmask = 0b000;
-				} else {
-					bitmask = 0b001;
-				}
+			
+			// So firstly, do not send 10 or 00 unless both are DEFAULT state
+			if ( entity.getMainHand().getState() == State.DEFAULT && entity.getOffHand().getState() == State.DEFAULT ) {
+				bitmask = 0b000;
+			} else if ( entity.getMainHand().getState() != State.DEFAULT ) {
+				bitmask = 0b001;
 			} else {
-				main = false;
-				if ( entity.getOffHand().getState() == State.DEFAULT ) {
-					bitmask = 0b010;
-				} else {
-					bitmask = 0b011;
-				}
+				bitmask = 0b011;
 			}
-			if ( GunsmokeUtil.canUpdate( entity, main ) ) {
+			
+			if ( entity.getMainHand().getHolding() == null && entity.getOffHand().getHolding() == null ) {
+				// Resort to default if the hand is not holding anything
 				bitmask = ( byte ) ( handStateMask & 0b011 );
 			}
+			
 			items.remove( pos );
 			items.add( new Item< Byte >( new DataWatcherObject< Byte >( HAND_STATE_INDEX, DataWatcherRegistry.a ), bitmask ) );
 		}
 		
 		// We want to remove index 6 if the living entity is prone, aka cancel sneak/swim/sprint
 		// Then, we want to add number 6
-		if ( entity.isProne() ) {
 			for ( int index = 0; index < items.size(); index++ ) {
 				if ( items.get( index ).a().a() == 6 ) {
 					items.remove( index );
 					break;
 				}
 			}
-			items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), EntityPose.SWIMMING ) );
-		}
+			if ( entity.isProne() ) {
+				items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), EntityPose.SWIMMING ) );
+			} else {
+				items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), ( ( CraftLivingEntity ) livingEntity ).getHandle().getDataWatcher().get( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ) ) ) );
+			}
 		
 		return items.size() > 0;
 	}
@@ -513,10 +513,6 @@ public class NMSHandler implements PacketHandler {
 	public void update( LivingEntity entity, boolean main, boolean updateSelf ) {
 		int id = entity.getEntityId();
 		GunsmokeEntity gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
-		// When updating, there are several things to take into account
-		if ( !GunsmokeUtil.canUpdate( gEntity, main ) ) {
-			return;
-		}
 		DataWatcher watcher = ( ( CraftEntity ) entity ).getHandle().getDataWatcher();
 		PacketPlayOutEntityMetadata packet = new PacketPlayOutEntityMetadata( id, watcher, false );
 

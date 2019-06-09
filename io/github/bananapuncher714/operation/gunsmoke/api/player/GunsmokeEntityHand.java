@@ -6,7 +6,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiS
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 
 public class GunsmokeEntityHand {
-	protected State state;
+	protected State state = State.DEFAULT;
 	protected ItemStackMultiState item;
 	
 	public State getState() {
@@ -23,6 +23,7 @@ public class GunsmokeEntityHand {
 	
 	public void setItem( ItemStackMultiState item ) {
 		this.item = item;
+		state = State.DEFAULT;
 	}
 	
 	public ItemStack getHolding() {

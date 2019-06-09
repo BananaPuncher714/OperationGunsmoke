@@ -12,6 +12,9 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
@@ -26,8 +29,12 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	Gunsmoke plugin;
 	
+	ItemStackMultiState display;
+	
 	public TestGunsmokeItemInteractable( Gunsmoke plugin ) {
 		this.plugin = plugin;
+		
+		display = new ItemStackMultiState( new ItemStackGunsmoke( new ItemStack( Material.TRIDENT ) ) );
 	}
 	
 	@Override
@@ -77,10 +84,18 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	@Override
 	public void onEquip( LivingEntity entity, GunsmokeEntity gunsmokeEntity, EquipmentSlot slot ) {
 		super.onEquip( entity, gunsmokeEntity, slot );
+
+		entity.sendMessage( "Equipped in slot " + slot );
+		( ( slot == EquipmentSlot.HAND ) ? gunsmokeEntity.getMainHand() : gunsmokeEntity.getOffHand() ).setItem( display );
+		gunsmokeEntity.setHandState( State.SHIELD, slot == EquipmentSlot.HAND );
 	}
 	
 	@Override
 	public void onUnequip() {
+		holder.sendMessage( "Unequipped" );
+		( ( slot == EquipmentSlot.HAND ) ? gunsmokeHolder.getMainHand() : gunsmokeHolder.getOffHand() ).setItem( null );
+		gunsmokeHolder.setHandState( State.DEFAULT, slot == EquipmentSlot.HAND );
+		
 		super.onUnequip();
 	}
 	

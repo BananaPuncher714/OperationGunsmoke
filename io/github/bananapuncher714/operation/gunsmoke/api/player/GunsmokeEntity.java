@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class GunsmokeEntity {
@@ -84,16 +85,15 @@ public class GunsmokeEntity {
 		update( EquipmentSlot.CHEST );
 		update( EquipmentSlot.LEGS );
 		update( EquipmentSlot.FEET );
+
+		// Not the most elegant way of updating
 		update( EquipmentSlot.HAND );
 		update( EquipmentSlot.OFF_HAND );
 		
-		Bukkit.getScheduler().runTask( Gunsmoke.getPlugin( Gunsmoke.class ), new Runnable() {
-			@Override
-			public void run() {
+		Bukkit.getScheduler().runTaskLater( Gunsmoke.getPlugin( Gunsmoke.class ), () -> {
 				update( true );
 				update( false );
-			}
-		} );
+		}, 2 );
 	}
 	
 	public void update( EquipmentSlot slot ) {
@@ -115,5 +115,15 @@ public class GunsmokeEntity {
 		if ( entity instanceof LivingEntity ) {
 			Gunsmoke.getPlugin( Gunsmoke.class ).getProtocol().getHandler().update( ( LivingEntity ) entity, main, true );
 		}
+	}
+	
+	public void setHandState( State state, boolean isMain ) {
+		GunsmokeEntityHand hand = isMain ? mainHand : offHand;
+		hand.setState( state );
+		update();
+	}
+	
+	public void swingArm( boolean main ) {
+		
 	}
 }
