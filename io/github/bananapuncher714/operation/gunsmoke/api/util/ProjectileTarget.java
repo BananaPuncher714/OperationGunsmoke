@@ -11,6 +11,11 @@ public abstract class ProjectileTarget implements Comparable< ProjectileTarget >
 	
 	public ProjectileTarget( GunsmokeProjectile projectile, Location intersection ) {
 		distanceSquared = projectile.getLocation().distanceSquared( intersection );
+		this.intersection = intersection;
+	}
+	
+	public Location getIntersection() {
+		return intersection;
 	}
 	
 	public double getDistance() {
@@ -27,9 +32,9 @@ public abstract class ProjectileTarget implements Comparable< ProjectileTarget >
 	@Override
 	public int compareTo( ProjectileTarget other ) {
 		if ( other.getDistanceSquared() > distanceSquared ) {
-			return 1;
-		} else if ( other.getDistanceSquared() < distanceSquared ) {
 			return -1;
+		} else if ( other.getDistanceSquared() < distanceSquared ) {
+			return 1;
 		} else {
 			int hash = hashCode();
 			int otherHash = other.hashCode();

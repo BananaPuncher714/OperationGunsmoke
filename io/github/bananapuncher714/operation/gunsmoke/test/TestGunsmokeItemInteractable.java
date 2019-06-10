@@ -69,7 +69,11 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 
 	@Override
 	public EnumEventResult onClick( LeftClickEvent event ) {
-		event.getPlayer().sendMessage( "Boop" );
+		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
+		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 5 ) );
+
+		plugin.getItemManager().register( projectile );
+		
 		event.setCancelled( true );
 		return EnumEventResult.COMPLETED;
 	}

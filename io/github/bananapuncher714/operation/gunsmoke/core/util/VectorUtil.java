@@ -33,6 +33,9 @@ public final class VectorUtil {
 		Location upper = location.clone().add( rad, entity.getHeight(), rad );
 
 		// TODO Add a way to determine the entry and exit point?
+		// TODO This is somewhat important
+		// TODO so I thought I'd add
+		// TODO a few more here to remind myself
 		
 		if ( lower.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zLow = calculateVector( lower, new Vector( 0, 0, 1 ), origin, ray );
