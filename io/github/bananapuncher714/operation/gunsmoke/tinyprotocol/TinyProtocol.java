@@ -45,8 +45,8 @@ public abstract class TinyProtocol {
 	private static final AtomicInteger ID = new AtomicInteger(0);
 
 	// Used in order to lookup a channel
-	private static final MethodInvoker getPlayerHandle = Reflection.getMethod("{obc}.entity.CraftPlayer", "getHandle");
-	private static final FieldAccessor<Object> getConnection = Reflection.getField("{nms}.EntityPlayer", "playerConnection", Object.class);
+	protected static final MethodInvoker getPlayerHandle = Reflection.getMethod("{obc}.entity.CraftPlayer", "getHandle");
+	protected static final FieldAccessor<Object> getConnection = Reflection.getField("{nms}.EntityPlayer", "playerConnection", Object.class);
 	private static final FieldAccessor<Object> getManager = Reflection.getField("{nms}.PlayerConnection", "networkManager", Object.class);
 	private static final FieldAccessor<Channel> getChannel = Reflection.getField("{nms}.NetworkManager", Channel.class, 0);
 
@@ -394,8 +394,9 @@ public abstract class TinyProtocol {
 		// Lookup channel again
 		if (channel == null) {
 			Object connection = getConnection.get(getPlayerHandle.invoke(player));
+			
 			Object manager = getManager.get(connection);
-
+			
 			channelLookup.put(player.getName(), channel = getChannel.get(manager));
 		}
 
@@ -407,7 +408,7 @@ public abstract class TinyProtocol {
 		
 		return channel;
 	}
-
+	
 	/**
 	 * Uninject a specific player.
 	 * 

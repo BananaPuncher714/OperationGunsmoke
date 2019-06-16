@@ -24,6 +24,8 @@ public class Gunsmoke extends JavaPlugin {
 	protected EntityManager entityManager;
 	protected PlayerManager playerManager;
 	protected TaskManager taskManager;
+	protected MovementManager movementManager;
+	protected ZoomManager zoomManager;
 	
 	@Override
 	public void onEnable() {
@@ -34,10 +36,17 @@ public class Gunsmoke extends JavaPlugin {
 		entityManager = new EntityManager();
 		playerManager = new PlayerManager( this );
 		taskManager = new TaskManager( this );
+		movementManager = new MovementManager( this );
+		zoomManager = new ZoomManager( this );
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
 		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
+	}
+	
+	@Override
+	public void onDisable() {
+		movementManager.stop();
 	}
 	
 	/**
@@ -54,7 +63,7 @@ public class Gunsmoke extends JavaPlugin {
 					Location hit = VectorUtil.rayIntersect( nearEntity, player.getEyeLocation(), player.getLocation().getDirection() );
 					if ( hit != null ) {
 						player.sendMessage( "Found: " + nearEntity.getName() + " at " + nearEntity.getLocation() );
-						protocol.getHandler().hurt( player );
+						protocol.getHandler().playHurtAnimationFor( player );
 					}
 				}
 			}
@@ -99,5 +108,13 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public TaskManager getTaskManager() {
 		return taskManager;
+	}
+	
+	public MovementManager getMovementManager() {
+		return movementManager;
+	}
+	
+	public ZoomManager getZoomManager() {
+		return zoomManager;
 	}
 }

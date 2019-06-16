@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +15,6 @@ import java.util.concurrent.CountDownLatch;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
@@ -25,8 +23,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
-
-import com.google.common.base.Predicate;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
@@ -62,6 +58,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig.EnumPlayerDigType;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockPlace;
 import net.minecraft.server.v1_14_R1.PacketPlayInFlying;
+import net.minecraft.server.v1_14_R1.PacketPlayInTeleportAccept;
 import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
@@ -71,8 +68,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutLightUpdate;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFlags;
-import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntity;
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
+import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
 import net.minecraft.server.v1_14_R1.Vec3D;
 
@@ -91,10 +88,10 @@ public class NMSHandler implements PacketHandler {
 	private static Field MAPCHUNK_X;
 	private static Field MAPCHUNK_Z;
 
-	private static Field SPAWNENTITY_TYPE;
-
 	private static Field PLAYERABILITIES_FOV;
 
+	private static Field TELEPORT_AWAIT;
+	
 	private static Map< EntityPose, EntitySize > sizes = new HashMap< EntityPose, EntitySize >();
 
 	private static Set< EnumPlayerTeleportFlags > TELEPORT_FLAGS;
@@ -125,11 +122,11 @@ public class NMSHandler implements PacketHandler {
 			MAPCHUNK_Z = PacketPlayOutMapChunk.class.getDeclaredField("b");
 			MAPCHUNK_Z.setAccessible(true);
 
-			SPAWNENTITY_TYPE = PacketPlayOutSpawnEntity.class.getDeclaredField("k");
-			SPAWNENTITY_TYPE.setAccessible(true);
-
 			PLAYERABILITIES_FOV = PacketPlayOutAbilities.class.getDeclaredField("f");
 			PLAYERABILITIES_FOV.setAccessible(true);
+			
+			TELEPORT_AWAIT = PlayerConnection.class.getDeclaredField( "teleportAwait" );
+			TELEPORT_AWAIT.setAccessible( true );
 			
 			Field modifiersField = Field.class.getDeclaredField( "modifiers" );
             modifiersField.setAccessible( true );
@@ -159,8 +156,8 @@ public class NMSHandler implements PacketHandler {
 	}
 
 	private Gunsmoke plugin;
-
-	public void setGunsmoke(Gunsmoke plugin) {
+	
+	public void setGunsmoke( Gunsmoke plugin ) {
 		this.plugin = plugin;
 	}
 
@@ -174,6 +171,8 @@ public class NMSHandler implements PacketHandler {
 			return handleMetadataPacket( reciever, ( PacketPlayOutEntityMetadata ) packet );
 		} else if ( packet instanceof PacketPlayOutEntityEquipment ) {
 			return handleEntityEquipmentPacket( reciever, ( PacketPlayOutEntityEquipment ) packet );
+		} else if ( packet instanceof PacketPlayOutAbilities ) {
+			handleAbilitiesPacket( reciever, ( PacketPlayOutAbilities ) packet );
 		}
 		return packet;
 	}
@@ -192,8 +191,14 @@ public class NMSHandler implements PacketHandler {
 			return handleBlockDigPacket( reciever, ( PacketPlayInBlockDig ) packet );
 		} else if ( packet instanceof PacketPlayInAdvancements ) {
 			return handleAdvancementPacket( reciever, ( PacketPlayInAdvancements ) packet );
+		} else if ( packet instanceof PacketPlayInTeleportAccept ) {
+			return handleTeleportAcceptPacket( reciever, ( PacketPlayInTeleportAccept ) packet );
 		}
 		return packet;
+	}
+	
+	private Packet< ? > handleTeleportAcceptPacket( Player player, PacketPlayInTeleportAccept packet ) {
+		return packet.b() == 0 ? null : packet;
 	}
 	
 	private Packet< ? > handleAdvancementPacket( Player player, PacketPlayInAdvancements packet ) {
@@ -425,21 +430,32 @@ public class NMSHandler implements PacketHandler {
 		return packet;
 	}
 
+	private boolean handleAbilitiesPacket( Player player, PacketPlayOutAbilities packet ) {
+		// TODO
+		try {
+			 float fov = ( float ) PLAYERABILITIES_FOV.getFloat( packet );
+			 if ( plugin.getZoomManager().getZoomLevel( player ) == null ) {
+				 packet.b( .1f );
+			 } else {
+				 packet.b( fov );
+			 }
+			 return true;
+		} catch ( IllegalArgumentException | IllegalAccessException e ) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	private Packet< ? > handleFlyingPacket(Player player, PacketPlayInFlying packet) {
-		if (player.isOnGround() && !packet.b()
-				&& packet.b(player.getLocation().getY()) - player.getLocation().getY() > 0) {
-			PlayerJumpEvent event = new PlayerJumpEvent(player);
-			Bukkit.getScheduler().runTask(plugin, new Runnable() {
-				@Override
-				public void run() {
-					Bukkit.getPluginManager().callEvent(event);
-				}
-			});
+		if ( player.isOnGround() && !packet.b() && packet.b( player.getLocation().getY() ) - player.getLocation().getY() > 0 ) {
+			PlayerJumpEvent event = new PlayerJumpEvent( player );
+			plugin.getTaskManager().callEventSync( event );
 		}
 		return packet;
 	}
 	
 	
+	// Debug method
 	public void darkness( Player player ) {
 		LightEngine engine = ( ( CraftWorld ) player.getWorld() ).getHandle().getChunkProvider().getLightEngine();
 		int x = player.getLocation().getBlockX() >> 4;
@@ -492,11 +508,12 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
-	public void hurt( LivingEntity entity ) {
-		List< AttributeInstance > attributes = new ArrayList< AttributeInstance >();
-		attributes.add( ( ( CraftLivingEntity ) entity ).getHandle().getAttributeInstance( GenericAttributes.MAX_HEALTH ) );
-		PacketPlayOutUpdateAttributes attributePacket = new PacketPlayOutUpdateAttributes( entity.getEntityId(), attributes );
+	public void playHurtAnimationFor( LivingEntity entity ) {
 		if ( entity instanceof Player ) {
+			List< AttributeInstance > attributes = new ArrayList< AttributeInstance >();
+			attributes.add( ( ( CraftLivingEntity ) entity ).getHandle().getAttributeInstance( GenericAttributes.MAX_HEALTH ) );
+			PacketPlayOutUpdateAttributes attributePacket = new PacketPlayOutUpdateAttributes( entity.getEntityId(), attributes );
+
 			plugin.getProtocol().sendPacket( ( Player ) entity , attributePacket );
 		}
 		
@@ -543,12 +560,12 @@ public class NMSHandler implements PacketHandler {
 	public void update( LivingEntity entity, EquipmentSlot slot ) {
 		EnumItemSlot NMSSlot = NMSUtils.getEnumItemSlot( slot );
 		int id = ( ( CraftEntity ) entity ).getEntityId();
-		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity(entity.getUniqueId());
-		org.bukkit.inventory.ItemStack item = gEntity.getWearing(slot);
+		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
+		org.bukkit.inventory.ItemStack item = gEntity.getWearing( slot );
 
-		if (slot == EquipmentSlot.HAND) {
+		if ( slot == EquipmentSlot.HAND ) {
 			item = gEntity.getMainHand().getHolding();
-		} else if (slot == EquipmentSlot.OFF_HAND) {
+		} else if ( slot == EquipmentSlot.OFF_HAND ) {
 			item = gEntity.getOffHand().getHolding();
 		}
 
@@ -562,8 +579,18 @@ public class NMSHandler implements PacketHandler {
 	@Override
 	public void teleportRelative( String player, Vector vector, double yaw, double pitch ) {
 		vector = vector == null ? new Vector( 0, 0, 0 ) : vector;
-		PacketPlayOutPosition packet = new PacketPlayOutPosition( vector.getX(), vector.getY(), vector.getZ(), ( float ) yaw, ( float ) pitch, TELEPORT_FLAGS, 0 );
-		plugin.getProtocol().sendPacket( player, packet );
+		try {
+			Object connObj = plugin.getProtocol().getPlayerConnection( player );
+			if ( connObj != null ) {
+				PlayerConnection connection = ( PlayerConnection ) connObj;
+				PacketPlayOutPosition packet = new PacketPlayOutPosition( vector.getX(), vector.getY(), vector.getZ(), ( float ) yaw, ( float ) pitch, TELEPORT_FLAGS, TELEPORT_AWAIT.getInt( connection ) );
+				plugin.getProtocol().sendPacket( player, packet );
+			} else {
+				System.out.println( "NULL" );
+			}
+		} catch ( Exception exception ) {
+			exception.printStackTrace();
+		}
 	}
 	
 	@Override
@@ -577,7 +604,9 @@ public class NMSHandler implements PacketHandler {
 			EntityPose pose = ( ( CraftEntity ) player ).getHandle().getPose();
 			
 			EntitySize original = sizes.get( pose );
-			sizes.put( pose, EntitySize.b( 0.6f, 0.6f ) );
+			if ( down ) {
+				sizes.put( pose, EntitySize.b( 0.6f, 0.6f ) );
+			}
 
 			( ( CraftEntity ) player ).getHandle().updateSize();
 
@@ -585,7 +614,7 @@ public class NMSHandler implements PacketHandler {
 			height.set( ( ( CraftEntity ) player ).getHandle(), playerSize.height * 0.85f );
 			
 			sizes.put( pose, original );
-		} catch (Exception exception) {
+		} catch ( Exception exception ) {
 			exception.printStackTrace();
 		}
 	}
@@ -637,7 +666,7 @@ public class NMSHandler implements PacketHandler {
 		Vec3D end = new Vec3D( dest.getX(), dest.getY(), dest.getZ() );
 		
 		// Not sure what the difference between COLLIDER and OUTLINE is. Perhaps a intersection detection method?
-		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.COLLIDER, RayTrace.FluidCollisionOption.NONE, null );
+		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.OUTLINE, RayTrace.FluidCollisionOption.NONE, null );
 		
 		MovingObjectPositionBlock result = world.rayTrace( trace );
 

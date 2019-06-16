@@ -1,11 +1,11 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.util;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 /**
@@ -79,6 +79,57 @@ public final class VectorUtil {
 			}
 		}
 		return null;
+	}
+	
+	public static Vector randomizeSpread( Vector vec, double deg ) {
+		// No Y difference for you, only good for single shots
+		double length = vec.length();
+		vec.normalize();
+		double x = vec.getX();
+		double y = vec.getY();
+		double z = vec.getZ();
+		
+		double flatLength = Math.sqrt( x * x + z * z );
+		double ratio = y / flatLength;
+		
+		double degree = FastMath.atan2( ( float ) x, ( float ) z ) * FastMath.DEG;
+		degree = degree + ( ThreadLocalRandom.current().nextDouble() * ( 2 * deg ) ) - deg;
+		double ydeg = FastMath.atan2( ( float ) flatLength, ( float ) vec.getY() ) * FastMath.DEG + ( ThreadLocalRandom.current().nextDouble() * deg );
+		double rad = ( degree * Math.PI ) / 180.0;
+		double yrad = ( ydeg * Math.PI ) / 180.0;
+		
+		vec.setZ( flatLength * Math.cos( rad ) );
+		vec.setX( flatLength * Math.sin( rad ) );
+		vec.setY( ratio * Math.sin( yrad ) );
+		vec.normalize().multiply( length );
+		return vec;
+	}
+	
+	public static Vector randomizeSpread( Vector vec, double yaw, double pitch ) {
+		Random rand = ThreadLocalRandom.current();
+		double length = vec.length();
+		
+		Location location = new Location( null, 0, 0, 0 );
+		location.setDirection( vec );
+		// Equal random distribution
+//		double yawDiff = yaw - ( rand.nextDouble() * 2 * yaw );
+//		double pitchDiff = pitch - ( rand.nextDouble() * 2 * pitch );
+		
+		// Normal distribution
+		double yawDiff = yaw * rand.nextGaussian() / 3.0;
+		double pitchDiff = pitch * rand.nextGaussian() / 3.0;
+		
+		location.setYaw( ( float ) ( location.getYaw() + yawDiff ) );
+		location.setPitch( ( float ) ( location.getPitch() + pitchDiff ) );
+		
+		return location.getDirection().multiply( length );
+	}
+	
+	public static boolean isHeadshot( LivingEntity entity, Location intersection ) {
+		double upper = entity.getHeight() + entity.getLocation().getY();
+		double lower = upper - ( entity.getHeight() - entity.getEyeHeight() ) * 2;
+		
+		return intersection.getY() >= lower;
 	}
 	
 	/**

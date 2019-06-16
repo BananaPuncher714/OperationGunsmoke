@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.ZoomLevel;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
@@ -20,6 +21,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRight
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItemInteractable;
+import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement;
+import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement.MovementModifier;
+import io.github.bananapuncher714.operation.gunsmoke.api.movement.MovementModifierRecoil;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
@@ -29,6 +33,8 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	Gunsmoke plugin;
 	
 	ItemStackMultiState display;
+	
+	boolean zoomed = false;
 	
 	public TestGunsmokeItemInteractable( Gunsmoke plugin ) {
 		this.plugin = plugin;
@@ -61,7 +67,7 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		event.setCancelled( true );
 		if ( event.getHitEntity() instanceof LivingEntity ) {
 			LivingEntity lEntity = ( LivingEntity ) event.getHitEntity();
-			plugin.getProtocol().getHandler().hurt( lEntity );
+			plugin.getProtocol().getHandler().playHurtAnimationFor( lEntity );
 			lEntity.setHealth( lEntity.getHealth() - 1 );
 		}
 		return EnumEventResult.COMPLETED;
@@ -69,12 +75,19 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 
 	@Override
 	public EnumEventResult onClick( LeftClickEvent event ) {
-		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
-		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 5 ) );
-
-		plugin.getItemManager().register( projectile );
+//		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
+//		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 5 ) );
+//
+//		plugin.getItemManager().register( projectile );
+//		
+//		event.setCancelled( true );
+		if ( zoomed ) {
+			plugin.getZoomManager().setZoom( holder, ZoomLevel._11 );
+		} else {
+			plugin.getZoomManager().removeZoom( holder );
+		}
+		zoomed = !zoomed;
 		
-		event.setCancelled( true );
 		return EnumEventResult.COMPLETED;
 	}
 
@@ -85,9 +98,14 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		GunsmokeUtil.flash( event.getPlayer() );
 		
 		double finYaw = ThreadLocalRandom.current().nextDouble() * 1 - ( 1 * .5 );
-		double pitch = -2;
+		double pitch = -5;
 		
-		plugin.getProtocol().getHandler().teleportRelative( event.getPlayer().getName(), null, finYaw, pitch );
+		MovementModifier modifier = new MovementModifierRecoil( pitch, finYaw, 600 );
+		
+		CrosshairMovement movement = plugin.getMovementManager().getMovement( holder.getName() );
+		if ( movement != null ) {
+			movement.addMovementModifier( modifier );
+		}
 		
 		return EnumEventResult.COMPLETED;
 	}
@@ -99,6 +117,9 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		entity.sendMessage( "Equipped in slot " + slot );
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeEntity.getMainHand() : gunsmokeEntity.getOffHand() ).setItem( display );
 		gunsmokeEntity.setHandState( State.SHIELD, slot == EquipmentSlot.HAND );
+		
+//		plugin.getMovementManager().setMovement( holder.getName(), new CrosshairMovementStandard( .02, 3000 ) );
+		plugin.getMovementManager().setMovement( holder.getName(), new CrosshairMovement() );
 	}
 	
 	@Override
@@ -106,6 +127,8 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		holder.sendMessage( "Unequipped" );
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeHolder.getMainHand() : gunsmokeHolder.getOffHand() ).setItem( null );
 		gunsmokeHolder.setHandState( State.DEFAULT, slot == EquipmentSlot.HAND );
+		
+		plugin.getMovementManager().setMovement( holder.getName(), null );
 		
 		super.onUnequip();
 	}

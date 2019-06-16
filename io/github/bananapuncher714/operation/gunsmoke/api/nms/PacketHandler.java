@@ -31,12 +31,11 @@ public interface PacketHandler {
 	
 	void set( Player player, boolean down );
 	void setAir( Player player, int ticks );
+	void playHurtAnimationFor( LivingEntity entity );
 	
 	boolean isCurrentThreadMain();
 	
 	void darkness( Player player );
-	
-	void hurt( LivingEntity entity );
 	
 	int getServerTick();
 	

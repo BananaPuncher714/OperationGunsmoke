@@ -12,6 +12,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetEntity;
 
@@ -54,7 +55,15 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 	}
 	
 	@Override
-	public void hit( ProjectileTargetEntity target ) {
+	public void hit( ProjectileTarget target ) {
+		if ( target instanceof ProjectileTargetEntity ) {
+			hit( ( ProjectileTargetEntity ) target );
+		} else if ( target instanceof ProjectileTargetBlock ) {
+			hit( ( ProjectileTargetBlock ) target );
+		}
+	}
+	
+	protected void hit( ProjectileTargetEntity target ) {
 		GunsmokeEntity hitEntity = target.getHitEntity();
 		if ( hitEntity instanceof GunsmokeEntityWrapper ) {
 			Entity bukkitEntity = ( ( GunsmokeEntityWrapper ) hitEntity ).getEntity();
@@ -72,9 +81,8 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 			}
 		}
 	}
-
-	@Override
-	public void hit( ProjectileTargetBlock target ) {
+	
+	protected void hit( ProjectileTargetBlock target ) {
 		Material hitType = target.getHitBlock().getType();
 		if ( hitType == Material.WATER || hitType == Material.LAVA ) {
 			return;

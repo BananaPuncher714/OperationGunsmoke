@@ -16,6 +16,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -27,6 +28,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class PlayerListener implements Listener {
+	public static final long PRONE_DELAY = 500;
+	
 	private Gunsmoke plugin;
 	
 	private Map< UUID, Integer > interactLastCalled = new HashMap< UUID, Integer >();
@@ -56,6 +59,11 @@ public class PlayerListener implements Listener {
 		if ( event.getEntity() instanceof Player ) {
 			plugin.getPlayerManager().setHolding( ( Player ) event.getEntity(), false );
 		}
+	}
+	
+	@EventHandler
+	private void onPlayerJoinEvent( PlayerJoinEvent event ) {
+		plugin.getProtocol().getPlayerConnection( event.getPlayer().getName() );
 	}
 	
 	@EventHandler
@@ -123,18 +131,18 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onPlayerJump( PlayerJumpEvent event ) {
+	private void onPlayerJump( PlayerJumpEvent event ) {
 		plugin.getPlayerManager().setProne( event.getPlayer(), false );
 	}
 	
 	@EventHandler
-	public void onPlayerSneak( PlayerToggleSneakEvent event ) {
+	private void onPlayerSneak( PlayerToggleSneakEvent event ) {
 		Player player = event.getPlayer();
 		GunsmokePlayer entity = plugin.getEntityManager().getEntity( event.getPlayer().getUniqueId() );
 		if ( event.isSneaking() ) {
 			if ( player.isOnGround() && !entity.isProne() ) {
 				long time = lastSneak.containsKey( player.getUniqueId() ) ? lastSneak.get( player.getUniqueId() ) : 0;
-				if ( System.currentTimeMillis() - time < 500 ) {
+				if ( System.currentTimeMillis() - time < PRONE_DELAY ) {
 					plugin.getPlayerManager().setProne( player, true );
 				}
 				lastSneak.put( player.getUniqueId(), System.currentTimeMillis() );

@@ -44,6 +44,10 @@ public abstract class GunsmokeItem extends GunsmokeRepresentable {
 		return isEquipped;
 	}
 	
+	public boolean canDualWieldWith( GunsmokeItem other ) {
+		return false;
+	}
+	
 	public abstract ItemStack getItem();
 	
 	protected static ItemStack markAsGunsmokeItem( ItemStack item, UUID uuid ) {

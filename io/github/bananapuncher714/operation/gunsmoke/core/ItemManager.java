@@ -10,16 +10,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.projectiles.ProjectileSource;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
@@ -392,27 +394,50 @@ public class ItemManager implements Listener {
 		}
 	}
 	
+
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( ProjectileLaunchEvent event ) {
+		Projectile projectile = event.getEntity();
+		ProjectileSource source = projectile.getShooter();
+		if ( source instanceof LivingEntity ) {
+			LivingEntity shooter = ( LivingEntity ) source;
+			GunsmokeRepresentable main = getRepresentable( shooter, EquipmentSlot.HAND );
+			if ( main != null ) {
+				event.setCancelled( true );
+				return;
+			}
+			
+			GunsmokeRepresentable off = getRepresentable( shooter, EquipmentSlot.OFF_HAND );
+			if ( off != null ) {
+				event.setCancelled( true );
+				return;
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( EntityDamageByEntityEvent event ) {
+		Entity damager = event.getDamager();
+		if ( damager instanceof LivingEntity ) {
+			LivingEntity entity = ( LivingEntity ) damager;
+			GunsmokeRepresentable representable = getRepresentable( entity, EquipmentSlot.HAND );
+			if ( representable != null ) {
+				event.setCancelled( true );
+			}
+		}
+	}
+	
+//	@EventHandler( priority = EventPriority.HIGHEST )
+//	private void onEvent() {
+//		
+//	}
+//	
+//	@EventHandler( priority = EventPriority.HIGHEST )
+//	private void onEvent() {
+//		
+//	}
+	
 	/*
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent() {
 		

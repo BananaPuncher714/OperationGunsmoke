@@ -4,6 +4,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.bukkit.entity.LivingEntity;
+
+import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 
 public class EntityManager {
@@ -22,5 +25,9 @@ public class EntityManager {
 		}
 		
 		return entity;
+	}
+	
+	public void damage( LivingEntity entity, double damage, DamageType type ) {
+		
 	}
 }

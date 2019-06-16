@@ -22,6 +22,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerPro
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 
 public class PlayerManager {
@@ -135,7 +136,15 @@ public class PlayerManager {
 			return;
 		}
 		entity.setProne( prone );
-		plugin.getProtocol().getHandler().set( player, prone );
+		CrosshairMovement movement = plugin.getMovementManager().getMovement( player.getName() );
+		plugin.getMovementManager().setMovement( player.getName(), null );
+		Bukkit.getScheduler().runTaskLater( plugin, () -> {
+			plugin.getProtocol().getHandler().set( player, prone );
+			
+			if ( movement != null ) {
+				plugin.getMovementManager().setMovement( player.getName(), movement );
+			}
+		}, 2 );
 		entity.update();
 	}
 }

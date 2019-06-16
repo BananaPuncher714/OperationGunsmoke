@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,8 +14,6 @@ import org.bukkit.entity.Entity;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitBlockEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetEntity;
@@ -22,9 +21,14 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public abstract class GunsmokeProjectile extends GunsmokeEntity {
-
+	private Set< UUID > hitEntities;
+	private Set< Location > hitBlocks;
+	
 	public GunsmokeProjectile( Location location ) {
 		super( location );
+		
+		hitEntities = new HashSet< UUID >();
+		hitBlocks = new HashSet< Location >();
 	}
 
 	@Override
@@ -37,12 +41,16 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 		List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, velocity );
 		
 		for ( Entity entity : nearbyEntities ) {
+			if ( getHitEntities().contains( entity.getUniqueId() ) ) {
+				continue;
+			}
 			Location intersection = VectorUtil.rayIntersect( entity, location, velocity );
 			if ( intersection != null ) {
 				// We know we hit something
 				GunsmokeEntityWrapper wrappedEntity = new GunsmokeEntityWrapper( entity );
 				
 				hitTargets.add( new ProjectileTargetEntity( this, intersection, wrappedEntity ) );
+				getHitEntities().add( entity.getUniqueId() );
 			}
 		}
 		
@@ -63,38 +71,23 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			Block block = hitBlock.getBlock();
 			
 			// TODO Add GunsmokeStructure detection
-			if ( block.getType() != Material.AIR ) {
-				if ( !hitBlocks.contains( block ) ) {
-					hitTargets.add( new ProjectileTargetBlock( this, hitBlock, block ) );
-					hitBlocks.add( block );
+			if ( !getHitBlocks().contains( block.getLocation() ) ) {
+				if ( block.getType() != Material.AIR ) {
+					if ( !hitBlocks.contains( block ) ) {
+						hitTargets.add( new ProjectileTargetBlock( this, hitBlock, block ) );
+						hitBlocks.add( block );
+						getHitBlocks().add( block.getLocation() );
+					}
 				}
 			}
 			
 			hitBlock = GunsmokeUtil.rayTrace( hitBlock, velocity );
 		}
 		
-		// Now that we have our targets we can start calling the events in order
+		// Now that we have our targets we can start calling our other methods in order
+		// Event calling should be handled by the implementation
 		for ( ProjectileTarget target : hitTargets ) {
-			// TODO Add a more friendly way to include other sorts of ProjectileTargets
-			if ( target instanceof ProjectileTargetBlock ) {
-				ProjectileTargetBlock blockTarget = ( ProjectileTargetBlock ) target;
-				GunsmokeProjectileHitBlockEvent hitEvent = new GunsmokeProjectileHitBlockEvent( this, blockTarget.getHitBlock(), blockTarget.getIntersection() );
-
-				GunsmokeUtil.callEventSync( hitEvent );
-				
-				if ( !hitEvent.isCancelled() ) {
-					hit( blockTarget );
-				}
-			} else if ( target instanceof ProjectileTargetEntity ) {
-				ProjectileTargetEntity entityTarget = ( ProjectileTargetEntity ) target;
-				GunsmokeProjectileHitEntityEvent hitEvent = new GunsmokeProjectileHitEntityEvent( this, entityTarget.getHitEntity(), entityTarget.getIntersection() );
-
-				GunsmokeUtil.callEventSync( hitEvent );
-				
-				if ( !hitEvent.isCancelled() ) {
-					hit( entityTarget );
-				}
-			}
+			hit( target );
 		}
 		
 		location.add( velocity );
@@ -102,7 +95,14 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 		// Erase this projectile from existence if it falls beyond the void
 		return ( location.getY() > -64 ) ? EnumTickResult.CONTINUE : EnumTickResult.CANCEL;
 	}
+	
+	protected Set< UUID > getHitEntities() {
+		return hitEntities;
+	}
+	
+	protected Set< Location > getHitBlocks() {
+		return hitBlocks;
+	}
 
-	abstract public void hit( ProjectileTargetEntity target );
-	abstract public void hit( ProjectileTargetBlock target );
+	abstract public void hit( ProjectileTarget target );
 }
