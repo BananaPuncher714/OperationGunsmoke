@@ -130,21 +130,24 @@ public class ItemManager implements Listener {
 			
 			GunsmokePlayer entity = plugin.getEntityManager().getEntity( player.getUniqueId() );
 			
-			// Check to ensure no illegal dual wielding occurs
-			if ( otherRepresentable instanceof GunsmokeItem ) {
-				GunsmokeItem otherGItem = ( GunsmokeItem ) otherRepresentable;
-				if ( !gItem.canDualWieldWith( otherGItem ) || !otherGItem.canDualWieldWith( gItem ) ) {
-					for ( ItemStack extraItem : player.getInventory().addItem( newItem ).values() ) {
-						player.getWorld().dropItem( player.getLocation(), extraItem );
+			// Make sure the slot is a hand slpt, since this event supports armor slots too
+			if ( event.getSlot() == EquipmentSlot.HAND || event.getSlot() == EquipmentSlot.OFF_HAND ) {
+				// Check to ensure no illegal dual wielding occurs
+				if ( otherRepresentable instanceof GunsmokeItem ) {
+					GunsmokeItem otherGItem = ( GunsmokeItem ) otherRepresentable;
+					if ( !gItem.canDualWieldWith( otherGItem ) || !otherGItem.canDualWieldWith( gItem ) ) {
+						for ( ItemStack extraItem : player.getInventory().addItem( newItem ).values() ) {
+							player.getWorld().dropItem( player.getLocation(), extraItem );
+						}
+						
+						if ( event.getSlot() == EquipmentSlot.HAND ) {
+							player.getEquipment().setItemInMainHand( null );
+						} else {
+							player.getEquipment().setItemInOffHand( null );
+						}
+						
+						return;
 					}
-					
-					if ( event.getSlot() == EquipmentSlot.HAND ) {
-						player.getEquipment().setItemInMainHand( null );
-					} else {
-						player.getEquipment().setItemInOffHand( null );
-					}
-					
-					return;
 				}
 			}
 			

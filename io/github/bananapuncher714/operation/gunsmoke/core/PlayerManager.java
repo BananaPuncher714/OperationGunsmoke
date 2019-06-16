@@ -24,6 +24,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClic
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class PlayerManager {
 	private final Map< UUID, Long > holdingRC = new HashMap< UUID, Long >();
@@ -52,24 +53,27 @@ public class PlayerManager {
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			ItemStack[] items = heldItems.get( player.getUniqueId() );
 			if ( items == null ) {
-				items = new ItemStack[] { new ItemStack( Material.AIR ), new ItemStack( Material.AIR ) };
+				items = new ItemStack[] { new ItemStack( Material.AIR ),
+						new ItemStack( Material.AIR ),
+						new ItemStack( Material.AIR ),
+						new ItemStack( Material.AIR ),
+						new ItemStack( Material.AIR ),
+						new ItemStack( Material.AIR )};
 				heldItems.put( player.getUniqueId(), items );
 			}
 			
-			if ( player.getEquipment().getItemInMainHand().hashCode() != items[ 0 ].hashCode() ) {
-				PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ 0 ], EquipmentSlot.HAND );
+			int index = 0;
+			for ( EquipmentSlot slot : EquipmentSlot.values() ) {
+				ItemStack newItem = BukkitUtil.getEquipment( player, slot );
 				
-				plugin.getTaskManager().callEventSync( event );
-			}
-			
-			if ( player.getEquipment().getItemInOffHand().hashCode() != items[ 1 ].hashCode() ) {
-				PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ 1 ], EquipmentSlot.OFF_HAND );
+				if ( newItem.hashCode() != items[ index ].hashCode() ) {
+					PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ index ], slot );
+					
+					plugin.getTaskManager().callEventSync( event );
+				}
 				
-				plugin.getTaskManager().callEventSync( event );
+				items[ index++ ] = newItem; 
 			}
-			
-			items[ 0 ] = player.getEquipment().getItemInMainHand();
-			items[ 1 ] = player.getEquipment().getItemInOffHand();
 		}
 	}
 	
