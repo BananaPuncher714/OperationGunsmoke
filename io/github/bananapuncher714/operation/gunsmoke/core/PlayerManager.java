@@ -14,7 +14,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
@@ -35,6 +35,7 @@ public class PlayerManager {
 		Bukkit.getScheduler().scheduleSyncRepeatingTask( plugin, this::updateHolding, 0, 1 );
 	}
 	
+	// Determines if the player's held item has changed and calls the appropriate event for it
 	private void updateHolding() {
 		// Detect right clicking and call appropriate events
 		for ( Iterator< Entry< UUID, Long > > it = holdingRC.entrySet().iterator(); it.hasNext(); ) {
@@ -56,13 +57,13 @@ public class PlayerManager {
 			}
 			
 			if ( player.getEquipment().getItemInMainHand().hashCode() != items[ 0 ].hashCode() ) {
-				EntityUpdateItemEvent event = new EntityUpdateItemEvent( player, items[ 0 ], EquipmentSlot.HAND );
+				PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ 0 ], EquipmentSlot.HAND );
 				
 				plugin.getTaskManager().callEventSync( event );
 			}
 			
 			if ( player.getEquipment().getItemInOffHand().hashCode() != items[ 1 ].hashCode() ) {
-				EntityUpdateItemEvent event = new EntityUpdateItemEvent( player, items[ 1 ], EquipmentSlot.OFF_HAND );
+				PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ 1 ], EquipmentSlot.OFF_HAND );
 				
 				plugin.getTaskManager().callEventSync( event );
 			}

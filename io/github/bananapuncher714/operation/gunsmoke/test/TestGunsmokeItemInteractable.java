@@ -20,6 +20,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemE
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItemInteractable;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement.MovementModifier;
@@ -133,6 +134,13 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		super.onUnequip();
 	}
 	
+	
+	
+	@Override
+	public boolean canDualWieldWith( GunsmokeItem other ) {
+		return false;
+	}
+
 	@Override
 	public ItemStack getItem() {
 		ItemStack item = new ItemStack( Material.SHIELD );

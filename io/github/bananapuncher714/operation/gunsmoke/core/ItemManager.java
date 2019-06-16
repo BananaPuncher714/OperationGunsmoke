@@ -31,7 +31,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeE
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
@@ -106,8 +106,9 @@ public class ItemManager implements Listener {
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent( EntityUpdateItemEvent event ) {
+	private void onEvent( PlayerUpdateItemEvent event ) {
 		ItemStack item = event.getItem();
+		Player player = event.getPlayer();
 		GunsmokeRepresentable representable = getRepresentable( item );
 		if ( representable instanceof GunsmokeItem ) {
 			GunsmokeItem gItem = ( GunsmokeItem ) representable;
@@ -117,8 +118,9 @@ public class ItemManager implements Listener {
 			}
 		}
 		
-		ItemStack newItem = BukkitUtil.getEquipment( event.getEntity(), event.getSlot() );
+		ItemStack newItem = BukkitUtil.getEquipment( player, event.getSlot() );
 		GunsmokeRepresentable newRepresentable = getRepresentable( newItem );
+		GunsmokeRepresentable otherRepresentable = getRepresentable( player, event.getSlot() == EquipmentSlot.HAND ? EquipmentSlot.OFF_HAND : EquipmentSlot.HAND );
 		if ( newRepresentable instanceof GunsmokeItem ) {
 			GunsmokeItem gItem = ( GunsmokeItem ) newRepresentable;
 			
@@ -126,8 +128,27 @@ public class ItemManager implements Listener {
 				gItem.onUnequip();
 			}
 			
-			GunsmokePlayer entity = plugin.getEntityManager().getEntity( event.getEntity().getUniqueId() );
-			gItem.onEquip( event.getEntity(), entity, event.getSlot() );
+			GunsmokePlayer entity = plugin.getEntityManager().getEntity( player.getUniqueId() );
+			
+			// Check to ensure no illegal dual wielding occurs
+			if ( otherRepresentable instanceof GunsmokeItem ) {
+				GunsmokeItem otherGItem = ( GunsmokeItem ) otherRepresentable;
+				if ( !gItem.canDualWieldWith( otherGItem ) || !otherGItem.canDualWieldWith( gItem ) ) {
+					for ( ItemStack extraItem : player.getInventory().addItem( newItem ).values() ) {
+						player.getWorld().dropItem( player.getLocation(), extraItem );
+					}
+					
+					if ( event.getSlot() == EquipmentSlot.HAND ) {
+						player.getEquipment().setItemInMainHand( null );
+					} else {
+						player.getEquipment().setItemInOffHand( null );
+					}
+					
+					return;
+				}
+			}
+			
+			gItem.onEquip( player, entity, event.getSlot() );
 		}
 	}
 	
@@ -187,8 +208,8 @@ public class ItemManager implements Listener {
 			}
 		}
 		
+		GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 		if ( result == EnumEventResult.SKIPPED || result == EnumEventResult.PROCESSED ) {
-			GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
 			if ( offRepresentable instanceof GunsmokeItemInteractable ) {
 				GunsmokeItemInteractable offInteractable = ( GunsmokeItemInteractable ) offRepresentable;
 
@@ -200,6 +221,18 @@ public class ItemManager implements Listener {
 		
 		if ( result == EnumEventResult.COMPLETED ) {
 			event.setCancelled( true );
+		} else {
+			// We need to do some fast checking to see if they can be dual wielded, or else bad things will happen
+			if ( mainRepresentable instanceof GunsmokeItem && offRepresentable instanceof GunsmokeItem ) {
+				GunsmokeItem main = ( GunsmokeItem ) mainRepresentable;
+				GunsmokeItem off = ( GunsmokeItem ) offRepresentable;
+				if ( !main.canDualWieldWith( off ) || !off.canDualWieldWith( main )  ) {
+					// This shouldn't actually ever get called, since it would mean
+					// they'd have to be together in the first place,
+					// which, should be caught as soon as one of them got equipped
+					event.setCancelled( true );
+				}
+			}
 		}
 	}
 	

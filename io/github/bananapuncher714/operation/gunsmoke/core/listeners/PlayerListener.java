@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -22,8 +21,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
@@ -55,10 +54,8 @@ public class PlayerListener implements Listener {
 	}
 	
 	@EventHandler
-	private void onPlayerSwitchItem( EntityUpdateItemEvent event ) {
-		if ( event.getEntity() instanceof Player ) {
-			plugin.getPlayerManager().setHolding( ( Player ) event.getEntity(), false );
-		}
+	private void onPlayerSwitchItem( PlayerUpdateItemEvent event ) {
+		plugin.getPlayerManager().setHolding( event.getPlayer(), false );
 	}
 	
 	@EventHandler

@@ -8,7 +8,6 @@ public class GunsmokeItemEquippable extends GunsmokeItemInteractable {
 
 	@Override
 	public ItemStack getItem() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

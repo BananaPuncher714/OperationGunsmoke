@@ -27,7 +27,7 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
@@ -387,7 +387,7 @@ public class NMSHandler implements PacketHandler {
 			// We know that the player has experienced a change item in hand packet
 			// Oh wait, this isnt ever called
 			if ( slot == EnumItemSlot.MAINHAND || slot == EnumItemSlot.OFFHAND ) {
-				EntityUpdateItemEvent event = new EntityUpdateItemEvent( player, nmsItem == null ? null : CraftItemStack.asBukkitCopy( nmsItem ), NMSUtils.getEquipmentSlot( slot ) );
+				PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, nmsItem == null ? null : CraftItemStack.asBukkitCopy( nmsItem ), NMSUtils.getEquipmentSlot( slot ) );
 				
 				plugin.getTaskManager().callEventSync( event );
 			}

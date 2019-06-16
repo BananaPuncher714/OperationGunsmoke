@@ -9,7 +9,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.EntityUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
@@ -28,7 +28,7 @@ public class ProneListener implements Listener {
 	}
 	
 	@EventHandler
-	public void onEvent( EntityUpdateItemEvent event ) {
+	public void onEvent( PlayerUpdateItemEvent event ) {
 		System.out.println( "Updated item!" );
 		System.out.println( event.getSlot() + ":" + event.getItem() );
 	}
