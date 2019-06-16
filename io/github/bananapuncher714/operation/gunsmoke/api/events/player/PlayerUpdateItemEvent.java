@@ -1,5 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
@@ -15,7 +16,11 @@ public class PlayerUpdateItemEvent extends PlayerEvent {
 	public PlayerUpdateItemEvent( Player updater, ItemStack item, EquipmentSlot slot ) {
 		super( updater );
 		this.slot = slot;
-		itemSnapshot = item.clone();
+		if ( item == null ) {
+			itemSnapshot = new ItemStack( Material.AIR );
+		} else {
+			itemSnapshot = item.clone();
+		}
 	}
 	
 	public EquipmentSlot getSlot() {

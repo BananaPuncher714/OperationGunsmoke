@@ -38,6 +38,7 @@ public class BukkitUtil {
 		case BOW:
 		case TRIDENT:
 		case SHIELD:
+		case CROSSBOW:
 			return true;
 		default:
 			return false;

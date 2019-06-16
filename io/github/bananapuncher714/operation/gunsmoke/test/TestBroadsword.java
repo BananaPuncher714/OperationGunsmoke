@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -42,7 +43,7 @@ public class TestBroadsword extends GunsmokeItemMelee implements InteractableDam
 	}
 	
 	@Override
-	public EnumEventResult onEvent( GunsmokeEntityDamageEvent event ) {
+	public EnumEventResult onTakeDamage( GunsmokeEntityDamageEvent event ) {
 		if ( blocking ) {
 			event.setDamage( event.getDamage() / 3.0 );
 		}
@@ -50,13 +51,12 @@ public class TestBroadsword extends GunsmokeItemMelee implements InteractableDam
 	}
 
 	@Override
-	public EnumEventResult onEvent( EntityDamageEvent event ) {
+	public EnumEventResult onTakeDamage( EntityDamageEvent event ) {
 		if ( blocking ) {
 			event.setDamage( event.getDamage() / 3.0 );
 		}
 		return EnumEventResult.COMPLETED;
 	}
-	
 	
 	@Override
 	public EnumEventResult onClick( RightClickEvent event ) {

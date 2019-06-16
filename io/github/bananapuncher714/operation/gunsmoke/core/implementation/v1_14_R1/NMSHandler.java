@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
@@ -672,7 +673,10 @@ public class NMSHandler implements PacketHandler {
 
 		Vec3D fin = result.getPos();
 		
+		BlockFace face = BlockFace.valueOf( result.getDirection().name() );
+		
 		Location interception = new Location( location.getWorld(), fin.getX(), fin.getY(), fin.getZ() );
+		interception.setDirection( face.getDirection() );
 		
 		return interception;
 	}

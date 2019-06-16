@@ -69,6 +69,10 @@ public class GunsmokeUtil {
 		return plugin().getProtocol().getHandler().rayTrace( start, ray, dist );
 	}
 	
+	public static int getCurrentTick() {
+		return plugin().getProtocol().getHandler().getServerTick();
+	}
+	
 	public static void playHurtAnimationFor( LivingEntity entity ) {
 		plugin().getProtocol().getHandler().playHurtAnimationFor( entity );
 	}
