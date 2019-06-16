@@ -66,7 +66,9 @@ public class PlayerManager {
 			for ( EquipmentSlot slot : EquipmentSlot.values() ) {
 				ItemStack newItem = BukkitUtil.getEquipment( player, slot );
 				
-				if ( newItem.hashCode() != items[ index ].hashCode() ) {
+				if ( newItem == null && items[ index ] == null ) {
+					continue;
+				} else if ( ( newItem == null ^ items[ index ] == null ) || ( newItem.hashCode() != items[ index ].hashCode() ) ) {
 					PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ index ], slot );
 					
 					plugin.getTaskManager().callEventSync( event );

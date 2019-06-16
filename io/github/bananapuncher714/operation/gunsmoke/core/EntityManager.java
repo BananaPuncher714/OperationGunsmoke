@@ -35,7 +35,7 @@ public class EntityManager {
 		return entity;
 	}
 	
-	public void damage( GunsmokeEntity entity, double damage, DamageType type, DamageCause cause ) {
+	public boolean damage( GunsmokeEntity entity, double damage, DamageType type, DamageCause cause ) {
 		GunsmokeEntityDamageEvent event = new GunsmokeEntityDamageEvent( entity, type, damage, cause );
 		
 		plugin.getTaskManager().callEventSync( event );
@@ -49,10 +49,12 @@ public class EntityManager {
 					GunsmokeUtil.playHurtAnimationFor( lEntity );
 				}
 			}
+			return true;
 		}
+		return false;
 	}
 	
-	public void damage( GunsmokeEntity entity, double damage, DamageType type, GunsmokeEntity damager ) {
+	public boolean damage( GunsmokeEntity entity, double damage, DamageType type, GunsmokeEntity damager ) {
 		GunsmokeEntityDamageByEntityEvent event = new GunsmokeEntityDamageByEntityEvent( entity, type, damage, damager );
 		
 		plugin.getTaskManager().callEventSync( event );
@@ -66,6 +68,8 @@ public class EntityManager {
 					GunsmokeUtil.playHurtAnimationFor( lEntity );
 				}
 			}
+			return true;
 		}
+		return false;
 	}
 }

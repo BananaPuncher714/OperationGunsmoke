@@ -73,6 +73,14 @@ public class ProneListener implements Listener {
 			plugin.getItemManager().register( item );
 			
 			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
+		} else if ( event.getPlayer().getEquipment().getItemInMainHand().getType() == Material.GLISTERING_MELON_SLICE ) {
+			event.setCancelled( true );
+			
+			item = new TestBroadsword();
+			
+			plugin.getItemManager().register( item );
+			
+			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
 		}
 		System.out.println( "Drop item event!" );
 	}

@@ -14,6 +14,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -23,12 +24,16 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.InteractableDamage;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageByEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
@@ -99,6 +104,9 @@ public class ItemManager implements Listener {
 	}
 	
 	public GunsmokeRepresentable getRepresentable( ItemStack item ) {
+		if ( item == null ) {
+			return null;
+		}
 		UUID id = GunsmokeItem.getUUID( item );
 		if ( id == null ) {
 			return null;
@@ -392,25 +400,46 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGH )
 	private void onEvent( EntityDamageEvent event ) {
-		GunsmokeRepresentable gEntity = getRepresentable( event.getEntity() );
-		EnumEventResult result = EnumEventResult.SKIPPED;
-		
-		if ( gEntity instanceof GunsmokeEntityWrapper ) {
-			GunsmokeEntityWrapper entity = ( GunsmokeEntityWrapper ) gEntity;
-			
-			result = entity.onEvent( event );
-		}
-		
-		if ( result == EnumEventResult.SKIPPED && event instanceof EntityDamageByEntityEvent ) {
-			EntityDamageByEntityEvent damageEvent = ( EntityDamageByEntityEvent ) event;
-			GunsmokeRepresentable damager = getRepresentable( damageEvent.getDamager() );
-			
-			if ( damager instanceof GunsmokeEntityWrapper ) {
-				GunsmokeEntityWrapper damagerWrapper = ( GunsmokeEntityWrapper ) damager;
-				
-				result = damagerWrapper.onEvent( event );
+		Entity entity = event.getEntity();
+		if ( entity instanceof LivingEntity ) {
+			LivingEntity lEntity = ( LivingEntity ) entity;
+			EnumEventResult result = EnumEventResult.SKIPPED;
+
+			for ( EquipmentSlot slot : GunsmokeUtil.getEquipmentSlotOrdering() ) {
+				GunsmokeRepresentable representable = getRepresentable( lEntity, slot );
+
+				if ( representable instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) representable;
+
+					if ( interactable.isEquipped() ) {
+						if ( interactable instanceof InteractableDamage ) {
+							InteractableDamage damageInteractable = ( InteractableDamage ) interactable;
+							result = damageInteractable.onEvent( event );
+						}
+					}
+				}
+				if ( result == EnumEventResult.COMPLETED || result == EnumEventResult.STOPPED ) {
+					break;
+				}
 			}
 		}
+	}
+	
+
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( EntityDamageByEntityEvent event ) {
+		Entity damager = event.getDamager();
+		Entity damaged = event.getEntity();
+		event.setCancelled( true );
+		if ( damager instanceof LivingEntity ) {
+			LivingEntity entity = ( LivingEntity ) damager;
+			GunsmokeRepresentable representable = getRepresentable( entity, EquipmentSlot.HAND );
+			if ( representable != null ) {
+				return;
+			}
+		}
+			
+		plugin.getEntityManager().damage( new GunsmokeEntityWrapper( damaged ), event.getDamage(), DamageType.VANILLA, new GunsmokeEntityWrapper( damager ) );
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
@@ -446,25 +475,65 @@ public class ItemManager implements Listener {
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent( EntityDamageByEntityEvent event ) {
-		Entity damager = event.getDamager();
-		if ( damager instanceof LivingEntity ) {
-			LivingEntity entity = ( LivingEntity ) damager;
-			GunsmokeRepresentable representable = getRepresentable( entity, EquipmentSlot.HAND );
-			if ( representable != null ) {
-				event.setCancelled( true );
+	private void onEvent( GunsmokeEntityDamageEvent event ) {
+		GunsmokeEntity damagee = event.getRepresentable();
+		if ( !( damagee instanceof GunsmokeEntityWrapper ) ) {
+			return;
+		}
+		Entity entity = ( ( GunsmokeEntityWrapper ) damagee ).getEntity();
+		if ( entity instanceof LivingEntity ) {
+			LivingEntity lEntity = ( LivingEntity ) entity;
+			EnumEventResult result = EnumEventResult.SKIPPED;
+
+			for ( EquipmentSlot slot : GunsmokeUtil.getEquipmentSlotOrdering() ) {
+				GunsmokeRepresentable representable = getRepresentable( lEntity, slot );
+
+				if ( representable instanceof GunsmokeItemInteractable ) {
+					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) representable;
+
+					if ( interactable.isEquipped() ) {
+						if ( interactable instanceof InteractableDamage ) {
+							InteractableDamage damageInteractable = ( InteractableDamage ) interactable;
+							result = damageInteractable.onEvent( event );
+						}
+					}
+				}
+				if ( result == EnumEventResult.COMPLETED || result == EnumEventResult.STOPPED ) {
+					break;
+				}
 			}
 		}
 	}
 	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent( GunsmokeEntityDamageEvent event ) {
-		
-	}
-//	
 //	@EventHandler( priority = EventPriority.HIGHEST )
-//	private void onEvent() {
-//		
+//	private void onEvent( GunsmokeEntityDamageByEntityEvent event ) {
+//		GunsmokeEntity damagee = event.getDamager();
+//		if ( !( damagee instanceof GunsmokeEntityWrapper ) ) {
+//			return;
+//		}
+//		Entity entity = ( ( GunsmokeEntityWrapper ) damagee ).getEntity();
+//		if ( entity instanceof LivingEntity ) {
+//			LivingEntity lEntity = ( LivingEntity ) entity;
+//			EnumEventResult result = EnumEventResult.SKIPPED;
+//
+//			for ( EquipmentSlot slot : GunsmokeUtil.getEquipmentSlotOrdering() ) {
+//				GunsmokeRepresentable representable = getRepresentable( lEntity, slot );
+//
+//				if ( representable instanceof GunsmokeItemInteractable ) {
+//					GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) representable;
+//
+//					if ( interactable.isEquipped() ) {
+//						if ( interactable instanceof InteractableDamage ) {
+//							InteractableDamage damageInteractable = ( InteractableDamage ) interactable;
+//							result = damageInteractable.onEvent( event );
+//						}
+//					}
+//				}
+//				if ( result == EnumEventResult.COMPLETED || result == EnumEventResult.STOPPED ) {
+//					break;
+//				}
+//			}
+//		}
 //	}
 	
 	/*

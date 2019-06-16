@@ -73,12 +73,12 @@ public class GunsmokeUtil {
 		plugin().getProtocol().getHandler().playHurtAnimationFor( entity );
 	}
 	
-	public static void damage( GunsmokeEntity entity, DamageType type, double damage, DamageCause cause ) {
-		plugin().getEntityManager().damage( entity, damage, type, cause );
+	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, DamageCause cause ) {
+		return plugin().getEntityManager().damage( entity, damage, type, cause );
 	}
 	
-	public static void damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
-		plugin().getEntityManager().damage( entity, damage, type, damager );
+	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
+		return plugin().getEntityManager().damage( entity, damage, type, damager );
 	}
 	
 	public static void log( String message, Level level ) {

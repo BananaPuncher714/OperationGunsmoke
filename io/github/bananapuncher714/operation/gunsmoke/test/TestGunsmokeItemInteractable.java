@@ -149,5 +149,4 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		
 		return markAsGunsmokeItem( item, getUUID() );
 	}
-
 }

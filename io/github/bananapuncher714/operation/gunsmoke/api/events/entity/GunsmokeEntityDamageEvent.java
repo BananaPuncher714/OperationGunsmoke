@@ -25,7 +25,7 @@ public class GunsmokeEntityDamageEvent extends GunsmokeEntityEvent implements Ca
 		return amount;
 	}
 
-	public void setAmount( double amount ) {
+	public void setDamage( double amount ) {
 		this.amount = amount;
 	}
 
