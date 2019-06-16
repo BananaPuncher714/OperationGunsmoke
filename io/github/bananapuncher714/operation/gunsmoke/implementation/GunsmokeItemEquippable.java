@@ -1,14 +1,8 @@
 package io.github.bananapuncher714.operation.gunsmoke.implementation;
 
-import org.bukkit.inventory.ItemStack;
-
+import io.github.bananapuncher714.operation.gunsmoke.api.InteractableDamage;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItemInteractable;
 
-public class GunsmokeItemEquippable extends GunsmokeItemInteractable {
-
-	@Override
-	public ItemStack getItem() {
-		return null;
-	}
+public abstract class GunsmokeItemEquippable extends GunsmokeItemInteractable implements InteractableDamage {
 
 }

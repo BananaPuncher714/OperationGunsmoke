@@ -8,14 +8,30 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class GunsmokeUtil {
 	private static Gunsmoke GUNSMOKE_INSTANCE;
+	
+	private static final EquipmentSlot[] EQUIPMENT_SLOT_IMPORTANCE;
+	
+	static {
+		EQUIPMENT_SLOT_IMPORTANCE = new EquipmentSlot[ EquipmentSlot.values().length ];
+		EQUIPMENT_SLOT_IMPORTANCE[ 0 ] = EquipmentSlot.HAND;
+		EQUIPMENT_SLOT_IMPORTANCE[ 1 ] = EquipmentSlot.OFF_HAND;
+		EQUIPMENT_SLOT_IMPORTANCE[ 2 ] = EquipmentSlot.HEAD;
+		EQUIPMENT_SLOT_IMPORTANCE[ 3 ] = EquipmentSlot.CHEST;
+		EQUIPMENT_SLOT_IMPORTANCE[ 4 ] = EquipmentSlot.LEGS;
+		EQUIPMENT_SLOT_IMPORTANCE[ 5 ] = EquipmentSlot.FEET;
+	}
 	
 	public static void flash( LivingEntity player ) {
 		player.addPotionEffect( new PotionEffect( PotionEffectType.NIGHT_VISION, 2, 0, true, false ) );
@@ -57,7 +73,19 @@ public class GunsmokeUtil {
 		plugin().getProtocol().getHandler().playHurtAnimationFor( entity );
 	}
 	
+	public static void damage( GunsmokeEntity entity, DamageType type, double damage, DamageCause cause ) {
+		plugin().getEntityManager().damage( entity, damage, type, cause );
+	}
+	
+	public static void damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
+		plugin().getEntityManager().damage( entity, damage, type, damager );
+	}
+	
 	public static void log( String message, Level level ) {
 		plugin().getLogger().log( level, message );
+	}
+	
+	public static EquipmentSlot[] getEquipmentSlotOrdering() {
+		return EQUIPMENT_SLOT_IMPORTANCE;
 	}
 }

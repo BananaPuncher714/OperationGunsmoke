@@ -33,7 +33,7 @@ public class Gunsmoke extends JavaPlugin {
 		protocol = new TinyProtocolGunsmoke( this, handler );
 		
 		itemManager = new ItemManager( this );
-		entityManager = new EntityManager();
+		entityManager = new EntityManager( this );
 		playerManager = new PlayerManager( this );
 		taskManager = new TaskManager( this );
 		movementManager = new MovementManager( this );
