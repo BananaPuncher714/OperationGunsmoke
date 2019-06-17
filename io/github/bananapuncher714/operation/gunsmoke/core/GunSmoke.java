@@ -42,6 +42,10 @@ public class Gunsmoke extends JavaPlugin {
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
 		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
+		
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			protocol.getPlayerConnection( player.getName() );
+		}
 	}
 	
 	@Override

@@ -5,13 +5,14 @@ import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovem
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement.RelativeFacing;
 
 public class MovementModifierRecoil implements MovementModifier {
-	double pitch;
-	double yaw;
-	long duration;
+	protected double pitch;
+	protected double yaw;
+	protected long duration;
+	protected double percentage = .7;
 	
-	double pitched = 0;
-	double yawed = 0;
-	double started;
+	protected double pitched = 0;
+	protected double yawed = 0;
+	protected double started;
 	
 	public MovementModifierRecoil( double maxPitch, double maxYaw, long duration ) {
 		this.pitch = maxPitch;
@@ -33,8 +34,8 @@ public class MovementModifierRecoil implements MovementModifier {
 			return null;
 		}
 		
-		double pitchAmount = .8 * ( pitch - pitched );
-		double yawAmount = .8 * ( yaw - yawed );
+		double pitchAmount = percentage * ( pitch - pitched );
+		double yawAmount = percentage * ( yaw - yawed );
 		
 		pitched += pitchAmount;
 		yawed += yawAmount;

@@ -93,9 +93,15 @@ public class ItemManager implements Listener {
 		}
 	}
 	
-	public GunsmokeRepresentable getRepresentable( Entity entity ) {
+	public GunsmokeEntityWrapper getEntityWrapper( Entity entity ) {
 		UUID uuid = entity.getUniqueId();
-		return get( uuid );
+		if ( items.containsKey( uuid ) ) {
+			GunsmokeRepresentable representable = items.get( uuid );
+			if ( representable instanceof GunsmokeEntityWrapper ) {
+				return ( GunsmokeEntityWrapper ) representable;
+			}
+		}
+		return new GunsmokeEntityWrapper( entity );
 	}
 	
 	public GunsmokeRepresentable getRepresentable( LivingEntity entity, EquipmentSlot slot ) {
@@ -426,7 +432,7 @@ public class ItemManager implements Listener {
 				}
 			}
 		} else {
-			plugin.getEntityManager().damage( new GunsmokeEntityWrapper( event.getEntity() ), event.getDamage(), DamageType.VANILLA, event.getCause() );
+			plugin.getEntityManager().damage( getEntityWrapper( event.getEntity() ), event.getDamage(), DamageType.VANILLA, event.getCause() );
 			event.setCancelled( true );
 		}
 	}
@@ -445,12 +451,12 @@ public class ItemManager implements Listener {
 			}
 		}
 			
-		plugin.getEntityManager().damage( new GunsmokeEntityWrapper( damaged ), event.getDamage(), DamageType.VANILLA, new GunsmokeEntityWrapper( damager ) );
+		plugin.getEntityManager().damage( getEntityWrapper( damaged ), event.getDamage(), DamageType.VANILLA, getEntityWrapper( damager ) );
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( ProjectileHitEvent event ) {
-		GunsmokeRepresentable entity = getRepresentable( event.getEntity() );
+		GunsmokeRepresentable entity = getEntityWrapper( event.getEntity() );
 		
 		if ( entity instanceof GunsmokeEntityWrapperProjectile ) {
 			GunsmokeEntityWrapperProjectile projectile = ( GunsmokeEntityWrapperProjectile ) entity;

@@ -16,6 +16,7 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class GunsmokeUtil {
@@ -83,6 +84,10 @@ public class GunsmokeUtil {
 	
 	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
 		return plugin().getEntityManager().damage( entity, damage, type, damager );
+	}
+	
+	public static GunsmokeEntityWrapper getEntity( Entity entity ) {
+		return plugin().getItemManager().getEntityWrapper( entity );
 	}
 	
 	public static void log( String message, Level level ) {

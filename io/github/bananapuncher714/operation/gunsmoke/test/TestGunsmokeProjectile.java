@@ -36,7 +36,7 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 		life--;
 		
 		for ( int i = 0; i < 10; i++ ) {
-			location.getWorld().spawnParticle( Particle.FLAME, location.clone().add( velocity.clone().multiply( i / 11.0 ) ), 0 );
+			location.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( velocity.clone().multiply( i / 11.0 ) ), 0 );
 		}
 		
 		item.teleport( location );

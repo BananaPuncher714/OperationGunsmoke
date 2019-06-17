@@ -78,7 +78,8 @@ public class EntityManager {
 	}
 	
 	public boolean damage( GunsmokeEntity entity, double damage, DamageType type, DamageCause cause ) {
-		if ( cause == DamageCause.PROJECTILE || cause == DamageCause.ENTITY_ATTACK ) {
+		// These 3 should get handled with damage by entity
+		if ( cause == DamageCause.PROJECTILE || cause == DamageCause.ENTITY_ATTACK || cause == DamageCause.ENTITY_SWEEP_ATTACK ) {
 			return false;
 		}
 		if ( !getDamageRecord( entity.getUUID() ).setTicksRemainingFor( cause, damage, DEFAULT_INVINCIBILITY.get( cause ) ) ) {

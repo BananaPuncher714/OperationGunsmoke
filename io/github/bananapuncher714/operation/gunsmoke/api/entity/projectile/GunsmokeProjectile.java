@@ -39,7 +39,6 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 		// Detect if this hit any entities
 		// TODO Add way to hit Gunsmoke entities too...
 		List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, velocity );
-		
 		for ( Entity entity : nearbyEntities ) {
 			if ( getHitEntities().contains( entity.getUniqueId() ) ) {
 				continue;
@@ -89,7 +88,6 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 		for ( ProjectileTarget target : hitTargets ) {
 			hit( target );
 		}
-		
 		location.add( velocity );
 		
 		// Erase this projectile from existence if it falls beyond the void

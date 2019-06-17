@@ -94,7 +94,10 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 
 	@Override
 	public EnumEventResult onClick( HoldRightClickEvent event ) {
-		event.getPlayer().launchProjectile( Arrow.class );
+		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
+		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 5 ) );
+
+		plugin.getItemManager().register( projectile );
 		
 		GunsmokeUtil.flash( event.getPlayer() );
 		

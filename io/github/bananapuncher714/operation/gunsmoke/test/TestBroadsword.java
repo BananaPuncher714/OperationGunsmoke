@@ -37,7 +37,7 @@ public class TestBroadsword extends GunsmokeItemMelee implements InteractableDam
 		
 		Entity entity = event.getHitEntity();
 
-		boolean completed = GunsmokeUtil.damage( new GunsmokeEntityWrapper( entity ), DamageType.PHYSICAL, damage, new GunsmokeEntityWrapper( holder) );
+		boolean completed = GunsmokeUtil.damage( GunsmokeUtil.getEntity( entity ), DamageType.PHYSICAL, damage, GunsmokeUtil.getEntity( holder) );
 		
 		return completed ? EnumEventResult.COMPLETED : EnumEventResult.SKIPPED;
 	}
