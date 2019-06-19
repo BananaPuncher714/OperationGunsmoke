@@ -3,7 +3,6 @@ package io.github.bananapuncher714.operation.gunsmoke.test;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Material;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;

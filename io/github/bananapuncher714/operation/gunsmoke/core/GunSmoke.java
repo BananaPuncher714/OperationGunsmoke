@@ -1,20 +1,22 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
+import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
 
@@ -62,17 +64,27 @@ public class Gunsmoke extends JavaPlugin {
 			Player player = ( Player ) sender;
 			
 			player.sendMessage( "Finding..." );
-			for ( Entity nearEntity : player.getWorld().getEntities() ) {
-				if ( nearEntity != player ) {
-					Location hit = VectorUtil.rayIntersect( nearEntity, player.getEyeLocation(), player.getLocation().getDirection() );
-					if ( hit != null ) {
-						player.sendMessage( "Found: " + nearEntity.getName() + " at " + nearEntity.getLocation() );
-						protocol.getHandler().playHurtAnimationFor( player );
+			Location location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+			
+			GunsmokeExplosion explosion = new GunsmokeExplosion( location, 10, 5 );
+			long time = System.currentTimeMillis();
+			Map< Location, Double > power = explosion.explode();
+			player.sendMessage( "Took " + ( System.currentTimeMillis() - time ) + "ms" );
+			player.sendMessage( "Detected " + power.size() + " blocks in blast radius!" );
+			int a = 0;
+			for ( Location explodeLoc : power.keySet() ) {
+				if ( explodeLoc.getBlock().getType() != Material.AIR ) {
+					a++;
+					int stage = ( int ) Math.min( 9, power.get( explodeLoc ) );
+					if ( power.get( explodeLoc ) != 0 ) {
+						protocol.getHandler().damageBlock( explodeLoc, stage );
 					}
 				}
 			}
+			player.sendMessage( a + " blocks were damaged!" );
 			
-			Location location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+//			VectorUtil.fastCanSeeTwo( player.getEyeLocation(), location );
+			
 			location.getWorld().spawnParticle( Particle.VILLAGER_HAPPY, location, 0 );
 		}
 		

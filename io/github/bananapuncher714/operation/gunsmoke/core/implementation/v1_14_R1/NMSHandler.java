@@ -28,8 +28,8 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
@@ -37,6 +37,7 @@ import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import net.minecraft.server.v1_14_R1.AttributeInstance;
 import net.minecraft.server.v1_14_R1.AxisAlignedBB;
+import net.minecraft.server.v1_14_R1.BlockPosition;
 import net.minecraft.server.v1_14_R1.ChunkCoordIntPair;
 import net.minecraft.server.v1_14_R1.DataWatcher;
 import net.minecraft.server.v1_14_R1.DataWatcher.Item;
@@ -61,6 +62,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayInBlockPlace;
 import net.minecraft.server.v1_14_R1.PacketPlayInFlying;
 import net.minecraft.server.v1_14_R1.PacketPlayInTeleportAccept;
 import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
+import net.minecraft.server.v1_14_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
@@ -653,6 +655,13 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
+	public void damageBlock( Location location, int stage ) {
+		PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation( location.hashCode(), new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() ), stage );
+		
+		broadcastPacket( location.getWorld(), packet );
+	}
+	
+	@Override
 	public Location rayTrace( Location location, Vector vector, double distance ) {
 		return rayTrace( location, vector.clone().normalize().multiply( distance ) );
 	}
@@ -768,7 +777,13 @@ public class NMSHandler implements PacketHandler {
 	// entityPlayer.playerConnection.sendPacket( packet );
 	// }
 
-	private void broadcastPacket(org.bukkit.entity.Entity origin, Packet<?> packet, boolean updateSelf) {
+	private void broadcastPacket( World world, Packet packet ) {
+		for ( Player player : world.getPlayers() ) {
+			plugin.getProtocol().sendPacket( player, packet );
+		}
+	}
+	
+	private void broadcastPacket( org.bukkit.entity.Entity origin, Packet<?> packet, boolean updateSelf ) {
 		World world = origin.getWorld();
 		// TODO Get an entity tracker entry sometime or something similar
 		for ( Player player : world.getPlayers() ) {

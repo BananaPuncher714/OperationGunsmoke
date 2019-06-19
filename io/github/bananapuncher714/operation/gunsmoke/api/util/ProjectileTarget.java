@@ -45,5 +45,4 @@ public abstract class ProjectileTarget implements Comparable< ProjectileTarget >
 			}
 		}
 	}
-	
 }

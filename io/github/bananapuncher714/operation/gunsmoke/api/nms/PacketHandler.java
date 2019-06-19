@@ -35,7 +35,10 @@ public interface PacketHandler {
 	
 	boolean isCurrentThreadMain();
 	
+	void damageBlock( Location location, int stage );
+	
 	void darkness( Player player );
+	
 	
 	int getServerTick();
 	

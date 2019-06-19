@@ -14,11 +14,11 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerProneEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
