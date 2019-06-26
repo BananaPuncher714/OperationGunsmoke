@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
@@ -14,7 +15,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.world.GunsmokeEx
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
-public class GunsmokeExplosion {
+public class GunsmokeExplosion extends GunsmokeRepresentable {
 	protected final static Vector[] DIRECTIONS;
 	protected final static double SCALE;
 	
@@ -76,13 +77,15 @@ public class GunsmokeExplosion {
 		if ( event.isCancelled() ) {
 			return null;
 		}
-		double blastReduction = getBlastReductionFor( center );
+		Location roundedCenter = VectorUtil.round( center.clone(), SCALE ).add( -SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
+		double blastReduction = getBlastReductionFor( roundedCenter );
+		
+		// Debug particles
+		System.out.println( roundedCenter.getBlock().getType() + ":" + blastReduction );
+		roundedCenter.getWorld().spawnParticle( Particle.DRIP_WATER, roundedCenter, 0 );
+		
 		double finPower = power - blastReduction;
-		Location roundedCenter = VectorUtil.round( center.clone(), SCALE ).add( SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
 		if ( blastReduction == -1 || finPower <= 0 ) {
-			// Clearly the explosion spawned inside an invincible block
-			// Or it isn't strong enough
-			damage.put( roundedCenter, 0.0 );
 		} else {
 			damage.put( roundedCenter, finPower / SCALE_SQUARED );
 			Set< Location > leads = new HashSet< Location >();
@@ -114,7 +117,7 @@ public class GunsmokeExplosion {
 				// Ok, right here is the blast reduction or whatever it is
 				
 				if ( blastReduction == -1 ) {
-					damage.put( newLoc, 0.0 );
+					damage.put( newLoc, -1.0 );
 				} else {
 					blastReduction /= SCALE_CUBED;
 					double power = getPowerAt( center.distance( newLoc ) ) / SCALE_SQUARED - blastReduction;
@@ -179,7 +182,7 @@ public class GunsmokeExplosion {
 		double x = px1;
 		double y = py1;
 		double z = pz1;
-		double n = 1 + ( dx + dy + dz ) * SCALE;
+		double n = ( dx + dy + dz ) * SCALE;
 		double x_inc = (px2 > px1) ? SCALE_INVERSE : -SCALE_INVERSE;
 		double y_inc = (py2 > py1) ? SCALE_INVERSE : -SCALE_INVERSE;
 		double z_inc = (pz2 > pz1) ? SCALE_INVERSE : -SCALE_INVERSE;
@@ -221,7 +224,7 @@ public class GunsmokeExplosion {
 	}
 	
 	protected double getDamageAt( Location location ) {
-		Location rounded = VectorUtil.round( location.clone(), SCALE ).add( SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
+		Location rounded = VectorUtil.round( location.clone(), SCALE ).add( -SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
 		
 		return damage.getOrDefault( rounded, 0.0 );
 	}

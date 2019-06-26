@@ -52,10 +52,12 @@ public class BlockManager {
 	
 	public void setHealthAt( Location location, double health ) {
 		location = BukkitUtil.getBlockLocation( location );
-		if ( health == 0 ) {
+		if ( health <= 0 ) {
 			resistance.remove( location );
+			location.getBlock().breakNaturally();
 		} else {
 			resistance.put( location, health );
+			plugin.getProtocol().getHandler().damageBlock( location, ( int ) health - 1 ); 
 		}
 	}
 	
@@ -73,6 +75,7 @@ public class BlockManager {
 		case STONE: return 5;
 		case DIRT:
 		case GRASS: return 2;
+		case PRISMARINE_BRICKS: return 20;
 		default: return 0;
 		}
 	}

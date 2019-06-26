@@ -71,6 +71,7 @@ public class Gunsmoke extends JavaPlugin {
 			player.sendMessage( "Finding..." );
 			CollisionResult location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
 
+			player.sendMessage( "Collision: " + location.getCollisionType() );
 			player.sendMessage( "Direction: " + location.getDirection() );
 			
 			GunsmokeExplosion explosion = new GunsmokeExplosion( null, location.getLocation(), 8, 10 );

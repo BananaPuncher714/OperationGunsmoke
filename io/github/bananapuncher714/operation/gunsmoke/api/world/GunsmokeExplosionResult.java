@@ -20,6 +20,10 @@ public class GunsmokeExplosionResult {
 		for ( Location location : explosion.damage.keySet() ) {
 			double power = explosion.damage.get( location );// / cubed;
 
+			if ( power == -1 ) {
+				continue;
+			}
+			
 			Location block = new Location( location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ() );
 
 			blockDamage.put( block, blockDamage.getOrDefault( block, 0.0 ) + power );

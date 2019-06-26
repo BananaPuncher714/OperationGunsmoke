@@ -670,6 +670,9 @@ public class NMSHandler implements PacketHandler {
 	
 	@Override
 	public void damageBlock( Location location, int stage ) {
+		location.setYaw( 0 );
+		location.setPitch( 0 );
+		location = BukkitUtil.getBlockLocation( location );
 		PacketPlayOutBlockBreakAnimation packet = new PacketPlayOutBlockBreakAnimation( location.hashCode(), new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() ), stage );
 		
 		broadcastPacket( location.getWorld(), packet );

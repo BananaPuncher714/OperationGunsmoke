@@ -20,7 +20,7 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 	protected double reduction = .85;
 	protected boolean hit = false;
 	protected CollisionResult last = null;
-	protected int bounces = 5;
+	protected int bounces = 0;
 	protected Vector gravity = new Vector( 0, -.05, 0 );
 	protected Item item;
 	
@@ -41,19 +41,17 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 		Vector velocity = getVelocity();
 		velocity.setY( Math.max( -2, velocity.getY() - .05 ) );
 		if ( last != null ) {
+			location = last.getLocation();
 			if ( bounces-- <= 0 ) {
 				// Explode
-//				GunsmokeExplosion explosion = new GunsmokeExplosion( this, location, 8, 10 );
-//				GunsmokeExplosionResult result = explosion.explode();
-//				
-//				for ( Location location : result.getBlockDamage().keySet() ) {
-//					double health = GunsmokeUtil.getBlockHealth( location );
-//					health -= result.getBlockDamageAt( location );
-//					if ( health <= 0 ) {
-//						GunsmokeUtil.setBlockHealth( location, 0 );
-//					}
-//				}
+				GunsmokeExplosion explosion = new GunsmokeExplosion( this, location, 8, 10 );
+				GunsmokeExplosionResult result = explosion.explode();
 				
+				for ( Location location : result.getBlockDamage().keySet() ) {
+					double health = GunsmokeUtil.getBlockHealth( location );
+					health -= result.getBlockDamageAt( location );
+					GunsmokeUtil.setBlockHealth( location, health );
+				}
 				
 				return EnumTickResult.CANCEL;
 			}

@@ -57,6 +57,8 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 				}
 			}
 			
+			Set< Location > tickHitBlocks = new HashSet< Location >();
+			
 			// Now start on block hit detection
 			// Get the point where our projectile should be after this tick
 			Location destination = location.clone().add( getVelocity() );
@@ -72,14 +74,17 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			while ( distance >= location.distanceSquared( hitLoc ) ) {
 				Block block = hitLoc.getBlock();
 				
-				if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
-					// TODO Add GunsmokeStructure detection
-					if ( block.getType() != Material.AIR ) {
-						hitTargets.add( new ProjectileTargetBlock( this, previous, block ) );
+				if ( !tickHitBlocks.contains( block.getLocation() ) ) {
+					if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
+						// TODO Add GunsmokeStructure detection
+						previous.getLocation().add( previous.getDirection().clone().multiply( .01 ) );
+						ProjectileTarget target = new ProjectileTargetBlock( this, previous, block );
+						hitTargets.add( target );
 						getHitBlocks().add( block.getLocation() );
+						tickHitBlocks.add( block.getLocation() );
 					}
 				}
-
+				
 				previous = hitBlock;
 				hitBlock = GunsmokeUtil.rayTrace( hitLoc, velocity );
 				hitLoc = hitBlock.getLocation();
