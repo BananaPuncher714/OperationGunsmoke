@@ -9,6 +9,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
+
 /**
  * Simple vector math
  * 
@@ -20,7 +23,7 @@ public final class VectorUtil {
 	
 	// This can be made so much faster since I know where the origin is
 	// This checks to see if a ray intersects with an entity
-	public static Location rayIntersect( Entity entity, Location origin, Vector ray ) {
+	public static CollisionResult rayIntersect( Entity entity, Location origin, Vector ray ) {
 		if ( origin.getWorld() != entity.getWorld() ) {
 			return null;
 		}
@@ -41,42 +44,42 @@ public final class VectorUtil {
 		if ( lower.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zLow = calculateVector( lower, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zLow != null && zLow.getX() >= lower.getX() && zLow.getX() <= upper.getX() && zLow.getY() >= lower.getY() && zLow.getY() <= upper.getY() ) {
-				return zLow;
+				return new CollisionResult( zLow, ray, CollisionType.ENTITY );
 			}
 		}
 		
 		if ( upper.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zHigh = calculateVector( upper, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zHigh != null && zHigh.getX() >= lower.getX() && zHigh.getX() <= upper.getX() && zHigh.getY() >= lower.getY() && zHigh.getY() <= upper.getY() ) {
-				return zHigh;
+				return new CollisionResult( zHigh, ray, CollisionType.ENTITY );
 			}
 		}
 
 		if ( lower.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xLow = calculateVector( lower, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xLow != null && xLow.getZ() >= lower.getZ() && xLow.getZ() <= upper.getZ() && xLow.getY() >= lower.getY() && xLow.getY() <= upper.getY() ) {
-				return xLow;
+				return new CollisionResult( xLow, ray, CollisionType.ENTITY );
 			}
 		}
 
 		if ( upper.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xHigh = calculateVector( upper, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xHigh != null && xHigh.getZ() >= lower.getZ() && xHigh.getZ() <= upper.getZ() && xHigh.getY() >= lower.getY() && xHigh.getY() <= upper.getY() ) {
-				return xHigh;
+				return new CollisionResult( xHigh, ray, CollisionType.ENTITY );
 			}
 		}
 
 		if ( lower.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yLow = calculateVector( lower, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yLow != null && yLow.getX() >= lower.getX() && yLow.getX() <= upper.getX() && yLow.getZ() >= lower.getZ() && yLow.getZ() <= upper.getZ() ) {
-				return yLow;
+				return new CollisionResult( yLow, ray, CollisionType.ENTITY );
 			}
 		}
 
 		if ( upper.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yHigh = calculateVector( upper, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yHigh != null && yHigh.getX() >= lower.getX() && yHigh.getX() <= upper.getX() && yHigh.getZ() >= lower.getZ() && yHigh.getZ() <= upper.getZ() ) {
-				return yHigh;
+				return new CollisionResult( yHigh, ray, CollisionType.ENTITY );
 			}
 		}
 		return null;
@@ -267,15 +270,23 @@ public final class VectorUtil {
 	}
 	
 	/**
-	 * Round a location's values rounded to the sixteenth
+	 * Round a location's values rounded
 	 * 
 	 * @param location
 	 * @return
 	 */
-	public static Location sixteenth( Location location ) {
-		location.setX( location.getX() * 128 / 128 );
-		location.setY( location.getY() * 128 / 128 );
-		location.setZ( location.getZ() * 128 / 128 );
+	public static Location round( Location location, double val ) {
+		location.setX( ( int ) ( location.getX() * val ) / val );
+		location.setY( ( int ) ( location.getY() * val ) / val );
+		location.setZ( ( int ) ( location.getZ() * val ) / val );
 		return location;
+	}
+	
+	public static Location round( Location location ) {
+		location.setX( location.getBlockX() );
+		location.setY( location.getBlockY() );
+		location.setZ( location.getBlockZ() );
+		return location;
+		
 	}
 }

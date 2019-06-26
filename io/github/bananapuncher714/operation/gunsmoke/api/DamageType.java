@@ -1,5 +1,5 @@
 package io.github.bananapuncher714.operation.gunsmoke.api;
 
 public enum DamageType {
-	TRUE, PHYSICAL, MISAKA, CHEMICAL, VANILLA, CUSTOM;
+	TRUE, PHYSICAL, MISAKA, CHEMICAL, EXPLOSION, FIRE, VANILLA, CUSTOM;
 }

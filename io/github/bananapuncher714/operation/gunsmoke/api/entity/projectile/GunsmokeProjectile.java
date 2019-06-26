@@ -10,10 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetEntity;
@@ -33,63 +36,62 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 
 	@Override
 	public EnumTickResult tick() {
-		// First get a set of all things hit, then call events in order from closest hit to farthest hit
-		Set< ProjectileTarget > hitTargets = new TreeSet< ProjectileTarget >();
-		
-		// Detect if this hit any entities
-		// TODO Add way to hit Gunsmoke entities too...
-		List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, velocity );
-		for ( Entity entity : nearbyEntities ) {
-			if ( getHitEntities().contains( entity.getUniqueId() ) ) {
-				continue;
-			}
-			Location intersection = VectorUtil.rayIntersect( entity, location, velocity );
-			if ( intersection != null ) {
-				// We know we hit something
-				GunsmokeEntityWrapper wrappedEntity = new GunsmokeEntityWrapper( entity );
-				
-				hitTargets.add( new ProjectileTargetEntity( this, intersection, wrappedEntity ) );
-				getHitEntities().add( entity.getUniqueId() );
-			}
-		}
-		
-		// Now start on block hit detection
-		// Get the point where our projectile should be after this tick
-		Location destination = location.clone().add( velocity );
-		// Get the distance squared because getting the root is a scam
-		double distance = location.distanceSquared( destination );
-
-		// Don't want to detect the same block twice
-		Set< Block > hitBlocks = new HashSet< Block >();
-		// Don't hit the current block we're in
-		hitBlocks.add( location.getBlock() );
-		// Get the first iteration done
-		Location hitBlock = GunsmokeUtil.rayTrace( location, velocity );
-		// While we still haven't reached the full destination
-		while ( distance >= location.distanceSquared( hitBlock ) ) {
-			Block block = hitBlock.getBlock();
+		if ( speed > 0 ) {
+			// First get a set of all things hit, then call events in order from closest hit to farthest hit
+			Set< ProjectileTarget > hitTargets = new TreeSet< ProjectileTarget >();
 			
-			// TODO Add GunsmokeStructure detection
-			if ( !getHitBlocks().contains( block.getLocation() ) ) {
-				if ( block.getType() != Material.AIR ) {
-					if ( !hitBlocks.contains( block ) ) {
-						hitTargets.add( new ProjectileTargetBlock( this, hitBlock, block ) );
-						hitBlocks.add( block );
-						getHitBlocks().add( block.getLocation() );
-					}
+			// Detect if this hit any entities
+			// TODO Add way to hit Gunsmoke entities too...
+			List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, velocity );
+			for ( Entity entity : nearbyEntities ) {
+				if ( getHitEntities().contains( entity.getUniqueId() ) ) {
+					continue;
+				}
+				CollisionResult intersection = VectorUtil.rayIntersect( entity, location, velocity );
+				if ( intersection != null ) {
+					// We know we hit something
+					GunsmokeEntityWrapper wrappedEntity = new GunsmokeEntityWrapper( entity );
+					
+					hitTargets.add( new ProjectileTargetEntity( this, intersection.copyOf(), wrappedEntity ) );
+					getHitEntities().add( entity.getUniqueId() );
 				}
 			}
 			
-			hitBlock = GunsmokeUtil.rayTrace( hitBlock, velocity );
+			// Now start on block hit detection
+			// Get the point where our projectile should be after this tick
+			Location destination = location.clone().add( getVelocity() );
+			// Get the distance squared because getting the root is a scam
+			double distance = location.distanceSquared( destination );
+	
+			// Get the first iteration done
+			CollisionResult hitBlock = GunsmokeUtil.rayTrace( location, velocity );
+			Location hitLoc = hitBlock.getLocation();
+			// PINEAPPLE GHOST FUWA FUWA
+			CollisionResult previous = hitBlock;
+			// While we still haven't reached the full destination
+			while ( distance >= location.distanceSquared( hitLoc ) ) {
+				Block block = hitLoc.getBlock();
+				
+				if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
+					// TODO Add GunsmokeStructure detection
+					if ( block.getType() != Material.AIR ) {
+						hitTargets.add( new ProjectileTargetBlock( this, previous, block ) );
+						getHitBlocks().add( block.getLocation() );
+					}
+				}
+
+				previous = hitBlock;
+				hitBlock = GunsmokeUtil.rayTrace( hitLoc, velocity );
+				hitLoc = hitBlock.getLocation();
+			}
+			
+			// Now that we have our targets we can start calling our other methods in order
+			// Event calling should be handled by the implementation
+			for ( ProjectileTarget target : hitTargets ) {
+				hit( target );
+			}
+			location.add( velocity );
 		}
-		
-		// Now that we have our targets we can start calling our other methods in order
-		// Event calling should be handled by the implementation
-		for ( ProjectileTarget target : hitTargets ) {
-			hit( target );
-		}
-		location.add( velocity );
-		
 		// Erase this projectile from existence if it falls beyond the void
 		return ( location.getY() > -64 ) ? EnumTickResult.CONTINUE : EnumTickResult.CANCEL;
 	}

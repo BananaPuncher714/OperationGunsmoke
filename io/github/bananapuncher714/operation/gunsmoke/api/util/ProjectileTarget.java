@@ -1,20 +1,18 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.util;
 
-import org.bukkit.Location;
-
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 
 public abstract class ProjectileTarget implements Comparable< ProjectileTarget > {
-	protected Location intersection;
+	protected CollisionResult intersection;
 	protected double distance = -1;
 	protected double distanceSquared;
 	
-	public ProjectileTarget( GunsmokeProjectile projectile, Location intersection ) {
-		distanceSquared = projectile.getLocation().distanceSquared( intersection );
+	public ProjectileTarget( GunsmokeProjectile projectile, CollisionResult intersection ) {
+		distanceSquared = projectile.getLocation().distanceSquared( intersection.getLocation() );
 		this.intersection = intersection;
 	}
 	
-	public Location getIntersection() {
+	public CollisionResult getIntersection() {
 		return intersection;
 	}
 	

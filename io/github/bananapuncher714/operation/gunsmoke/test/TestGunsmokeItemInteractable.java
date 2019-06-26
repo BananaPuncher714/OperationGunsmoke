@@ -75,18 +75,18 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 
 	@Override
 	public EnumEventResult onClick( LeftClickEvent event ) {
-//		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
-//		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 5 ) );
-//
-//		plugin.getItemManager().register( projectile );
-//		
-//		event.setCancelled( true );
-		if ( zoomed ) {
-			plugin.getZoomManager().setZoom( holder, ZoomLevel._11 );
-		} else {
-			plugin.getZoomManager().removeZoom( holder );
-		}
-		zoomed = !zoomed;
+		GunsmokeGrenade projectile = new GunsmokeGrenade( event.getPlayer().getEyeLocation() );
+		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 1 ) );
+
+		plugin.getItemManager().register( projectile );
+		
+		event.setCancelled( true );
+//		if ( zoomed ) {
+//			plugin.getZoomManager().setZoom( holder, ZoomLevel._11 );
+//		} else {
+//			plugin.getZoomManager().removeZoom( holder );
+//		}
+//		zoomed = !zoomed;
 		
 		return EnumEventResult.COMPLETED;
 	}
@@ -94,7 +94,7 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	@Override
 	public EnumEventResult onClick( HoldRightClickEvent event ) {
 		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
-		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 5 ) );
+		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( .05 ) );
 
 		plugin.getItemManager().register( projectile );
 		

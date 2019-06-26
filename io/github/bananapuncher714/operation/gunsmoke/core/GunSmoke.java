@@ -8,12 +8,15 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion;
+import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
@@ -24,6 +27,7 @@ public class Gunsmoke extends JavaPlugin {
 	protected TinyProtocolGunsmoke protocol;
 	protected ItemManager itemManager;
 	protected EntityManager entityManager;
+	protected BlockManager blockManager;
 	protected PlayerManager playerManager;
 	protected TaskManager taskManager;
 	protected MovementManager movementManager;
@@ -36,6 +40,7 @@ public class Gunsmoke extends JavaPlugin {
 		
 		itemManager = new ItemManager( this );
 		entityManager = new EntityManager( this );
+		blockManager = new BlockManager( this );
 		playerManager = new PlayerManager( this );
 		taskManager = new TaskManager( this );
 		movementManager = new MovementManager( this );
@@ -64,13 +69,19 @@ public class Gunsmoke extends JavaPlugin {
 			Player player = ( Player ) sender;
 			
 			player.sendMessage( "Finding..." );
-			Location location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+			CollisionResult location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+
+			player.sendMessage( "Direction: " + location.getDirection() );
 			
-			GunsmokeExplosion explosion = new GunsmokeExplosion( location, 10, 5 );
+			GunsmokeExplosion explosion = new GunsmokeExplosion( null, location.getLocation(), 8, 10 );
 			long time = System.currentTimeMillis();
-			Map< Location, Double > power = explosion.explode();
+			GunsmokeExplosionResult result = explosion.explode();
+			Map< Location, Double > power = result.getBlockDamage();
+			Map< Entity, Double > entityDamage = result.getEntityDamage();
+			
 			player.sendMessage( "Took " + ( System.currentTimeMillis() - time ) + "ms" );
 			player.sendMessage( "Detected " + power.size() + " blocks in blast radius!" );
+			player.sendMessage( "Detected " + entityDamage.size() + " entities in blast radius!" );
 			int a = 0;
 			for ( Location explodeLoc : power.keySet() ) {
 				if ( explodeLoc.getBlock().getType() != Material.AIR ) {
@@ -82,10 +93,13 @@ public class Gunsmoke extends JavaPlugin {
 				}
 			}
 			player.sendMessage( a + " blocks were damaged!" );
+			for ( Entity entity : entityDamage.keySet() ) {
+				player.sendMessage( entity.getName() + " took " + result.getEntityDamageFor( entity ) + " power" );
+			}
 			
 //			VectorUtil.fastCanSeeTwo( player.getEyeLocation(), location );
 			
-			location.getWorld().spawnParticle( Particle.VILLAGER_HAPPY, location, 0 );
+			location.getLocation().getWorld().spawnParticle( Particle.VILLAGER_HAPPY, location.getLocation(), 0 );
 		}
 		
 		return false;
@@ -116,6 +130,10 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public EntityManager getEntityManager() {
 		return entityManager;
+	}
+	
+	public BlockManager getBlockManager() {
+		return blockManager;
 	}
 	
 	public PlayerManager getPlayerManager() {

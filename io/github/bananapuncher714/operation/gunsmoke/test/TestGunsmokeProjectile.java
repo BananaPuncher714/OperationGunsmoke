@@ -88,6 +88,7 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 			return;
 		}
 		System.out.println( "Hit block " + target.getHitBlock().getType() );
+		System.out.println( target.getIntersection().getDirection() );
 		if ( target.getHitBlock().getType() != Material.GLASS ) {
 			life -= 30;
 		}

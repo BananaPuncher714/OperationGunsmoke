@@ -8,7 +8,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.Gunsm
 public class ProjectileTargetEntity extends ProjectileTarget {
 	protected GunsmokeEntity hitEntity;
 	
-	public ProjectileTargetEntity( GunsmokeProjectile projectile, Location intersection, GunsmokeEntity hitEntity ) {
+	public ProjectileTargetEntity( GunsmokeProjectile projectile, CollisionResult intersection, GunsmokeEntity hitEntity ) {
 		super( projectile, intersection );
 		this.hitEntity = hitEntity;
 	}

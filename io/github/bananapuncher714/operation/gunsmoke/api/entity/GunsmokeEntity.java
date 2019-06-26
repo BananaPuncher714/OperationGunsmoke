@@ -9,7 +9,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
 	protected Location location;
 	protected Vector velocity;
-
+	protected double speed;
+	
 	public GunsmokeEntity() {
 	}
 	
@@ -26,10 +27,11 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	}
 	
 	public Vector getVelocity() {
-		return velocity.clone();
+		return velocity.clone().multiply( speed );
 	}
 	
 	public void setVelocity( Vector vector ) {
-		velocity = vector.clone();
+		velocity = vector.clone().normalize();
+		speed = vector.length();
 	}
 }

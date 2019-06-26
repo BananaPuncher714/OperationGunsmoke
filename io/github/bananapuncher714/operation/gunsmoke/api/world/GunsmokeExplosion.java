@@ -9,25 +9,41 @@ import org.bukkit.Location;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.world.GunsmokeExplosionPrepareEvent;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
+
 public class GunsmokeExplosion {
 	protected final static Vector[] DIRECTIONS;
 	protected final static double SCALE;
 	
-	private final static double SCALE_INVERSE;
+	protected final static double SCALE_INVERSE;
+	protected final static double SCALE_INVERSE_HALF;
+	protected final static double SCALE_SQUARED;
+	protected final static double SCALE_CUBED;
 	
 	static {
+		// Scale determines how fine the raytracing will be
+		// Gets exponentially more expensive the larger SCALE is
 		SCALE = 2;
 		SCALE_INVERSE = 1 / SCALE;
+		SCALE_INVERSE_HALF = SCALE_INVERSE * .5;
+		SCALE_SQUARED = SCALE * SCALE;
+		SCALE_CUBED = SCALE_SQUARED * SCALE;
 		DIRECTIONS = new Vector[ 6 ];
-		DIRECTIONS[ 0 ] = new Vector( 1 / SCALE, 0, 0 );
-		DIRECTIONS[ 1 ] = new Vector( 0, 1 / SCALE, 0 );
-		DIRECTIONS[ 2 ] = new Vector( 0, 0, 1 / SCALE );
-		DIRECTIONS[ 3 ] = new Vector( -1 / SCALE, 0, 0 );
-		DIRECTIONS[ 4 ] = new Vector( 0, -1 / SCALE, 0 );
-		DIRECTIONS[ 5 ] = new Vector( 0, 0, -1 / SCALE );
+		DIRECTIONS[ 0 ] = new Vector( SCALE_INVERSE, 0, 0 );
+		DIRECTIONS[ 1 ] = new Vector( 0, SCALE_INVERSE, 0 );
+		DIRECTIONS[ 2 ] = new Vector( 0, 0, SCALE_INVERSE );
+		DIRECTIONS[ 3 ] = new Vector( -SCALE_INVERSE, 0, 0 );
+		DIRECTIONS[ 4 ] = new Vector( 0, -SCALE_INVERSE, 0 );
+		DIRECTIONS[ 5 ] = new Vector( 0, 0, -SCALE_INVERSE );
 	}
 	
+	protected GunsmokeRepresentable exploder;
+	
 	protected Location center;
+	protected Vector offset;
 	protected double maxDistance;
 	protected double maxDistanceSquared;
 	
@@ -35,52 +51,48 @@ public class GunsmokeExplosion {
 	protected double amp;
 	protected double frequency;
 	
+	private boolean exploded = false;
+	
 	protected Map< Location, Double > damage = new HashMap< Location, Double >();
 	protected Map< Location, Double > reduction = new HashMap< Location, Double >();
 
 	// For speed
 	protected Set< Location > tempLeads = new HashSet< Location >();
 	
-	public GunsmokeExplosion( Location center, double maxDistance, double power ) {
+	public GunsmokeExplosion( GunsmokeRepresentable exploder, Location center, double maxDistance, double power ) {
+		this.exploder = exploder;
 		this.center = center.clone();
+		this.center.setYaw( 0 );
+		this.center.setPitch( 0 );
 		this.maxDistance = maxDistance;
 		this.maxDistanceSquared = maxDistance * maxDistance;
-		this.power = power;
 
-		amp = Math.sqrt( power ) / power;
-		frequency = amp * maxDistance;
-		amp = 1 / ( amp * amp );
+		setPower( power );
 	}
 	
-	public Map< Location, Double > explode() {
+	public GunsmokeExplosionResult explode() {
+		GunsmokeExplosionPrepareEvent event = new GunsmokeExplosionPrepareEvent( this );
+		GunsmokeUtil.callEventSync( event );
+		if ( event.isCancelled() ) {
+			return null;
+		}
 		double blastReduction = getBlastReductionFor( center );
 		double finPower = power - blastReduction;
+		Location roundedCenter = VectorUtil.round( center.clone(), SCALE ).add( SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
 		if ( blastReduction == -1 || finPower <= 0 ) {
 			// Clearly the explosion spawned inside an invincible block
 			// Or it isn't strong enough
-			damage.put( center, 0.0 );
-		} else {	
-			damage.put( center, finPower );
+			damage.put( roundedCenter, 0.0 );
+		} else {
+			damage.put( roundedCenter, finPower / SCALE_SQUARED );
 			Set< Location > leads = new HashSet< Location >();
-			leads.add( center );
+			leads.add( roundedCenter.clone() );
 			while ( explode( leads ) > 0 );
 		}
 		
-		double cubed = SCALE * SCALE * SCALE;
-		Map< Location, Double > locations = new HashMap< Location, Double >();
-		for ( Location location : damage.keySet() ) {
-			double power = damage.get( location ) / cubed;
-
-			Location block = new Location( location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ() );
-
-			if ( locations.containsKey( block ) ) {
-				locations.put( block, power + locations.get( block ) );
-			} else {
-				locations.put( block, power );
-			}
-		}
+		exploded = true;
 		
-		return locations;
+		return new GunsmokeExplosionResult( this );
 	}
 	
 	protected int explode( Set< Location > leads ) {
@@ -88,7 +100,6 @@ public class GunsmokeExplosion {
 		
 		for ( Location location : leads ) {
 			for ( Vector vec : DIRECTIONS ) {
-				// Not sure how slow cloning is
 				Location newLoc = location.clone().add( vec );
 				
 				if ( damage.containsKey( newLoc ) ) {
@@ -100,12 +111,13 @@ public class GunsmokeExplosion {
 				}
 
 				double blastReduction = getDamageReduction( newLoc, center );
+				// Ok, right here is the blast reduction or whatever it is
 				
 				if ( blastReduction == -1 ) {
 					damage.put( newLoc, 0.0 );
 				} else {
-					// The distance calculation may be a large source of lag
-					double power = getPowerAt( center.distance( newLoc ) ) - blastReduction;
+					blastReduction /= SCALE_CUBED;
+					double power = getPowerAt( center.distance( newLoc ) ) / SCALE_SQUARED - blastReduction;
 					damage.put( newLoc, Math.max( 0, power ) );
 					if ( power > 0 ) {
 						tempLeads.add( newLoc );
@@ -120,20 +132,33 @@ public class GunsmokeExplosion {
 		return tempLeads.size();
 	}
 	
+	public void setMaxDistance( double distance ) {
+		this.maxDistance = distance;
+		this.maxDistanceSquared = distance * distance;
+	}
+	
+	public void setPower( double power ) {
+		this.power = power;
+		amp = Math.sqrt( power ) / power;
+		frequency = 1 / ( amp * maxDistance );
+		amp = 1 / ( amp * amp );
+	}
+	
 	public double getPowerAt( double distance ) {
-		double height = distance / frequency;
+		double height = distance * frequency;
 		return amp - ( height * height );
 	}
 	
-	public double getBlastReductionFor( Location location ) {
-		switch ( location.getBlock().getType() ) {
-		case BEDROCK:
-		case OBSIDIAN: return -1;
-		case STONE: return 5;
-		case DIRT:
-		case GRASS: return 2;
-		default: return 0;
-		}
+	public boolean hasExploded() {
+		return exploded;
+	}
+	
+	protected double getBlastReductionFor( Location location ) {
+		return GunsmokeUtil.getBlockHealth( location );
+	}
+	
+	public GunsmokeRepresentable getExploder() {
+		return exploder;
 	}
 	
 	protected double getDamageReduction( Location start, Location end ) {
@@ -193,5 +218,15 @@ public class GunsmokeExplosion {
 	        }
 	    }
 	    return totalResis;
+	}
+	
+	protected double getDamageAt( Location location ) {
+		Location rounded = VectorUtil.round( location.clone(), SCALE ).add( SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
+		
+		return damage.getOrDefault( rounded, 0.0 );
+	}
+	
+	public interface BlockDamageModifier {
+		public int getModifiedBlockDamage( Location location, int damage );
 	}
 }

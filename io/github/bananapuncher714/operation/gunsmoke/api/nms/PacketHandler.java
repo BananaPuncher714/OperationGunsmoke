@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public interface PacketHandler {
@@ -39,11 +40,10 @@ public interface PacketHandler {
 	
 	void darkness( Player player );
 	
-	
 	int getServerTick();
 	
-	Location rayTrace( Location start, Vector ray );
-	Location rayTrace( Location start, Vector ray, double dist );
+	CollisionResult rayTrace( Location start, Vector ray );
+	CollisionResult rayTrace( Location start, Vector ray, double dist );
 	
 	List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector );
 	

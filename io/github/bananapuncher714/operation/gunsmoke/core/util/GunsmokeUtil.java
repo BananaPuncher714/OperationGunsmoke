@@ -17,6 +17,7 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public class GunsmokeUtil {
@@ -62,11 +63,11 @@ public class GunsmokeUtil {
 		plugin().getTaskManager().callEventSync( event );
 	}
 	
-	public static Location rayTrace( Location start, Vector ray ) {
+	public static CollisionResult rayTrace( Location start, Vector ray ) {
 		return plugin().getProtocol().getHandler().rayTrace( start, ray );
 	}
 	
-	public static Location rayTrace( Location start, Vector ray, double dist ) {
+	public static CollisionResult rayTrace( Location start, Vector ray, double dist ) {
 		return plugin().getProtocol().getHandler().rayTrace( start, ray, dist );
 	}
 	
@@ -84,6 +85,14 @@ public class GunsmokeUtil {
 	
 	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
 		return plugin().getEntityManager().damage( entity, damage, type, damager );
+	}
+	
+	public static double getBlockHealth( Location location ) {
+		return plugin().getBlockManager().getHealthAt( location );
+	}
+	
+	public static void setBlockHealth( Location location, double health ) {
+		plugin().getBlockManager().setHealthAt( location, health );
 	}
 	
 	public static GunsmokeEntityWrapper getEntity( Entity entity ) {

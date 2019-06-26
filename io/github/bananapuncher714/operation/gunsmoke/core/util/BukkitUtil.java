@@ -2,6 +2,7 @@ package io.github.bananapuncher714.operation.gunsmoke.core.util;
 
 import java.util.UUID;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -14,6 +15,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class BukkitUtil {
+	public final static Location getBlockLocation( Location loc ) {
+		return new Location( loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ() );
+	}
+	
 	public final static ItemStack getEquipment( LivingEntity entity, EquipmentSlot slot ) {
 		switch ( slot ) {
 		case CHEST:

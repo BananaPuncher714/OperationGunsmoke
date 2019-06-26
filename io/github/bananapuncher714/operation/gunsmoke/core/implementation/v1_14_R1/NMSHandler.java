@@ -33,6 +33,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpd
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import net.minecraft.server.v1_14_R1.AttributeInstance;
@@ -50,6 +52,7 @@ import net.minecraft.server.v1_14_R1.EntitySize;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
 import net.minecraft.server.v1_14_R1.GenericAttributes;
 import net.minecraft.server.v1_14_R1.ItemStack;
+import net.minecraft.server.v1_14_R1.Items;
 import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
@@ -74,7 +77,10 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFla
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
+import net.minecraft.server.v1_14_R1.RayTrace.BlockCollisionOption;
 import net.minecraft.server.v1_14_R1.Vec3D;
+import net.minecraft.server.v1_14_R1.VoxelShape;
+import net.minecraft.server.v1_14_R1.VoxelShapeCollisionEntity;
 
 public class NMSHandler implements PacketHandler {
 	private final static int HAND_STATE_INDEX = 7;
@@ -98,6 +104,8 @@ public class NMSHandler implements PacketHandler {
 	private static Map< EntityPose, EntitySize > sizes = new HashMap< EntityPose, EntitySize >();
 
 	private static Set< EnumPlayerTeleportFlags > TELEPORT_FLAGS;
+	
+	private static VoxelShapeCollisionEntity voxelShape;
 	
 	static {
 		try {
@@ -153,6 +161,12 @@ public class NMSHandler implements PacketHandler {
             }
             
             TELEPORT_FLAGS = Collections.unmodifiableSet( EnumSet.allOf( EnumPlayerTeleportFlags.class ) );
+            
+            voxelShape = new VoxelShapeCollisionEntity( false, -1.7976931348623157E308D, Items.AIR ) {
+            	public boolean a( VoxelShape var0, BlockPosition var1, boolean var2 ) {
+            		return var2;
+            	}
+            };
         } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 		}
@@ -662,12 +676,12 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
-	public Location rayTrace( Location location, Vector vector, double distance ) {
+	public CollisionResult rayTrace( Location location, Vector vector, double distance ) {
 		return rayTrace( location, vector.clone().normalize().multiply( distance ) );
 	}
 	
 	@Override
-	public Location rayTrace( Location location, Vector vector ) {
+	public CollisionResult rayTrace( Location location, Vector vector ) {
 		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
 		
 		Location dest = location.clone().add( vector );
@@ -675,19 +689,23 @@ public class NMSHandler implements PacketHandler {
 		Vec3D start = new Vec3D( location.getX(), location.getY(), location.getZ() );
 		Vec3D end = new Vec3D( dest.getX(), dest.getY(), dest.getZ() );
 		
-		// Not sure what the difference between COLLIDER and OUTLINE is. Perhaps a intersection detection method?
+		// COLLIDER checks the box's bounding box
+		// OUTLINE will check the actual positioning of the box
 		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.OUTLINE, RayTrace.FluidCollisionOption.NONE, null );
 		
 		MovingObjectPositionBlock result = world.rayTrace( trace );
 
+		// Right here, it will return the position OUTSIDE of the block it hit, and return the side of the block
+		// That means, the current position is not inside of the block
+		
 		Vec3D fin = result.getPos();
 		
 		BlockFace face = BlockFace.valueOf( result.getDirection().name() );
 		
 		Location interception = new Location( location.getWorld(), fin.getX(), fin.getY(), fin.getZ() );
-		interception.setDirection( face.getDirection() );
+		CollisionResult dLocation = new CollisionResult( interception, face.getDirection(), CollisionType.valueOf( result.getType().name() ) );
 		
-		return interception;
+		return dLocation;
 	}
 	
 	@Override
@@ -776,6 +794,14 @@ public class NMSHandler implements PacketHandler {
 	//
 	// entityPlayer.playerConnection.sendPacket( packet );
 	// }
+	
+	private VoxelShape getShapeAt( Location location ) {
+		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
+		BlockPosition position = new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+		VoxelShape shape = BlockCollisionOption.OUTLINE.get( world.getType( position ), world, position, voxelShape );
+		
+		return shape;
+	}
 
 	private void broadcastPacket( World world, Packet packet ) {
 		for ( Player player : world.getPlayers() ) {
