@@ -120,8 +120,9 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 					damage.put( newLoc, -1.0 );
 				} else {
 					blastReduction /= SCALE_CUBED;
-					double power = getPowerAt( center.distance( newLoc ) ) / SCALE_SQUARED - blastReduction;
-					damage.put( newLoc, Math.max( 0, power ) );
+					double rawPower = getPowerAt( center.distance( newLoc ) ) / SCALE_SQUARED;
+					double power = rawPower - blastReduction;
+					damage.put( newLoc, rawPower );
 					if ( power > 0 ) {
 						tempLeads.add( newLoc );
 					}

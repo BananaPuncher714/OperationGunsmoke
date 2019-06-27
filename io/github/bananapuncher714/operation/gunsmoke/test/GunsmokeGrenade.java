@@ -48,9 +48,7 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 				GunsmokeExplosionResult result = explosion.explode();
 				
 				for ( Location location : result.getBlockDamage().keySet() ) {
-					double health = GunsmokeUtil.getBlockHealth( location );
-					health -= result.getBlockDamageAt( location );
-					GunsmokeUtil.setBlockHealth( location, health );
+					GunsmokeUtil.damageBlockAt( location, result.getBlockDamage().get( location ) );
 				}
 				
 				return EnumTickResult.CANCEL;

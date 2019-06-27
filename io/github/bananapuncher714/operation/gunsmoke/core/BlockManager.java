@@ -12,7 +12,7 @@ import org.bukkit.Material;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class BlockManager {
-	public static final int BLOCK_DAMAGE_COOLDOWN = 200;
+	public static final int BLOCK_DAMAGE_COOLDOWN = 100;
 	public static final int BLOCK_DAMAGE_REGEN = 1;
 	
 	private Gunsmoke plugin;
@@ -38,6 +38,7 @@ public class BlockManager {
 				if ( health == -1 ) {
 					resistance.remove( location );
 					iterator.remove();
+					continue;
 				}
 			
 				// This means we need to figure out some kind of unloading system
@@ -46,8 +47,18 @@ public class BlockManager {
 				} else {
 					entry.setValue( BLOCK_DAMAGE_REGEN );
 				}
+				setHealthAt( location, health );
+			} else {
+				entry.setValue( tick );
 			}
 		}
+	}
+	
+	public void damage( Location location, double damage ) {
+		double health = getHealthAt( location );
+		health -= damage;
+		setHealthAt( location, health );
+		regenCooldown.put( location, BLOCK_DAMAGE_COOLDOWN );
 	}
 	
 	public void setHealthAt( Location location, double health ) {
@@ -57,7 +68,15 @@ public class BlockManager {
 			location.getBlock().breakNaturally();
 		} else {
 			resistance.put( location, health );
-			plugin.getProtocol().getHandler().damageBlock( location, ( int ) health - 1 ); 
+			boolean usePercent = true;
+			if ( usePercent ) {
+				double maxHp = getDefaultResistanceFor( location.getBlock().getType() );
+				double percent = health / maxHp;
+				int stage = 9 - ( int ) ( percent * 10 );
+				plugin.getProtocol().getHandler().damageBlock( location, stage );
+			} else {
+				plugin.getProtocol().getHandler().damageBlock( location, 10 - ( int ) Math.ceil( health ) );
+			}
 		}
 	}
 	

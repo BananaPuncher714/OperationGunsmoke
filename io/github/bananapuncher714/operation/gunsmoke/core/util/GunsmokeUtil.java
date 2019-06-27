@@ -95,6 +95,10 @@ public class GunsmokeUtil {
 		plugin().getBlockManager().setHealthAt( location, health );
 	}
 	
+	public static void damageBlockAt( Location location, double damage ) {
+		plugin().getBlockManager().damage( location, damage );
+	}
+	
 	public static GunsmokeEntityWrapper getEntity( Entity entity ) {
 		return plugin().getItemManager().getEntityWrapper( entity );
 	}
