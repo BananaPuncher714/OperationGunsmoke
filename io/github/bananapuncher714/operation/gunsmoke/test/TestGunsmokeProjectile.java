@@ -83,13 +83,13 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 	}
 	
 	protected void hit( ProjectileTargetBlock target ) {
-		Material hitType = target.getHitBlock().getType();
+		Material hitType = target.getIntersection().getBlock().getType();
 		if ( hitType == Material.WATER || hitType == Material.LAVA ) {
 			return;
 		}
-		System.out.println( "Hit block " + target.getHitBlock().getType() );
+		System.out.println( "Hit block " + target.getIntersection().getBlock().getType() );
 		System.out.println( target.getIntersection().getDirection() );
-		if ( target.getHitBlock().getType() != Material.GLASS ) {
+		if ( target.getIntersection().getBlock().getType() != Material.GLASS ) {
 			life -= 30;
 		}
 	}

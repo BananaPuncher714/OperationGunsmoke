@@ -17,9 +17,11 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetEntity;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
@@ -66,26 +68,28 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			double distance = location.distanceSquared( destination );
 	
 			// Get the first iteration done
-			CollisionResult hitBlock = GunsmokeUtil.rayTrace( location, velocity );
+			CollisionResultBlock hitBlock = GunsmokeUtil.rayTrace( location, velocity );
 			Location hitLoc = hitBlock.getLocation();
 			// PINEAPPLE GHOST FUWA FUWA
-			CollisionResult previous = hitBlock;
 			// While we still haven't reached the full destination
 			while ( distance >= location.distanceSquared( hitLoc ) ) {
-				Block block = hitLoc.getBlock();
+				Block block = hitBlock.getBlock();
 				
 				if ( !tickHitBlocks.contains( block.getLocation() ) ) {
 					if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
-						// TODO Add GunsmokeStructure detection
-						previous.getLocation().add( previous.getDirection().clone().multiply( .01 ) );
-						ProjectileTarget target = new ProjectileTargetBlock( this, previous, block );
-						hitTargets.add( target );
-						getHitBlocks().add( block.getLocation() );
-						tickHitBlocks.add( block.getLocation() );
+						// TODO Add proper collision type list
+						if ( block.getType() != Material.AIR ) {
+							// TODO Add GunsmokeStructure detection
+							Vector dirVec = BukkitUtil.toVector( hitBlock.getDirection() );
+							hitBlock.getLocation().add( dirVec.multiply( .01 ) );
+							ProjectileTarget target = new ProjectileTargetBlock( this, hitBlock );
+							hitTargets.add( target );
+							getHitBlocks().add( block.getLocation() );
+							tickHitBlocks.add( block.getLocation() );
+						}
 					}
 				}
 				
-				previous = hitBlock;
 				hitBlock = GunsmokeUtil.rayTrace( hitLoc, velocity );
 				hitLoc = hitBlock.getLocation();
 			}

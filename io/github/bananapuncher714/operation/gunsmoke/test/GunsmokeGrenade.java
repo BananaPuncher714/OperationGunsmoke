@@ -10,16 +10,18 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion;
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class GunsmokeGrenade extends GunsmokeProjectile {
 	protected double reduction = .85;
 	protected boolean hit = false;
-	protected CollisionResult last = null;
+	protected CollisionResultBlock last = null;
 	protected int bounces = 0;
 	protected Vector gravity = new Vector( 0, -.05, 0 );
 	protected Item item;
@@ -42,6 +44,8 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 		velocity.setY( Math.max( -2, velocity.getY() - .05 ) );
 		if ( last != null ) {
 			location = last.getLocation();
+			
+			location.getWorld().spawnParticle( Particle.DRIP_LAVA, location, 0 );
 			if ( bounces-- <= 0 ) {
 				// Explode
 				GunsmokeExplosion explosion = new GunsmokeExplosion( this, location, 8, 10 );
@@ -54,7 +58,7 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 				return EnumTickResult.CANCEL;
 			}
 			location = last.getLocation();
-			Vector direction = last.getDirection();
+			Vector direction = BukkitUtil.toVector( last.getDirection() );
 			
 			direction.multiply( direction ).multiply( -reduction );
 			
@@ -90,7 +94,7 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 	public void hit( ProjectileTarget target ) {
 		if ( !hit && target instanceof ProjectileTargetBlock ) {
 			hit = true;
-			last = target.getIntersection();
+			last = ( ( ProjectileTargetBlock ) target ).getIntersection();
 		}
 	}
 

@@ -1,14 +1,15 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.util;
 
 import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 public class CollisionResult {
 	protected Location location;
-	protected Vector direction;
+	protected BlockFace direction;
 	protected CollisionType collisionType;
 	
-	public CollisionResult( Location location, Vector direction, CollisionType type ) {
+	public CollisionResult( Location location, BlockFace direction, CollisionType type ) {
 		this.location = location;
 		this.direction = direction;
 		this.collisionType = type;
@@ -22,11 +23,11 @@ public class CollisionResult {
 		this.location = location;
 	}
 	
-	public Vector getDirection() {
+	public BlockFace getDirection() {
 		return direction;
 	}
 	
-	public void setDirection( Vector direction ) {
+	public void setDirection( BlockFace direction ) {
 		this.direction = direction;
 	}
 	
@@ -35,7 +36,7 @@ public class CollisionResult {
 	}
 
 	public CollisionResult copyOf() {
-		return new CollisionResult( location.clone(), direction.clone(), collisionType );
+		return new CollisionResult( location.clone(), direction, collisionType );
 	}
 	
 	public enum CollisionType {

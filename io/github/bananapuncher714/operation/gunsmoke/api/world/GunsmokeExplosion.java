@@ -81,16 +81,18 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 		double blastReduction = getBlastReductionFor( roundedCenter );
 		
 		// Debug particles
-		System.out.println( roundedCenter.getBlock().getType() + ":" + blastReduction );
 		roundedCenter.getWorld().spawnParticle( Particle.DRIP_WATER, roundedCenter, 0 );
 		
-		double finPower = power - blastReduction;
-		if ( blastReduction == -1 || finPower <= 0 ) {
+		if ( blastReduction == -1 ) {
 		} else {
-			damage.put( roundedCenter, finPower / SCALE_SQUARED );
-			Set< Location > leads = new HashSet< Location >();
-			leads.add( roundedCenter.clone() );
-			while ( explode( leads ) > 0 );
+			blastReduction /= SCALE_CUBED;
+			double finPower = power - blastReduction;
+			if ( finPower > 0 ) {
+				damage.put( roundedCenter, finPower / SCALE_SQUARED );
+				Set< Location > leads = new HashSet< Location >();
+				leads.add( roundedCenter.clone() );
+				while ( explode( leads ) > 0 );
+			}
 		}
 		
 		exploded = true;

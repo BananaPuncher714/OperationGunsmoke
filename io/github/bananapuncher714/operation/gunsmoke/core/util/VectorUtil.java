@@ -5,6 +5,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
@@ -44,42 +45,42 @@ public final class VectorUtil {
 		if ( lower.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zLow = calculateVector( lower, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zLow != null && zLow.getX() >= lower.getX() && zLow.getX() <= upper.getX() && zLow.getY() >= lower.getY() && zLow.getY() <= upper.getY() ) {
-				return new CollisionResult( zLow, ray, CollisionType.ENTITY );
+				return new CollisionResult( zLow, BlockFace.EAST, CollisionType.ENTITY );
 			}
 		}
 		
 		if ( upper.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zHigh = calculateVector( upper, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zHigh != null && zHigh.getX() >= lower.getX() && zHigh.getX() <= upper.getX() && zHigh.getY() >= lower.getY() && zHigh.getY() <= upper.getY() ) {
-				return new CollisionResult( zHigh, ray, CollisionType.ENTITY );
+				return new CollisionResult( zHigh, BlockFace.WEST, CollisionType.ENTITY );
 			}
 		}
 
 		if ( lower.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xLow = calculateVector( lower, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xLow != null && xLow.getZ() >= lower.getZ() && xLow.getZ() <= upper.getZ() && xLow.getY() >= lower.getY() && xLow.getY() <= upper.getY() ) {
-				return new CollisionResult( xLow, ray, CollisionType.ENTITY );
+				return new CollisionResult( xLow, BlockFace.SOUTH, CollisionType.ENTITY );
 			}
 		}
 
 		if ( upper.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xHigh = calculateVector( upper, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xHigh != null && xHigh.getZ() >= lower.getZ() && xHigh.getZ() <= upper.getZ() && xHigh.getY() >= lower.getY() && xHigh.getY() <= upper.getY() ) {
-				return new CollisionResult( xHigh, ray, CollisionType.ENTITY );
+				return new CollisionResult( xHigh, BlockFace.NORTH, CollisionType.ENTITY );
 			}
 		}
 
 		if ( lower.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yLow = calculateVector( lower, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yLow != null && yLow.getX() >= lower.getX() && yLow.getX() <= upper.getX() && yLow.getZ() >= lower.getZ() && yLow.getZ() <= upper.getZ() ) {
-				return new CollisionResult( yLow, ray, CollisionType.ENTITY );
+				return new CollisionResult( yLow, BlockFace.DOWN, CollisionType.ENTITY );
 			}
 		}
 
 		if ( upper.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yHigh = calculateVector( upper, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yHigh != null && yHigh.getX() >= lower.getX() && yHigh.getX() <= upper.getX() && yHigh.getZ() >= lower.getZ() && yHigh.getZ() <= upper.getZ() ) {
-				return new CollisionResult( yHigh, ray, CollisionType.ENTITY );
+				return new CollisionResult( yHigh, BlockFace.UP, CollisionType.ENTITY );
 			}
 		}
 		return null;

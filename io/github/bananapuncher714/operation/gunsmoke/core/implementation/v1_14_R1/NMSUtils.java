@@ -14,7 +14,9 @@ import net.minecraft.server.v1_14_R1.WorldServer;
 
 public class NMSUtils {
 	protected final static org.bukkit.entity.Entity getEntityFromId( World world, int id ) {
-		return ( ( CraftWorld ) world ).getHandle().getEntity( id ).getBukkitEntity();
+		net.minecraft.server.v1_14_R1.World nmsWorld = ( ( CraftWorld ) world ).getHandle();
+		net.minecraft.server.v1_14_R1.Entity nmsEntity = nmsWorld.getEntity( id );
+		return nmsEntity == null ? null : nmsEntity.getBukkitEntity();
 	}
 	
 	protected final static EquipmentSlot getEquipmentSlot( EnumItemSlot slot ) {

@@ -15,9 +15,12 @@ public class BlockManager {
 	public static final int BLOCK_DAMAGE_COOLDOWN = 100;
 	public static final int BLOCK_DAMAGE_REGEN = 1;
 	
+	public static final int UPDATE_BLOCK_DELAY = 20 * 15;
+	
 	private Gunsmoke plugin;
 	private Map< Location, Double > resistance = new HashMap< Location, Double >();
 	private Map< Location, Integer > regenCooldown = new HashMap< Location, Integer >();
+	private int tick = 0;
 	
 	public BlockManager( Gunsmoke plugin ) {
 		this.plugin = plugin;
@@ -52,6 +55,12 @@ public class BlockManager {
 				entry.setValue( tick );
 			}
 		}
+		if ( tick++ % UPDATE_BLOCK_DELAY == 0 ) {
+			tick = 0;
+			for ( Location location : resistance.keySet() ) {
+				updateBlockStage( location );
+			}
+		}
 	}
 	
 	public void damage( Location location, double damage ) {
@@ -61,22 +70,27 @@ public class BlockManager {
 		regenCooldown.put( location, BLOCK_DAMAGE_COOLDOWN );
 	}
 	
+	protected void updateBlockStage( Location location ) {
+		double health = getHealthAt( location );
+		boolean usePercent = true;
+		if ( usePercent ) {
+			double maxHp = getDefaultResistanceFor( location.getBlock().getType() );
+			double percent = health / maxHp;
+			int stage = 9 - ( int ) ( percent * 10 );
+			plugin.getProtocol().getHandler().damageBlock( location, stage );
+		} else {
+			plugin.getProtocol().getHandler().damageBlock( location, 10 - ( int ) Math.ceil( health ) );
+		}
+	}
+	
 	public void setHealthAt( Location location, double health ) {
 		location = BukkitUtil.getBlockLocation( location );
 		if ( health <= 0 ) {
 			resistance.remove( location );
-			location.getBlock().breakNaturally();
+			location.getBlock().setType( Material.AIR, false );
 		} else {
 			resistance.put( location, health );
-			boolean usePercent = true;
-			if ( usePercent ) {
-				double maxHp = getDefaultResistanceFor( location.getBlock().getType() );
-				double percent = health / maxHp;
-				int stage = 9 - ( int ) ( percent * 10 );
-				plugin.getProtocol().getHandler().damageBlock( location, stage );
-			} else {
-				plugin.getProtocol().getHandler().damageBlock( location, 10 - ( int ) Math.ceil( health ) );
-			}
+			updateBlockStage( location );
 		}
 	}
 	
@@ -90,6 +104,7 @@ public class BlockManager {
 		case LAVA:
 		case BEDROCK:
 		case BARRIER:
+		case WHITE_STAINED_GLASS:
 		case OBSIDIAN: return -1;
 		case STONE: return 5;
 		case DIRT:

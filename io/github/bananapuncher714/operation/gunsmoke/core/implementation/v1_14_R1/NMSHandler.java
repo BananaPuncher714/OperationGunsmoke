@@ -15,8 +15,10 @@ import java.util.concurrent.CountDownLatch;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
@@ -35,6 +37,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import net.minecraft.server.v1_14_R1.AttributeInstance;
@@ -50,11 +53,13 @@ import net.minecraft.server.v1_14_R1.EntityHuman;
 import net.minecraft.server.v1_14_R1.EntityPose;
 import net.minecraft.server.v1_14_R1.EntitySize;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
+import net.minecraft.server.v1_14_R1.GeneratorAccess;
 import net.minecraft.server.v1_14_R1.GenericAttributes;
 import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.Items;
 import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
+import net.minecraft.server.v1_14_R1.MovingObjectPosition;
 import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements;
@@ -77,7 +82,6 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFla
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
-import net.minecraft.server.v1_14_R1.RayTrace.BlockCollisionOption;
 import net.minecraft.server.v1_14_R1.Vec3D;
 import net.minecraft.server.v1_14_R1.VoxelShape;
 import net.minecraft.server.v1_14_R1.VoxelShapeCollisionEntity;
@@ -104,8 +108,6 @@ public class NMSHandler implements PacketHandler {
 	private static Map< EntityPose, EntitySize > sizes = new HashMap< EntityPose, EntitySize >();
 
 	private static Set< EnumPlayerTeleportFlags > TELEPORT_FLAGS;
-	
-	private static VoxelShapeCollisionEntity voxelShape;
 	
 	static {
 		try {
@@ -161,12 +163,6 @@ public class NMSHandler implements PacketHandler {
             }
             
             TELEPORT_FLAGS = Collections.unmodifiableSet( EnumSet.allOf( EnumPlayerTeleportFlags.class ) );
-            
-            voxelShape = new VoxelShapeCollisionEntity( false, -1.7976931348623157E308D, Items.AIR ) {
-            	public boolean a( VoxelShape var0, BlockPosition var1, boolean var2 ) {
-            		return var2;
-            	}
-            };
         } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
 		}
@@ -679,12 +675,12 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
-	public CollisionResult rayTrace( Location location, Vector vector, double distance ) {
+	public CollisionResultBlock rayTrace( Location location, Vector vector, double distance ) {
 		return rayTrace( location, vector.clone().normalize().multiply( distance ) );
 	}
 	
 	@Override
-	public CollisionResult rayTrace( Location location, Vector vector ) {
+	public CollisionResultBlock rayTrace( Location location, Vector vector ) {
 		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
 		
 		Location dest = location.clone().add( vector );
@@ -698,17 +694,7 @@ public class NMSHandler implements PacketHandler {
 		
 		MovingObjectPositionBlock result = world.rayTrace( trace );
 
-		// Right here, it will return the position OUTSIDE of the block it hit, and return the side of the block
-		// That means, the current position is not inside of the block
-		
-		Vec3D fin = result.getPos();
-		
-		BlockFace face = BlockFace.valueOf( result.getDirection().name() );
-		
-		Location interception = new Location( location.getWorld(), fin.getX(), fin.getY(), fin.getZ() );
-		CollisionResult dLocation = new CollisionResult( interception, face.getDirection(), CollisionType.valueOf( result.getType().name() ) );
-		
-		return dLocation;
+		return getResultFrom( ( ( CraftWorld ) location.getWorld() ).getHandle(), result );
 	}
 	
 	@Override
@@ -726,7 +712,7 @@ public class NMSHandler implements PacketHandler {
 		}
 		return nearby;
 	}
-	
+
 	// @Override
 	// public void sendMessage( Player player, String message, Display display ) {
 	// PacketPlayOutChat packet = new PacketPlayOutChat( new ChatComponentText(
@@ -797,15 +783,15 @@ public class NMSHandler implements PacketHandler {
 	//
 	// entityPlayer.playerConnection.sendPacket( packet );
 	// }
-	
-	private VoxelShape getShapeAt( Location location ) {
-		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
-		BlockPosition position = new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
-		VoxelShape shape = BlockCollisionOption.OUTLINE.get( world.getType( position ), world, position, voxelShape );
-		
-		return shape;
-	}
 
+	private CollisionResultBlock getResultFrom( net.minecraft.server.v1_14_R1.World world, MovingObjectPositionBlock position ) {
+		Block block = CraftBlock.at( world, position.getBlockPosition() );
+		BlockFace face = CraftBlock.notchToBlockFace( position.getDirection() );
+		Vec3D fin = position.getPos();
+		Location interception = new Location( world.getWorld(), fin.getX(), fin.getY(), fin.getZ() );
+		return new CollisionResultBlock( interception, face, block );
+	}
+	
 	private void broadcastPacket( World world, Packet packet ) {
 		for ( Player player : world.getPlayers() ) {
 			plugin.getProtocol().sendPacket( player, packet );
