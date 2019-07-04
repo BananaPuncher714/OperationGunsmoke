@@ -80,6 +80,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFlags;
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
+import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder;
+import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAction;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
 import net.minecraft.server.v1_14_R1.Vec3D;
@@ -104,6 +106,8 @@ public class NMSHandler implements PacketHandler {
 	private static Field PLAYERABILITIES_FOV;
 
 	private static Field TELEPORT_AWAIT;
+	
+	private static Field[] WORLDBORDERPACKET_FIELDS;
 	
 	private static Map< EntityPose, EntitySize > sizes = new HashMap< EntityPose, EntitySize >();
 
@@ -140,6 +144,20 @@ public class NMSHandler implements PacketHandler {
 			
 			TELEPORT_AWAIT = PlayerConnection.class.getDeclaredField( "teleportAwait" );
 			TELEPORT_AWAIT.setAccessible( true );
+			
+			WORLDBORDERPACKET_FIELDS = new Field[ 9 ];
+			WORLDBORDERPACKET_FIELDS[ 0 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "a" );
+			WORLDBORDERPACKET_FIELDS[ 1 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "b" );
+			WORLDBORDERPACKET_FIELDS[ 2 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "c" );
+			WORLDBORDERPACKET_FIELDS[ 3 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "d" );
+			WORLDBORDERPACKET_FIELDS[ 4 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "e" );
+			WORLDBORDERPACKET_FIELDS[ 5 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "f" );
+			WORLDBORDERPACKET_FIELDS[ 6 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "g" );
+			WORLDBORDERPACKET_FIELDS[ 7 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "h" );
+			WORLDBORDERPACKET_FIELDS[ 8 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "i" );
+			for ( Field field : WORLDBORDERPACKET_FIELDS ) {
+				field.setAccessible( true );
+			}
 			
 			Field modifiersField = Field.class.getDeclaredField( "modifiers" );
             modifiersField.setAccessible( true );
@@ -711,6 +729,33 @@ public class NMSHandler implements PacketHandler {
 			nearby.add( nearbyEntity.getBukkitEntity() );
 		}
 		return nearby;
+	}
+	
+	@Override
+	public void setTint( Player player, double percent ) {
+		int lower = 30_000_000;
+		int higher = 600_000_000;
+		percent = percent * percent * percent;
+		int diff = ( int ) ( ( higher - lower ) * percent );
+		
+		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) player.getWorld() ).getHandle();
+		
+		try {
+			PacketPlayOutWorldBorder centerPacket = new PacketPlayOutWorldBorder( world.getWorldBorder(), EnumWorldBorderAction.SET_CENTER );
+			WORLDBORDERPACKET_FIELDS[ 2 ].set( centerPacket, player.getLocation().getX() );
+			WORLDBORDERPACKET_FIELDS[ 3 ].set( centerPacket, player.getLocation().getY() );
+			WORLDBORDERPACKET_FIELDS[ 5 ].set( centerPacket, 60_000_000.0 );
+			WORLDBORDERPACKET_FIELDS[ 7 ].set( centerPacket, 0 );
+			PacketPlayOutWorldBorder warningPacket = new PacketPlayOutWorldBorder( world.getWorldBorder(), EnumWorldBorderAction.SET_WARNING_BLOCKS );
+			WORLDBORDERPACKET_FIELDS[ 8 ].set( warningPacket, diff + lower );
+			WORLDBORDERPACKET_FIELDS[ 5 ].set( centerPacket, 60_000_000.0 );
+			WORLDBORDERPACKET_FIELDS[ 7 ].set( centerPacket, 0 );
+			
+			plugin.getProtocol().sendPacket( player, centerPacket );
+			plugin.getProtocol().sendPacket( player, warningPacket );
+		} catch ( Exception exception ) {
+			exception.printStackTrace();
+		}
 	}
 
 	// @Override

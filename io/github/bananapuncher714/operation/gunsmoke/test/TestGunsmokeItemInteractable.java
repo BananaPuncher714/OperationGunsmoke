@@ -103,7 +103,7 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		double finYaw = ThreadLocalRandom.current().nextDouble() * 1 - ( 1 * .5 );
 		double pitch = -5;
 		
-		MovementModifier modifier = new MovementModifierRecoil( pitch, finYaw, 600 );
+		MovementModifier modifier = new MovementModifierRecoil( pitch, finYaw );
 		
 		CrosshairMovement movement = plugin.getMovementManager().getMovement( holder.getName() );
 		if ( movement != null ) {

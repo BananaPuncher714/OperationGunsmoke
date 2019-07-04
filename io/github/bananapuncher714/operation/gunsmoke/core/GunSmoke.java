@@ -1,11 +1,13 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -19,7 +21,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
+import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
 import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
 
@@ -46,6 +50,8 @@ public class Gunsmoke extends JavaPlugin {
 		movementManager = new MovementManager( this );
 		zoomManager = new ZoomManager( this );
 		
+		NGui.init( this );
+		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
 		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
@@ -58,6 +64,7 @@ public class Gunsmoke extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		movementManager.stop();
+		NGui.disable();
 	}
 	
 	/**
@@ -98,6 +105,12 @@ public class Gunsmoke extends JavaPlugin {
 				player.sendMessage( entity.getName() + " took " + result.getEntityDamageFor( entity ) + " power" );
 			}
 			
+			Block targetBlock = player.getTargetBlock( ( Set< Material > ) null, 100 );
+			if ( targetBlock.getType() == Material.STRUCTURE_BLOCK ) {
+				System.out.println( "MODIFIED" );
+				NBTEditor.set( targetBlock, 130, "posY" );
+			}
+			
 //			VectorUtil.fastCanSeeTwo( player.getEyeLocation(), location );
 			
 			location.getLocation().getWorld().spawnParticle( Particle.VILLAGER_HAPPY, location.getLocation(), 0 );
@@ -113,6 +126,8 @@ public class Gunsmoke extends JavaPlugin {
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			GunsmokePlayer entity = entityManager.getEntity( player.getUniqueId() );
 //			entity.update();
+
+			protocol.getHandler().setTint( player, 1 - player.getHealth() / player.getHealthScale() );
 			
 			NMSUtils.setNoFly( player );
 //			player.setRemainingAir( 285 );

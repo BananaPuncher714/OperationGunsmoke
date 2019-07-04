@@ -33,6 +33,7 @@ public interface PacketHandler {
 	
 	void set( Player player, boolean down );
 	void setAir( Player player, int ticks );
+	void setTint( Player player, double tint );
 	void playHurtAnimationFor( LivingEntity entity );
 	
 	boolean isCurrentThreadMain();

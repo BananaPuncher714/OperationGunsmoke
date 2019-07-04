@@ -160,7 +160,7 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 	}
 	
 	protected double getBlastReductionFor( Location location ) {
-		return GunsmokeUtil.getBlockHealth( location );
+		return GunsmokeUtil.getBlockAt( location ).getHealth();
 	}
 	
 	public GunsmokeRepresentable getExploder() {

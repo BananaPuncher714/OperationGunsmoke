@@ -15,6 +15,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
@@ -88,16 +90,16 @@ public class GunsmokeUtil {
 		return plugin().getEntityManager().damage( entity, damage, type, damager );
 	}
 	
-	public static double getBlockHealth( Location location ) {
-		return plugin().getBlockManager().getHealthAt( location );
+	public static void setBlockStage( Location location, int stage ) {
+		plugin().getProtocol().getHandler().damageBlock( location, stage );
 	}
 	
-	public static void setBlockHealth( Location location, double health ) {
-		plugin().getBlockManager().setHealthAt( location, health );
+	public static GunsmokeBlock getBlockAt( Location location ) {
+		return plugin().getBlockManager().getBlockAt( location );
 	}
 	
-	public static void damageBlockAt( Location location, double damage ) {
-		plugin().getBlockManager().damage( location, damage );
+	public static void damageBlockAt( Location location, double damage, GunsmokeRepresentable damager, DamageType type ) {
+		plugin().getBlockManager().damage( location, damage, damager, type );
 	}
 	
 	public static GunsmokeEntityWrapper getEntity( Entity entity ) {

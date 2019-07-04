@@ -18,7 +18,7 @@ public class GunsmokeExplosionResult {
 		
 		// Calculate the block damage
 		for ( Location location : explosion.damage.keySet() ) {
-			double power = explosion.damage.get( location );// / cubed;
+			double power = explosion.damage.get( location );
 
 			if ( power == -1 ) {
 				continue;
@@ -45,7 +45,9 @@ public class GunsmokeExplosionResult {
 					}
 				}
 			}
-			entityDamage.put( entity, damage / GunsmokeExplosion.SCALE );
+			if ( damage > 0 ) {
+				entityDamage.put( entity, damage / GunsmokeExplosion.SCALE );
+			}
 		}
 	}
 	

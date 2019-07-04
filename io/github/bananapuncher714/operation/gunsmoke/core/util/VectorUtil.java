@@ -160,7 +160,7 @@ public final class VectorUtil {
 		double x = px1;
 		double y = py1;
 		double z = pz1;
-		double n = ( 1 + dx + dy + dz ) * scale;
+		double n = ( dx + dy + dz ) * scale;
 		double x_inc = ((px2 > px1) ? 1 : -1 ) / scale;
 		double y_inc = ((py2 > py1) ? 1 : -1 ) / scale;
 		double z_inc = ((pz2 > pz1) ? 1 : -1 ) / scale;

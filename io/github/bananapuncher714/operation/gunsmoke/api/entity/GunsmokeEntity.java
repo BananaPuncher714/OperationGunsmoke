@@ -10,6 +10,7 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	protected Location location;
 	protected Vector velocity;
 	protected double speed;
+	protected boolean isInvincible = false;
 	
 	public GunsmokeEntity() {
 	}
@@ -33,5 +34,13 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	public void setVelocity( Vector vector ) {
 		velocity = vector.clone().normalize();
 		speed = vector.length();
+	}
+
+	public boolean isInvincible() {
+		return isInvincible;
+	}
+
+	public void setInvincible(boolean isInvincible) {
+		this.isInvincible = isInvincible;
 	}
 }

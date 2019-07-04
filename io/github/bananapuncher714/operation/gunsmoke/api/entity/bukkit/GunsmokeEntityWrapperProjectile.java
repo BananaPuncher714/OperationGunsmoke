@@ -11,10 +11,16 @@ public class GunsmokeEntityWrapperProjectile extends GunsmokeEntityWrapper {
 		this.entity = entity;
 	}
 	
+	@Override
 	public Projectile getEntity() {
 		return entity;
 	}
 	
 	public void onEvent( ProjectileHitEvent event ) {
+	}
+	
+	@Override
+	public boolean isInvincible() {
+		return true;
 	}
 }

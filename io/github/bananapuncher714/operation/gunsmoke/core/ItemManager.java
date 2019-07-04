@@ -26,6 +26,7 @@ import org.bukkit.projectiles.ProjectileSource;
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.InteractableDamage;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
@@ -99,7 +100,7 @@ public class ItemManager implements Listener {
 				return ( GunsmokeEntityWrapper ) representable;
 			}
 		}
-		return new GunsmokeEntityWrapper( entity );
+		return GunsmokeEntityWrapperFactory.wrap( entity );
 	}
 	
 	public GunsmokeRepresentable getRepresentable( LivingEntity entity, EquipmentSlot slot ) {

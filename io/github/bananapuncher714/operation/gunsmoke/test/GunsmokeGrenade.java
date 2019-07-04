@@ -3,11 +3,15 @@ package io.github.bananapuncher714.operation.gunsmoke.test;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
@@ -19,10 +23,10 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class GunsmokeGrenade extends GunsmokeProjectile {
-	protected double reduction = .85;
+	protected double reduction = .6;
 	protected boolean hit = false;
 	protected CollisionResultBlock last = null;
-	protected int bounces = 0;
+	protected int bounces = 1;
 	protected Vector gravity = new Vector( 0, -.05, 0 );
 	protected Item item;
 	
@@ -52,7 +56,11 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 				GunsmokeExplosionResult result = explosion.explode();
 				
 				for ( Location location : result.getBlockDamage().keySet() ) {
-					GunsmokeUtil.damageBlockAt( location, result.getBlockDamage().get( location ) );
+					GunsmokeUtil.damageBlockAt( location, result.getBlockDamage().get( location ), this, DamageType.EXPLOSION );
+				}
+				
+				for ( Entity entity : result.getEntityDamage().keySet() ) {
+					GunsmokeUtil.damage( GunsmokeEntityWrapperFactory.wrap( entity ), DamageType.EXPLOSION, result.getEntityDamage().get( entity ), this );
 				}
 				
 				return EnumTickResult.CANCEL;
