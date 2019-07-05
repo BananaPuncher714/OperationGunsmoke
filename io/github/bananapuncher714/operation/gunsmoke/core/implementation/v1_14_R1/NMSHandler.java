@@ -35,8 +35,6 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpd
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
@@ -53,13 +51,10 @@ import net.minecraft.server.v1_14_R1.EntityHuman;
 import net.minecraft.server.v1_14_R1.EntityPose;
 import net.minecraft.server.v1_14_R1.EntitySize;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
-import net.minecraft.server.v1_14_R1.GeneratorAccess;
 import net.minecraft.server.v1_14_R1.GenericAttributes;
 import net.minecraft.server.v1_14_R1.ItemStack;
-import net.minecraft.server.v1_14_R1.Items;
 import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
-import net.minecraft.server.v1_14_R1.MovingObjectPosition;
 import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements;
@@ -85,8 +80,6 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAct
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
 import net.minecraft.server.v1_14_R1.Vec3D;
-import net.minecraft.server.v1_14_R1.VoxelShape;
-import net.minecraft.server.v1_14_R1.VoxelShapeCollisionEntity;
 
 public class NMSHandler implements PacketHandler {
 	private final static int HAND_STATE_INDEX = 7;

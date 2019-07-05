@@ -16,13 +16,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion;
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.EventListener;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
 import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
@@ -53,8 +54,11 @@ public class Gunsmoke extends JavaPlugin {
 		NGui.init( this );
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
-		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
 		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
+		
+		
+		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
+		Bukkit.getPluginManager().registerEvents( new EventListener(), this );
 		
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			protocol.getPlayerConnection( player.getName() );
@@ -76,8 +80,9 @@ public class Gunsmoke extends JavaPlugin {
 			Player player = ( Player ) sender;
 			
 			player.sendMessage( "Finding..." );
-			CollisionResult location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+			CollisionResultBlock location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
 
+			player.sendMessage( "Type: " + location.getBlock().getType() );
 			player.sendMessage( "Collision: " + location.getCollisionType() );
 			player.sendMessage( "Direction: " + location.getDirection() );
 			

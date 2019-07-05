@@ -11,9 +11,7 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
@@ -26,7 +24,7 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 	protected double reduction = .6;
 	protected boolean hit = false;
 	protected CollisionResultBlock last = null;
-	protected int bounces = 1;
+	protected int bounces = 2;
 	protected Vector gravity = new Vector( 0, -.05, 0 );
 	protected Item item;
 	
@@ -49,9 +47,10 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 		if ( last != null ) {
 			location = last.getLocation();
 			
-			location.getWorld().spawnParticle( Particle.DRIP_LAVA, location, 0 );
 			if ( bounces-- <= 0 ) {
 				// Explode
+				location.getWorld().spawnParticle( Particle.DRIP_LAVA, location, 0 );
+				
 				GunsmokeExplosion explosion = new GunsmokeExplosion( this, location, 8, 10 );
 				GunsmokeExplosionResult result = explosion.explode();
 				

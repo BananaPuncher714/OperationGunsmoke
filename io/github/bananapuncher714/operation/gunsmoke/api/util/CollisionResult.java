@@ -2,7 +2,6 @@ package io.github.bananapuncher714.operation.gunsmoke.api.util;
 
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
-import org.bukkit.util.Vector;
 
 public class CollisionResult {
 	protected Location location;

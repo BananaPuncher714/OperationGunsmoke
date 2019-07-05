@@ -58,7 +58,6 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 					getHitEntities().add( entity.getUniqueId() );
 				}
 			}
-			
 			Set< Location > tickHitBlocks = new HashSet< Location >();
 			
 			// Now start on block hit detection
@@ -99,7 +98,7 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			for ( ProjectileTarget target : hitTargets ) {
 				hit( target );
 			}
-			location.add( velocity );
+			location.add( getVelocity() );
 		}
 		// Erase this projectile from existence if it falls beyond the void
 		return ( location.getY() > -64 ) ? EnumTickResult.CONTINUE : EnumTickResult.CANCEL;

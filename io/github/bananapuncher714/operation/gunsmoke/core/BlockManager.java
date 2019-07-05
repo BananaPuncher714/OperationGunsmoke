@@ -16,9 +16,6 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.block.GunsmokeBl
 import io.github.bananapuncher714.operation.gunsmoke.api.events.block.GunsmokeBlockDamageEvent;
 
 public class BlockManager {
-	public static final int BLOCK_DAMAGE_COOLDOWN = 100;
-	public static final int BLOCK_DAMAGE_REGEN = 1;
-	
 	public static final int UPDATE_BLOCK_DELAY = 20 * 15;
 	
 	private Gunsmoke plugin;
@@ -28,7 +25,7 @@ public class BlockManager {
 	public BlockManager( Gunsmoke plugin ) {
 		this.plugin = plugin;
 		
-		Bukkit.getScheduler().scheduleSyncRepeatingTask( plugin, this::update, 0, 15 * 20 );
+		Bukkit.getScheduler().scheduleSyncRepeatingTask( plugin, this::update, 0, UPDATE_BLOCK_DELAY );
 	}
 	
 	private void update() {

@@ -10,7 +10,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
-import io.github.bananapuncher714.operation.gunsmoke.api.ZoomLevel;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;

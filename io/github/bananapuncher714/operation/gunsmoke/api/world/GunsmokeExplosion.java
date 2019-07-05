@@ -44,6 +44,7 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 	protected GunsmokeRepresentable exploder;
 	
 	protected Location center;
+	protected Location relocated;
 	protected Vector offset;
 	protected double maxDistance;
 	protected double maxDistanceSquared;
@@ -80,6 +81,8 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 		Location roundedCenter = VectorUtil.round( center.clone(), SCALE ).add( -SCALE_INVERSE_HALF, SCALE_INVERSE_HALF, SCALE_INVERSE_HALF );
 		double blastReduction = getBlastReductionFor( roundedCenter );
 		
+		relocated = roundedCenter;
+		
 		// Debug particles
 		roundedCenter.getWorld().spawnParticle( Particle.DRIP_WATER, roundedCenter, 0 );
 		
@@ -115,7 +118,7 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 					continue;
 				}
 
-				double blastReduction = getDamageReduction( newLoc, center );
+				double blastReduction = getDamageReduction( newLoc, relocated );
 				// Ok, right here is the blast reduction or whatever it is
 				
 				if ( blastReduction == -1 ) {

@@ -14,7 +14,7 @@ public class GunsmokeBlock extends GunsmokeRepresentable {
 	protected Location location;
 	
 	public GunsmokeBlock( Location location, double health ) {
-		this.location = location;
+		this.location = BukkitUtil.getBlockLocation( location );
 		this.health = health;
 		this.maxHealth = health;
 	}
@@ -28,7 +28,7 @@ public class GunsmokeBlock extends GunsmokeRepresentable {
 	}
 	
 	public boolean contains( Location location ) {
-		return BukkitUtil.getBlockLocation( this.location ).equals( BukkitUtil.getBlockLocation( location ) );
+		return this.location.equals( BukkitUtil.getBlockLocation( location ) );
 	}
 
 	public double getHealth() {
@@ -48,11 +48,7 @@ public class GunsmokeBlock extends GunsmokeRepresentable {
 	}
 	
 	public Location getLocation() {
-		return location;
-	}
-
-	public void setLocation(Location location) {
-		this.location = location;
+		return location.clone();
 	}
 
 	public void updateBlockStage() {
