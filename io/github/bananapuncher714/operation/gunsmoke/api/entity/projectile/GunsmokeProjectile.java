@@ -13,6 +13,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
@@ -38,7 +39,7 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 
 	@Override
 	public EnumTickResult tick() {
-		if ( speed > 0 ) {
+		if ( getSpeed() > 0 ) {
 			// First get a set of all things hit, then call events in order from closest hit to farthest hit
 			Set< ProjectileTarget > hitTargets = new TreeSet< ProjectileTarget >();
 			
@@ -52,7 +53,7 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 				CollisionResult intersection = VectorUtil.rayIntersect( entity, location, velocity );
 				if ( intersection != null ) {
 					// We know we hit something
-					GunsmokeEntityWrapper wrappedEntity = new GunsmokeEntityWrapper( entity );
+					GunsmokeEntityWrapper wrappedEntity = GunsmokeEntityWrapperFactory.wrap( entity );
 					
 					hitTargets.add( new ProjectileTargetEntity( this, intersection.copyOf(), wrappedEntity ) );
 					getHitEntities().add( entity.getUniqueId() );
@@ -95,10 +96,14 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			
 			// Now that we have our targets we can start calling our other methods in order
 			// Event calling should be handled by the implementation
+			Location newLoc = location.clone().add( getVelocity() );
 			for ( ProjectileTarget target : hitTargets ) {
-				hit( target );
+				if ( hit( target ) == EnumTickResult.CANCEL ) {
+					newLoc = target.getIntersection().getLocation();
+					break;
+				}
 			}
-			location.add( getVelocity() );
+			location = newLoc;
 		}
 		// Erase this projectile from existence if it falls beyond the void
 		return ( location.getY() > -64 ) ? EnumTickResult.CONTINUE : EnumTickResult.CANCEL;
@@ -112,5 +117,5 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 		return hitBlocks;
 	}
 
-	abstract public void hit( ProjectileTarget target );
+	abstract public EnumTickResult hit( ProjectileTarget target );
 }

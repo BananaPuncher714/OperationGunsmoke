@@ -712,8 +712,8 @@ public class NMSHandler implements PacketHandler {
 	public List< org.bukkit.entity.Entity > getNearbyEntities( org.bukkit.entity.Entity entity, Location location, Vector vector ) {
 		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
 	
-		AxisAlignedBB axis = new AxisAlignedBB( location.getX(), location.getY(), location.getZ(),
-				location.getX() + vector.getX(), location.getY() + vector.getY(), location.getZ() + vector.getZ() );
+		AxisAlignedBB axis = new AxisAlignedBB( location.getX() - 2, location.getY() - 2, location.getZ() - 2,
+				location.getX() + vector.getX() + 2, location.getY() + vector.getY() + 2, location.getZ() + vector.getZ() + 2 );
 		
 		Entity nmsEntity = entity == null ? null : ( ( CraftEntity ) entity ).getHandle();
 		

@@ -14,6 +14,10 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -547,27 +551,27 @@ public class ItemManager implements Listener {
 //		}
 //	}
 	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( BlockBreakEvent event ) {
+		plugin.getBlockManager().destroy( event.getBlock().getLocation() );
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( BlockPlaceEvent event ) {
+		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( BlockPhysicsEvent event ) {
+		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( BlockFromToEvent event ) {
+		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
+	}
+	
 	/*
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent() {
 		

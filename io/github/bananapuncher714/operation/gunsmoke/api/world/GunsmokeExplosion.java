@@ -90,8 +90,8 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 		} else {
 			blastReduction /= SCALE_CUBED;
 			double finPower = power - blastReduction;
+			damage.put( roundedCenter, power / SCALE_SQUARED );
 			if ( finPower > 0 ) {
-				damage.put( roundedCenter, finPower / SCALE_SQUARED );
 				Set< Location > leads = new HashSet< Location >();
 				leads.add( roundedCenter.clone() );
 				while ( explode( leads ) > 0 );

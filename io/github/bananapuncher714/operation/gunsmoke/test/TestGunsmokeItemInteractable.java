@@ -10,6 +10,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
@@ -27,6 +28,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.GunsmokeBullet;
 
 public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	Gunsmoke plugin;
@@ -34,6 +36,8 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 	ItemStackMultiState display;
 	
 	boolean zoomed = false;
+
+	long lastShot = System.currentTimeMillis();
 	
 	public TestGunsmokeItemInteractable( Gunsmoke plugin ) {
 		this.plugin = plugin;
@@ -92,8 +96,14 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 
 	@Override
 	public EnumEventResult onClick( HoldRightClickEvent event ) {
-		TestGunsmokeProjectile projectile = new TestGunsmokeProjectile( event.getPlayer(), event.getPlayer().getEyeLocation(), 100 );
-		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( .05 ) );
+		if ( System.currentTimeMillis() - lastShot < 170 ) {
+			return EnumEventResult.COMPLETED;
+		}
+		lastShot = System.currentTimeMillis();
+		
+		GunsmokeBullet projectile = new GunsmokeBullet( GunsmokeEntityWrapperFactory.wrap( event.getPlayer() ), event.getPlayer().getEyeLocation() );
+		projectile.setPower( 10 );
+		projectile.setVelocity( event.getPlayer().getLocation().getDirection().multiply( 2 ) );
 
 		plugin.getItemManager().register( projectile );
 		
@@ -134,8 +144,6 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		
 		super.onUnequip();
 	}
-	
-	
 	
 	@Override
 	public boolean canDualWieldWith( GunsmokeItem other ) {

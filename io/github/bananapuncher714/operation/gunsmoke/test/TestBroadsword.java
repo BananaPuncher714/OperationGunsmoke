@@ -13,6 +13,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.InteractableDamage;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
@@ -28,6 +29,12 @@ public class TestBroadsword extends GunsmokeItemMelee implements InteractableDam
 		super( 19 );
 	}
 
+	@Override
+	public EnumEventResult onClick( LeftClickEvent event ) {
+		event.setCancelled( true );
+		return EnumEventResult.PROCESSED;
+	}
+	
 	@Override
 	public EnumEventResult onClick( LeftClickEntityEvent event ) {
 		super.onClick( event );

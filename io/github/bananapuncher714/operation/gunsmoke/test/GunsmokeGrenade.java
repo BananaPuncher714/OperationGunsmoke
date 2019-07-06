@@ -22,9 +22,8 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class GunsmokeGrenade extends GunsmokeProjectile {
 	protected double reduction = .6;
-	protected boolean hit = false;
 	protected CollisionResultBlock last = null;
-	protected int bounces = 2;
+	protected int bounces = 0;
 	protected Vector gravity = new Vector( 0, -.05, 0 );
 	protected Item item;
 	
@@ -38,15 +37,12 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 	
 	@Override
 	public EnumTickResult tick() {
-		hit = false;
 		last = null;
 		Location previous = location.clone();
 		super.tick();
 		Vector velocity = getVelocity();
 		velocity.setY( Math.max( -2, velocity.getY() - .05 ) );
 		if ( last != null ) {
-			location = last.getLocation();
-			
 			if ( bounces-- <= 0 ) {
 				// Explode
 				location.getWorld().spawnParticle( Particle.DRIP_LAVA, location, 0 );
@@ -55,7 +51,9 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 				GunsmokeExplosionResult result = explosion.explode();
 				
 				for ( Location location : result.getBlockDamage().keySet() ) {
-					GunsmokeUtil.damageBlockAt( location, result.getBlockDamage().get( location ), this, DamageType.EXPLOSION );
+					if ( location.getBlock().getType() != Material.AIR ) {
+						GunsmokeUtil.damageBlockAt( location, result.getBlockDamage().get( location ), this, DamageType.EXPLOSION );
+					}
 				}
 				
 				for ( Entity entity : result.getEntityDamage().keySet() ) {
@@ -64,7 +62,6 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 				
 				return EnumTickResult.CANCEL;
 			}
-			location = last.getLocation();
 			Vector direction = BukkitUtil.toVector( last.getDirection() );
 			
 			direction.multiply( direction ).multiply( -reduction );
@@ -98,11 +95,12 @@ public class GunsmokeGrenade extends GunsmokeProjectile {
 	}
 
 	@Override
-	public void hit( ProjectileTarget target ) {
-		if ( !hit && target instanceof ProjectileTargetBlock ) {
-			hit = true;
+	public EnumTickResult hit( ProjectileTarget target ) {
+		if ( target instanceof ProjectileTargetBlock ) {
 			last = ( ( ProjectileTargetBlock ) target ).getIntersection();
+			return EnumTickResult.CANCEL;
 		}
+		return EnumTickResult.CONTINUE;
 	}
 
 }

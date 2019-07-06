@@ -1,0 +1,4 @@
+range: 8
+damage: 10
+unbreakable-blocks:
+- "OBSIDIAN"

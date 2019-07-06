@@ -36,6 +36,14 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		speed = vector.length();
 	}
 
+	public double getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed( double speed ) {
+		this.speed = speed;
+	}
+
 	public boolean isInvincible() {
 		return isInvincible;
 	}

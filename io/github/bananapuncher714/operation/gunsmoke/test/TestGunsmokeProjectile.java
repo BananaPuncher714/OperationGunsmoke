@@ -55,12 +55,13 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 	}
 	
 	@Override
-	public void hit( ProjectileTarget target ) {
+	public EnumTickResult hit( ProjectileTarget target ) {
 		if ( target instanceof ProjectileTargetEntity ) {
 			hit( ( ProjectileTargetEntity ) target );
 		} else if ( target instanceof ProjectileTargetBlock ) {
 			hit( ( ProjectileTargetBlock ) target );
 		}
+		return life <= 0 ? EnumTickResult.CANCEL : EnumTickResult.CONTINUE;
 	}
 	
 	protected void hit( ProjectileTargetEntity target ) {

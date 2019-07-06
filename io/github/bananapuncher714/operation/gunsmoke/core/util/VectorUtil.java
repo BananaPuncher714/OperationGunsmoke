@@ -42,48 +42,68 @@ public final class VectorUtil {
 		// TODO so I thought I'd add
 		// TODO a few more here to remind myself
 		
+		CollisionResult collision = null;
+		
 		if ( lower.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zLow = calculateVector( lower, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zLow != null && zLow.getX() >= lower.getX() && zLow.getX() <= upper.getX() && zLow.getY() >= lower.getY() && zLow.getY() <= upper.getY() ) {
-				return new CollisionResult( zLow, BlockFace.EAST, CollisionType.ENTITY );
+				CollisionResult hitPoint = new CollisionResult( zLow, BlockFace.EAST, CollisionType.ENTITY );
+				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
+					collision = hitPoint;
+				}
 			}
 		}
 		
 		if ( upper.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zHigh = calculateVector( upper, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zHigh != null && zHigh.getX() >= lower.getX() && zHigh.getX() <= upper.getX() && zHigh.getY() >= lower.getY() && zHigh.getY() <= upper.getY() ) {
-				return new CollisionResult( zHigh, BlockFace.WEST, CollisionType.ENTITY );
+				CollisionResult hitPoint = new CollisionResult( zHigh, BlockFace.WEST, CollisionType.ENTITY );
+				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
+					collision = hitPoint;
+				}
 			}
 		}
-
+		
 		if ( lower.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xLow = calculateVector( lower, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xLow != null && xLow.getZ() >= lower.getZ() && xLow.getZ() <= upper.getZ() && xLow.getY() >= lower.getY() && xLow.getY() <= upper.getY() ) {
-				return new CollisionResult( xLow, BlockFace.SOUTH, CollisionType.ENTITY );
+				CollisionResult hitPoint = new CollisionResult( xLow, BlockFace.SOUTH, CollisionType.ENTITY );
+				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
+					collision = hitPoint;
+				}
 			}
 		}
 
 		if ( upper.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xHigh = calculateVector( upper, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xHigh != null && xHigh.getZ() >= lower.getZ() && xHigh.getZ() <= upper.getZ() && xHigh.getY() >= lower.getY() && xHigh.getY() <= upper.getY() ) {
-				return new CollisionResult( xHigh, BlockFace.NORTH, CollisionType.ENTITY );
+				CollisionResult hitPoint = new CollisionResult( xHigh, BlockFace.NORTH, CollisionType.ENTITY );
+				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
+					collision = hitPoint;
+				}
 			}
 		}
 
 		if ( lower.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yLow = calculateVector( lower, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yLow != null && yLow.getX() >= lower.getX() && yLow.getX() <= upper.getX() && yLow.getZ() >= lower.getZ() && yLow.getZ() <= upper.getZ() ) {
-				return new CollisionResult( yLow, BlockFace.DOWN, CollisionType.ENTITY );
+				CollisionResult hitPoint = new CollisionResult( yLow, BlockFace.DOWN, CollisionType.ENTITY );
+				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
+					collision = hitPoint;
+				}
 			}
 		}
 
 		if ( upper.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yHigh = calculateVector( upper, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yHigh != null && yHigh.getX() >= lower.getX() && yHigh.getX() <= upper.getX() && yHigh.getZ() >= lower.getZ() && yHigh.getZ() <= upper.getZ() ) {
-				return new CollisionResult( yHigh, BlockFace.UP, CollisionType.ENTITY );
+				CollisionResult hitPoint = new CollisionResult( yHigh, BlockFace.UP, CollisionType.ENTITY );
+				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
+					collision = hitPoint;
+				}
 			}
 		}
-		return null;
+		return collision;
 	}
 	
 	public static boolean fastCanSee( Location start, Location end ) {

@@ -62,7 +62,7 @@ public class GunsmokeExplosionResult {
 	public double getBlockDamageAt( Location location ) {
 		return blockDamage.getOrDefault( location, -1.0 );
 	}
-
+	
 	public double getEntityDamageFor( Entity entity ) {
 		return entityDamage.getOrDefault( entity, -1.0 );
 	}

@@ -94,7 +94,7 @@ public class GunsmokeUtil {
 	}
 	
 	public static GunsmokeBlock getBlockAt( Location location ) {
-		return plugin().getBlockManager().getBlockAt( location );
+		return plugin().getBlockManager().getBlockOrCreate( location );
 	}
 	
 	public static void damageBlockAt( Location location, double damage, GunsmokeRepresentable damager, DamageType type ) {

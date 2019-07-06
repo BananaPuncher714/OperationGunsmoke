@@ -25,6 +25,7 @@ public class GunsmokeBlock extends GunsmokeRepresentable {
 	
 	public void destroy() {
 		location.getBlock().setType( Material.AIR, false );
+		GunsmokeUtil.setBlockStage( location, -1 );
 	}
 	
 	public boolean contains( Location location ) {
@@ -47,18 +48,17 @@ public class GunsmokeBlock extends GunsmokeRepresentable {
 		this.maxHealth = maxHealth;
 	}
 	
+	public boolean isInvincible() {
+		return maxHealth == -1;
+	}
+	
 	public Location getLocation() {
 		return location.clone();
 	}
 
 	public void updateBlockStage() {
-		boolean usePercent = true;
-		if ( usePercent ) {
-			double percent = health / maxHealth;
-			int stage = 9 - ( int ) ( percent * 10 );
-			GunsmokeUtil.setBlockStage( location, stage );
-		} else {
-			GunsmokeUtil.setBlockStage( location, 10 - ( int ) Math.ceil( health ) );
-		}
+		double percent = health / maxHealth;
+		int stage = 9 - ( int ) ( percent * 10 );
+		GunsmokeUtil.setBlockStage( location, stage );
 	}
 }

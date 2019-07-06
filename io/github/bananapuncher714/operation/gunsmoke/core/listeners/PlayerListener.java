@@ -75,6 +75,8 @@ public class PlayerListener implements Listener {
 		if ( event.getPlayer().getGameMode() == GameMode.ADVENTURE ) {
 			if ( callInteract( event.getPlayer() ) ) {
 				plugin.getPlayerManager().leftClick( event.getPlayer(), event );
+			} else {
+				event.setCancelled( true );
 			}
 		}
 	}
@@ -85,6 +87,8 @@ public class PlayerListener implements Listener {
 			Player player = ( Player ) event.getDamager();
 			if ( callInteract( player ) ) {
 				plugin.getPlayerManager().leftClickEntity( player, event.getEntity(), event );
+			} else {
+				event.setCancelled( true );
 			}
 		}
 	}
@@ -109,6 +113,8 @@ public class PlayerListener implements Listener {
 			if ( event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK ) {
 				plugin.getPlayerManager().leftClick( event.getPlayer(), event );
 			}
+		} else {
+			event.setCancelled( true );
 		}
 	}
 	

@@ -88,6 +88,10 @@ public class EntityManager {
 			return false;
 		}
 		
+		if ( damage <= 0 ) {
+			return false;
+		}
+		
 		GunsmokeEntityDamageEvent event = new GunsmokeEntityDamageEvent( entity, type, damage, cause );
 		
 		plugin.getTaskManager().callEventSync( event );
@@ -111,6 +115,10 @@ public class EntityManager {
 			return false;
 		}
 		if ( !getDamageRecord( entity.getUUID() ).setTicksRemainingFor( damager.getUUID(), damage, DEFAULT_INVINCIBILITY.get( DamageCause.ENTITY_ATTACK ) ) ) {
+			return false;
+		}
+		
+		if ( damage <= 0 ) {
 			return false;
 		}
 		
