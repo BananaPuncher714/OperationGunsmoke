@@ -96,6 +96,7 @@ public class BlockManager {
 		return null;
 	}
 	
+	// TODO do something about the random floating air blocks
 	public GunsmokeBlock getBlockOrCreate( Location location ) {
 		for ( GunsmokeBlock block : blocks.values() ) {
 			if ( block.contains( location ) ) {

@@ -26,7 +26,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
-import io.github.bananapuncher714.operation.gunsmoke.implementation.ConfigExplosion;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 
 public class ConfigBullet extends GunsmokeProjectile {
 	protected GunsmokeEntity shooter;
@@ -43,6 +43,8 @@ public class ConfigBullet extends GunsmokeProjectile {
 		this.shooter = shooter;
 		
 		created = System.currentTimeMillis();
+		
+		this.options = options;
 		
 		power = options.getPower();
 		
@@ -82,9 +84,9 @@ public class ConfigBullet extends GunsmokeProjectile {
 		setVelocity( velocity );
 		
 		// Bullet trail
-		Vector line = previous.subtract( location ).toVector();
+		Vector line = previous.subtract( location ).toVector().multiply( 2 );
 		for ( int i = 0; i < 10; i++ ) {
-			location.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( line.multiply( i / 11.0 ) ), 0 );
+			location.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( line.clone().multiply( i / 10.0 ) ), 0 );
 		}
 		
 		if ( super.tick() == EnumTickResult.CANCEL ) {
@@ -111,12 +113,6 @@ public class ConfigBullet extends GunsmokeProjectile {
 				return EnumTickResult.CONTINUE;
 			}
 			
-			// Stop the bullet if it hits an undamageable block
-			if ( !options.getDamageableBlocks().contains( mcBlock.getType() ) ) {
-				power = 0;
-				return EnumTickResult.CANCEL;
-			}
-			
 			// Explode if applicable
 			ConfigExplosion configExplosion = options.getExplosion();
 			if ( configExplosion != null ) {
@@ -135,6 +131,12 @@ public class ConfigBullet extends GunsmokeProjectile {
 					GunsmokeUtil.damage( GunsmokeEntityWrapperFactory.wrap( entity ), DamageType.EXPLOSION, result.getEntityDamage().get( entity ), this );
 				}
 				
+				power = 0;
+				return EnumTickResult.CANCEL;
+			}
+			
+			// Stop the bullet if it hits an undamageable block
+			if ( !options.getDamageableBlocks().contains( mcBlock.getType() ) ) {
 				power = 0;
 				return EnumTickResult.CANCEL;
 			}
@@ -163,7 +165,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 				if ( damage > 0 ) {
 					GunsmokeUtil.damage( entity, DamageType.PHYSICAL, power, this );
 					if ( shooter instanceof GunsmokeEntityWrapperPlayer ) {
-						Player player = ( ( GunsmokeEntityWrapperPlayer ) entity ).getEntity();
+						Player player = ( ( GunsmokeEntityWrapperPlayer ) shooter ).getEntity();
 						player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 1 );
 					}
 				}
@@ -177,10 +179,10 @@ public class ConfigBullet extends GunsmokeProjectile {
 					}
 				}
 				power -= options.getEntityHitReduction();
-			}
-			if ( !options.isPiercing() ) {
-				power = 0;
-				return EnumTickResult.CANCEL;
+				if ( !options.isPiercing() ) {
+					power = 0;
+					return EnumTickResult.CANCEL;
+				}
 			}
 		}
 		return power <= 0 ? EnumTickResult.CANCEL : EnumTickResult.CONTINUE;

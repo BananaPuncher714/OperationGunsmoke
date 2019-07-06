@@ -8,7 +8,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import io.github.bananapuncher714.operation.gunsmoke.implementation.ConfigExplosion;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 
 public class ConfigBulletOptions {
 	protected double power;
@@ -41,6 +42,7 @@ public class ConfigBulletOptions {
 		maxLife = config.getInt( "max-life", 3000 );
 		hitEntityReduction = config.getInt( "hit-entity-reduction", 3 );
 		piercing = config.getBoolean( "piercing" );
+		damageEntity = config.getBoolean( "damage-entity", true );
 		
 		blockHitReduction = config.getDouble( "block-hit-reduction" );
 		for ( String str : config.getStringList( "damageable-blocks" ) ) {
@@ -62,7 +64,7 @@ public class ConfigBulletOptions {
 		}
 		if ( config.getBoolean( "ignore-grass-blocks", true ) ) {
 			for ( Material material : Material.values() ) {
-				if ( !material.isOccluding() ) {
+				if ( material.isBlock() && !material.isSolid() ) {
 					ignoreBlocks.add( material );
 				}
 			}
@@ -90,8 +92,7 @@ public class ConfigBulletOptions {
 		}
 		
 		if ( config.getBoolean( "explode" ) ) {
-			String explosion = config.getString( "explosion" );
-			
+			this.explosion = GunsmokeImplementation.getInstance().getExplosion( config.getString( "explosion", "" ) );
 		}
 	}
 	

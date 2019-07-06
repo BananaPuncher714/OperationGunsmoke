@@ -26,6 +26,7 @@ import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListen
 import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.EventListener;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
 import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
@@ -58,13 +59,13 @@ public class Gunsmoke extends JavaPlugin {
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
 		
-		
 		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
-		Bukkit.getPluginManager().registerEvents( new EventListener(), this );
 		
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			protocol.getPlayerConnection( player.getName() );
 		}
+		
+		new GunsmokeImplementation( this );
 	}
 	
 	@Override

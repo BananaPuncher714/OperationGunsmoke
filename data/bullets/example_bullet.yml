@@ -14,18 +14,19 @@ block-hit-reduction: 1
 damageable-blocks:
 - "OAK_PLANKS"
 ignore-blocks:
-- "OAK_FENCE"
+- "BARRIER"
+- "GLASS"
 ignore-grass-blocks: true
 
 # Debuffs and stuff
-fire: 0
+fire: 20
 effects:
 - "WEAKNESS 0 20"
 explode: false
 explosion: "example-explosion"
 
 # Bounce?
-bounce: false
+bounce: true
 velocity-reduction: .85
 bounceable-blocks:
 - "IRON_BLOCK"

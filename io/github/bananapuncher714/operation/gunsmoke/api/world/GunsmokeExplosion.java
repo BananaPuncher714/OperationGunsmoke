@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
@@ -163,7 +164,11 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 	}
 	
 	protected double getBlastReductionFor( Location location ) {
+		if ( location.getBlock().getType() == Material.AIR ) {
+			return 0;
+		}
 		return GunsmokeUtil.getBlockAt( location ).getHealth();
+		
 	}
 	
 	public GunsmokeRepresentable getExploder() {

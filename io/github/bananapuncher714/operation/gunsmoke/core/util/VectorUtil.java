@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
@@ -32,10 +33,10 @@ public final class VectorUtil {
 		
 		ray = ray.clone().normalize();
 		
-		double rad = entity.getWidth() / 2.0;
+		BoundingBox box = entity.getBoundingBox();
 		
-		Location lower = location.clone().subtract( rad, 0, rad );
-		Location upper = location.clone().add( rad, entity.getHeight(), rad );
+		Location lower = new Location( location.getWorld(), box.getMinX(), box.getMinY(), box.getMinZ() );
+		Location upper = new Location( location.getWorld(), box.getMaxX(), box.getMaxY(), box.getMaxZ() );
 
 		// TODO Add a way to determine the entry and exit point?
 		// TODO This is somewhat important

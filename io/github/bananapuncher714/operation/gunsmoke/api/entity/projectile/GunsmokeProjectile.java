@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
@@ -40,6 +41,8 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 	@Override
 	public EnumTickResult tick() {
 		if ( getSpeed() > 0 ) {
+			double speedSquared = getSpeed() * getSpeed();
+			
 			// First get a set of all things hit, then call events in order from closest hit to farthest hit
 			Set< ProjectileTarget > hitTargets = new TreeSet< ProjectileTarget >();
 			
@@ -52,9 +55,13 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 				}
 				CollisionResult intersection = VectorUtil.rayIntersect( entity, location, velocity );
 				if ( intersection != null ) {
+					if ( intersection.getLocation().distanceSquared( location ) > speedSquared ) {
+						continue;
+					}
+					
 					// We know we hit something
 					GunsmokeEntityWrapper wrappedEntity = GunsmokeEntityWrapperFactory.wrap( entity );
-					
+
 					hitTargets.add( new ProjectileTargetEntity( this, intersection.copyOf(), wrappedEntity ) );
 					getHitEntities().add( entity.getUniqueId() );
 				}

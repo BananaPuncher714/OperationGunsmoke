@@ -18,6 +18,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClic
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
 
 public class ProneListener implements Listener {
 	Gunsmoke plugin;
@@ -77,6 +78,14 @@ public class ProneListener implements Listener {
 			event.setCancelled( true );
 			
 			item = new TestBroadsword();
+			
+			plugin.getItemManager().register( item );
+			
+			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
+		} else if ( event.getPlayer().getEquipment().getItemInMainHand().getType() == Material.GHAST_TEAR ) {
+			event.setCancelled( true );
+			
+			item = new ConfigGun();
 			
 			plugin.getItemManager().register( item );
 			

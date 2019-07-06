@@ -1,6 +1,7 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.util;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Location;
@@ -21,6 +22,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.core.MovementManager;
 
 public class GunsmokeUtil {
 	private static Gunsmoke GUNSMOKE_INSTANCE;
@@ -43,18 +45,18 @@ public class GunsmokeUtil {
 	}
 	
 	public static List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector ) {
-		return plugin().getProtocol().getHandler().getNearbyEntities( entity, location, vector );
+		return getPlugin().getProtocol().getHandler().getNearbyEntities( entity, location, vector );
 	}
 	
 	public static void teleportRelative( Player player, Vector vector, double yaw, double pitch ) {
-		plugin().getProtocol().getHandler().teleportRelative( player.getName(), vector, yaw, pitch );
+		getPlugin().getProtocol().getHandler().teleportRelative( player.getName(), vector, yaw, pitch );
 	}
 	
 	public static void teleportRelative( String player, Vector vector, double yaw, double pitch ) {
-		plugin().getProtocol().getHandler().teleportRelative( player, vector, yaw, pitch );
+		getPlugin().getProtocol().getHandler().teleportRelative( player, vector, yaw, pitch );
 	}
 	
-	private static Gunsmoke plugin() {
+	public static Gunsmoke getPlugin() {
 		if ( GUNSMOKE_INSTANCE == null ) {
 			GUNSMOKE_INSTANCE = Gunsmoke.getPlugin( Gunsmoke.class );
 		}
@@ -62,51 +64,59 @@ public class GunsmokeUtil {
 	}
 	
 	public static void callEventSync( Event event ) {
-		plugin().getTaskManager().callEventSync( event );
+		getPlugin().getTaskManager().callEventSync( event );
 	}
 	
 	public static CollisionResultBlock rayTrace( Location start, Vector ray ) {
-		return plugin().getProtocol().getHandler().rayTrace( start, ray );
+		return getPlugin().getProtocol().getHandler().rayTrace( start, ray );
 	}
 	
 	public static CollisionResultBlock rayTrace( Location start, Vector ray, double dist ) {
-		return plugin().getProtocol().getHandler().rayTrace( start, ray, dist );
+		return getPlugin().getProtocol().getHandler().rayTrace( start, ray, dist );
 	}
 	
 	public static int getCurrentTick() {
-		return plugin().getProtocol().getHandler().getServerTick();
+		return getPlugin().getProtocol().getHandler().getServerTick();
 	}
 	
 	public static void playHurtAnimationFor( LivingEntity entity ) {
-		plugin().getProtocol().getHandler().playHurtAnimationFor( entity );
+		getPlugin().getProtocol().getHandler().playHurtAnimationFor( entity );
 	}
 	
 	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, DamageCause cause ) {
-		return plugin().getEntityManager().damage( entity, damage, type, cause );
+		return getPlugin().getEntityManager().damage( entity, damage, type, cause );
 	}
 	
 	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
-		return plugin().getEntityManager().damage( entity, damage, type, damager );
+		return getPlugin().getEntityManager().damage( entity, damage, type, damager );
 	}
 	
 	public static void setBlockStage( Location location, int stage ) {
-		plugin().getProtocol().getHandler().damageBlock( location, stage );
+		getPlugin().getProtocol().getHandler().damageBlock( location, stage );
 	}
 	
 	public static GunsmokeBlock getBlockAt( Location location ) {
-		return plugin().getBlockManager().getBlockOrCreate( location );
+		return getPlugin().getBlockManager().getBlockOrCreate( location );
 	}
 	
 	public static void damageBlockAt( Location location, double damage, GunsmokeRepresentable damager, DamageType type ) {
-		plugin().getBlockManager().damage( location, damage, damager, type );
+		getPlugin().getBlockManager().damage( location, damage, damager, type );
 	}
 	
 	public static GunsmokeEntityWrapper getEntity( Entity entity ) {
-		return plugin().getItemManager().getEntityWrapper( entity );
+		return getPlugin().getItemManager().getEntityWrapper( entity );
+	}
+	
+	public void register( GunsmokeRepresentable gunsmokeRepresentable ) {
+		getPlugin().getItemManager().register( gunsmokeRepresentable );
+	}
+	
+	public void unregisterGunsmokeRepresentable( UUID uuid ) {
+		getPlugin().getItemManager().remove( uuid );
 	}
 	
 	public static void log( String message, Level level ) {
-		plugin().getLogger().log( level, message );
+		getPlugin().getLogger().log( level, message );
 	}
 	
 	public static EquipmentSlot[] getEquipmentSlotOrdering() {
