@@ -1,6 +1,8 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,9 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -50,10 +55,15 @@ import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityHuman;
 import net.minecraft.server.v1_14_R1.EntityPose;
 import net.minecraft.server.v1_14_R1.EntitySize;
+import net.minecraft.server.v1_14_R1.EnumDirection;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
+import net.minecraft.server.v1_14_R1.Fluid;
 import net.minecraft.server.v1_14_R1.GenericAttributes;
+import net.minecraft.server.v1_14_R1.IBlockAccess;
+import net.minecraft.server.v1_14_R1.IBlockData;
 import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.LightEngine;
+import net.minecraft.server.v1_14_R1.MathHelper;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
 import net.minecraft.server.v1_14_R1.Packet;
@@ -80,6 +90,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAct
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
 import net.minecraft.server.v1_14_R1.Vec3D;
+import net.minecraft.server.v1_14_R1.VoxelShape;
 
 public class NMSHandler implements PacketHandler {
 	private final static int HAND_STATE_INDEX = 7;
@@ -101,6 +112,8 @@ public class NMSHandler implements PacketHandler {
 	private static Field TELEPORT_AWAIT;
 	
 	private static Field[] WORLDBORDERPACKET_FIELDS;
+	
+	private static Method VOXEL_SHAPE_CONTAINS;
 	
 	private static Map< EntityPose, EntitySize > sizes = new HashMap< EntityPose, EntitySize >();
 
@@ -138,6 +151,9 @@ public class NMSHandler implements PacketHandler {
 			TELEPORT_AWAIT = PlayerConnection.class.getDeclaredField( "teleportAwait" );
 			TELEPORT_AWAIT.setAccessible( true );
 			
+			VOXEL_SHAPE_CONTAINS = VoxelShape.class.getDeclaredMethod( "b", double.class, double.class, double.class );
+			VOXEL_SHAPE_CONTAINS.setAccessible( true );
+			
 			WORLDBORDERPACKET_FIELDS = new Field[ 9 ];
 			WORLDBORDERPACKET_FIELDS[ 0 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "a" );
 			WORLDBORDERPACKET_FIELDS[ 1 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "b" );
@@ -174,7 +190,7 @@ public class NMSHandler implements PacketHandler {
             }
             
             TELEPORT_FLAGS = Collections.unmodifiableSet( EnumSet.allOf( EnumPlayerTeleportFlags.class ) );
-        } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e ) {
+        } catch ( NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException | NoSuchMethodException e ) {
 			e.printStackTrace();
 		}
 	}
@@ -703,17 +719,218 @@ public class NMSHandler implements PacketHandler {
 		// OUTLINE will check the actual positioning of the box
 		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.OUTLINE, RayTrace.FluidCollisionOption.NONE, null );
 		
+//		MovingObjectPositionBlock result = ( MovingObjectPositionBlock ) rayTrace( trace, new BiFunction< RayTrace, BlockPosition, MovingObjectPositionBlock >() {
+//			@Override
+//			public MovingObjectPositionBlock apply( RayTrace ray, BlockPosition blockPosition ) {
+//				IBlockData hitBlock = world.getType( blockPosition );
+//	            Fluid hitFluid = world.getFluid( blockPosition);
+//	            Vec3D getStart = ray.b();
+//	            Vec3D getEnd = ray.a();
+//	            VoxelShape blockShape = ray.a( hitBlock, world, blockPosition );
+//	            MovingObjectPositionBlock blockResult = rayTrace( world, trace, blockPosition, blockShape, hitBlock );//world.rayTrace( getStart, getEnd, blockPosition, blockShape, hitBlock );
+//	            VoxelShape fluidShape = ray.a( hitFluid, world, blockPosition );
+//	            MovingObjectPositionBlock fluidResult = fluidShape.rayTrace( getStart, getEnd, blockPosition);
+//	            // Get whichever one is shorter and return
+//	            double blockDistance = blockResult == null ? Double.MAX_VALUE : ray.b().distanceSquared( blockResult.getPos() );
+//	            double fluidDistance = fluidResult == null ? Double.MAX_VALUE : ray.b().distanceSquared( fluidResult.getPos() );
+//	            return blockDistance <= fluidDistance ? blockResult : fluidResult;
+//			}
+//		}, new Function< RayTrace, MovingObjectPositionBlock >() {
+//			@Override
+//			public MovingObjectPositionBlock apply( RayTrace ray ) {
+//				Vec3D var1 = ray.b().d( ray.a() );
+//				MovingObjectPositionBlock blockRes = MovingObjectPositionBlock.a( ray.a(), EnumDirection.a( var1.x, var1.y, var1.z ), new BlockPosition( ray.a() ) );
+//				return blockRes;
+//			}
+//		} );
+
 		MovingObjectPositionBlock result = world.rayTrace( trace );
 
 		return getResultFrom( ( ( CraftWorld ) location.getWorld() ).getHandle(), result );
 	}
 	
+	public List< CollisionResultBlock > getInterceptedBlocks( Location start, Vector vector ) {
+		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) start.getWorld() ).getHandle();
+		List< CollisionResultBlock > collisions = new ArrayList< CollisionResultBlock >();
+		for ( MovingObjectPositionBlock result : rayTrace( start, vector, new BiFunction< RayTrace, BlockPosition, MovingObjectPositionBlock >() {
+			@Override
+			public MovingObjectPositionBlock apply( RayTrace ray, BlockPosition blockPosition ) {
+				IBlockData hitBlock = world.getType( blockPosition );
+	            Fluid hitFluid = world.getFluid( blockPosition);
+	            Vec3D getStart = ray.b();
+	            Vec3D getEnd = ray.a();
+	            VoxelShape blockShape = ray.a( hitBlock, world, blockPosition );
+	            MovingObjectPositionBlock blockResult = rayTrace( world, ray, blockPosition, blockShape, hitBlock );//world.rayTrace( getStart, getEnd, blockPosition, blockShape, hitBlock );
+	            VoxelShape fluidShape = ray.a( hitFluid, world, blockPosition );
+	            MovingObjectPositionBlock fluidResult = fluidShape.rayTrace( getStart, getEnd, blockPosition);
+	            // Get whichever one is shorter and return
+	            double blockDistance = blockResult == null ? Double.MAX_VALUE : ray.b().distanceSquared( blockResult.getPos() );
+	            double fluidDistance = fluidResult == null ? Double.MAX_VALUE : ray.b().distanceSquared( fluidResult.getPos() );
+	            return blockDistance <= fluidDistance ? blockResult : fluidResult;
+			}
+		} ) ) {
+			collisions.add( getResultFrom( world, result ) );
+		}
+		return collisions;
+	}
+	
+	private List< MovingObjectPositionBlock > rayTrace( Location location, Vector vector, BiFunction< RayTrace, BlockPosition, MovingObjectPositionBlock > biFunction ) {
+		Location dest = location.clone().add( vector );
+		Vec3D start = new Vec3D( location.getX(), location.getY(), location.getZ() );
+		Vec3D end = new Vec3D( dest.getX(), dest.getY(), dest.getZ() );
+		RayTrace trace = new RayTrace( start, end, RayTrace.BlockCollisionOption.OUTLINE, RayTrace.FluidCollisionOption.NONE, null );
+		
+		// Get the coords
+		int px1 = location.getBlockX();
+		int py1 = location.getBlockY();
+		int pz1 = location.getBlockZ();
+		
+		int px2 = dest.getBlockX();
+		int py2 = dest.getBlockY();
+		int pz2 = dest.getBlockZ();
+		
+		// Get the width and height difference
+		int dx = Math.abs( px1 - px2 );
+	    int dy = Math.abs( py1 - py2 );
+	    int dz = Math.abs( pz1 - pz2 );
+	    
+	    int x = px1;
+	    int y = py1;
+	    int z = pz1;
+	    int n = 1 + dx + dy + dz;
+	    int x_inc = (px2 > px1) ? 1 : -1;
+	    int y_inc = (py2 > py1) ? 1 : -1;
+	    int z_inc = (pz2 > pz1) ? 1 : -1;
+	    int errorxy = dx - dy;
+	    int errorxz = dx - dz;
+	    int errorzy = dz - dy;
+	    dx *= 2;
+	    dy *= 2;
+	    dz *= 2;
+
+	    List< MovingObjectPositionBlock > results = new ArrayList< MovingObjectPositionBlock >();
+	    for (; n > 0; --n) {
+	    	MovingObjectPositionBlock result = biFunction.apply( trace, new BlockPosition( x, y, z ) );
+	    	if ( result != null ) {
+	    		results.add( result );
+	    	}
+	    	
+	        if ( errorxy > 0 && errorxz > 0 ) {
+	        	x += x_inc;
+	        	errorxy -= dy;
+	        	errorxz -= dz;
+	        } else if ( errorxz <= 0 && errorzy > 0 ) {
+	        	z += z_inc;
+	        	errorxz += dx;
+	        	errorzy -= dy;
+	        } else {
+	        	y += y_inc;
+	        	errorxy += dx;
+	        	errorzy += dz;
+	        }
+	        
+	    }
+	    return results;
+	}
+	
+	private MovingObjectPositionBlock rayTrace( net.minecraft.server.v1_14_R1.World world, RayTrace trace, BlockPosition block, VoxelShape shape, IBlockData data ) {
+		MovingObjectPositionBlock shapeIntersection = shape.rayTrace( trace.b(), trace.a(), block );
+		if ( shapeIntersection != null ) {
+//			{CollisionResultBlock collisionResult = getResultFrom( world, shapeIntersection );
+//			if ( collisionResult.getBlock().getType() == Material.IRON_BLOCK && collisionResult.getDirection() != BlockFace.UP ) {
+//				System.out.println( collisionResult.getBlock().getType() + ":" + collisionResult.getDirection() );
+//			}}
+//			try {
+//				System.out.println( "Contains: " + VOXEL_SHAPE_CONTAINS.invoke( shape, trace.b().x - block.getX() + .001, trace.b().y - block.getY() + .001, trace.b().z - block.getZ() + .001 ) );
+//			} catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
+//				e.printStackTrace();
+//			}
+			// TODO Do something
+			
+			MovingObjectPositionBlock dataIntersection = data.k( world, block ).rayTrace( trace.b(), trace.a(), block );
+			if ( dataIntersection != null && dataIntersection.getPos().d( trace.b() ).g() < shapeIntersection.getPos().d( trace.b() ).g() ) {
+				return shapeIntersection.a( dataIntersection.getDirection() );
+			}
+		} 
+		return shapeIntersection;
+	}
+	
+    public static < T > T rayTrace( RayTrace ray, BiFunction< RayTrace, BlockPosition, T > conditionalRaytrace, Function< RayTrace, T > absoluteRaytrace ) {
+        Vec3D endPos;
+        Vec3D startPos = ray.b();
+        // If the ray hasn't moved
+        if ( startPos.equals( endPos = ray.a() ) ) {
+        	// Get the block it's in
+            return absoluteRaytrace.apply( ray );
+        }
+        // MathHelper.d is interpolation
+        double interpXEnd = MathHelper.d( -1.0E-7, endPos.x, startPos.x );
+        double interpYEnd = MathHelper.d( -1.0E-7, endPos.y, startPos.y );
+        double interpZEnd = MathHelper.d( -1.0E-7, endPos.z, startPos.z );
+        double interpX = MathHelper.d( -1.0E-7, startPos.x, endPos.x );
+        double interpY = MathHelper.d( -1.0E-7, startPos.y, endPos.y );
+        double interpZ = MathHelper.d( -1.0E-7, startPos.z, endPos.z );
+        int floorX = MathHelper.floor( interpX );
+        int floorY = MathHelper.floor( interpY );
+        int floorZ = MathHelper.floor( interpZ );
+        // Get the next block that we interpolated into
+        BlockPosition.MutableBlockPosition hitBlock = new BlockPosition.MutableBlockPosition( floorX, floorY, floorZ );
+        T collisionResult = conditionalRaytrace.apply( ray, hitBlock );
+        if ( collisionResult != null ) {
+            return collisionResult;
+        }
+        double differenceX = interpXEnd - interpX;
+        double differenceY = interpYEnd - interpY;
+        double differenceZ = interpZEnd - interpZ;
+        // Sign function
+        int signX = MathHelper.k( differenceX );
+        int signY = MathHelper.k( differenceY );
+        int signZ = MathHelper.k( differenceZ );
+        // Get the positive error, 1 out of the difference in interpolations
+        double errorX = signX == 0 ? Double.MAX_VALUE : signX / differenceX;
+        double errorY = signY == 0 ? Double.MAX_VALUE : signY / differenceY;
+        double errorZ = signZ == 0 ? Double.MAX_VALUE : signZ / differenceZ;
+        
+        // The MathHelper.d method rounds the value to the next integer closer to 0
+        // If the given value is negative, then it rounds down. Seems like a double floor method?
+        // MathHelper.h takes the value and subtracts what the MathHelper.d method returns
+        // So it would return something between 0 and 1
+        double percentageErrorX = errorX * ( signX > 0 ? 1.0 - MathHelper.h( interpX ) : MathHelper.h( interpX ) );
+        double percentageErrorY = errorY * ( signY > 0 ? 1.0 - MathHelper.h( interpY ) : MathHelper.h( interpY ) );
+        double percentageErrorZ = errorZ * ( signZ > 0 ? 1.0 - MathHelper.h( interpZ ) : MathHelper.h( interpZ ) );
+        while ( percentageErrorX <= 1.0 || percentageErrorY <= 1.0 || percentageErrorZ <= 1.0 ) {
+            T result;
+            if ( percentageErrorX < percentageErrorY ) {
+                if ( percentageErrorX < percentageErrorZ ) {
+                    floorX += signX;
+                    percentageErrorX += errorX;
+                } else {
+                    floorZ += signZ;
+                    percentageErrorZ += errorZ;
+                }
+            } else if ( percentageErrorY < percentageErrorZ ) {
+                floorY += signY;
+                percentageErrorY += errorY;
+            } else {
+                floorZ += signZ;
+                percentageErrorZ += errorZ;
+            }
+            // Edit the hit block to reflect the new floor values
+            if ( ( result = conditionalRaytrace.apply( ray, hitBlock.d( floorX, floorY, floorZ ) ) ) == null ) {
+            	continue;
+            }
+            return result;
+        }
+        // Once the ray reaches the end of the line, I suppose
+        return absoluteRaytrace.apply( ray );
+    }
+	
 	@Override
 	public List< org.bukkit.entity.Entity > getNearbyEntities( org.bukkit.entity.Entity entity, Location location, Vector vector ) {
 		net.minecraft.server.v1_14_R1.World world = ( ( CraftWorld ) location.getWorld() ).getHandle();
 	
-		AxisAlignedBB axis = new AxisAlignedBB( location.getX() - 2, location.getY() - 2, location.getZ() - 2,
-				location.getX() + vector.getX() + 2, location.getY() + vector.getY() + 2, location.getZ() + vector.getZ() + 2 );
+		AxisAlignedBB axis = new AxisAlignedBB( location.getX(), location.getY(), location.getZ(),
+				location.getX() + vector.getX() * 2, location.getY() + vector.getY() * 2, location.getZ() + vector.getZ() * 2 );
 		
 		Entity nmsEntity = entity == null ? null : ( ( CraftEntity ) entity ).getHandle();
 		

@@ -96,7 +96,6 @@ public class BlockManager {
 		return null;
 	}
 	
-	// TODO do something about the random floating air blocks
 	public GunsmokeBlock getBlockOrCreate( Location location ) {
 		for ( GunsmokeBlock block : blocks.values() ) {
 			if ( block.contains( location ) ) {
@@ -138,6 +137,7 @@ public class BlockManager {
 		block.updateBlockStage();
 	}
 	
+	// Note: Do NOT return 0 or bad things will happen!
 	public double getDefaultResistanceFor( Material material ) {
 		switch ( material ) {
 		case WATER:
@@ -151,7 +151,7 @@ public class BlockManager {
 		case DIRT:
 		case GRASS: return 2;
 		case PRISMARINE_BRICKS: return 20;
-		default: return 0;
+		default: return 1;
 		}
 	}
 }

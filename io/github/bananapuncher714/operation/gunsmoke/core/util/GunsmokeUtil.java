@@ -75,6 +75,10 @@ public class GunsmokeUtil {
 		return getPlugin().getProtocol().getHandler().rayTrace( start, ray, dist );
 	}
 	
+	public static List< CollisionResultBlock > rayTraceAll( Location start, Vector ray ) {
+		return getPlugin().getProtocol().getHandler().getInterceptedBlocks( start, ray );
+	}
+	
 	public static int getCurrentTick() {
 		return getPlugin().getProtocol().getHandler().getServerTick();
 	}

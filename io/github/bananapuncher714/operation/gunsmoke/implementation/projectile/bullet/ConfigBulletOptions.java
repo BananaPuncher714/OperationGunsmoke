@@ -81,7 +81,7 @@ public class ConfigBulletOptions {
 		}
 		
 		bounce = config.getBoolean( "bounce", false );
-		bounceReduction = config.getDouble( "bounce-reduction", .85 );
+		bounceReduction = config.getDouble( "velocity-reduction", .85 );
 		for ( String str : config.getStringList( "bounceable-blocks" ) ) {
 			Material mat = Material.getMaterial( str.toUpperCase() );
 			if ( mat == null ) {

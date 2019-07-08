@@ -46,6 +46,8 @@ public interface PacketHandler {
 	CollisionResultBlock rayTrace( Location start, Vector ray );
 	CollisionResultBlock rayTrace( Location start, Vector ray, double dist );
 	
+	List< CollisionResultBlock > getInterceptedBlocks( Location start, Vector ray );
+	
 	List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector );
 	
 //	void update( LivingEntity entity );

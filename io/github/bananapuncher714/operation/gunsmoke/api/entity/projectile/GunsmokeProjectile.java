@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -30,12 +31,14 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 public abstract class GunsmokeProjectile extends GunsmokeEntity {
 	private Set< UUID > hitEntities;
 	private Set< Location > hitBlocks;
+	private Set< Location > tickHitBlocks;
 	
 	public GunsmokeProjectile( Location location ) {
 		super( location );
 		
 		hitEntities = new HashSet< UUID >();
 		hitBlocks = new HashSet< Location >();
+		tickHitBlocks = new HashSet< Location >();
 	}
 
 	@Override
@@ -48,7 +51,8 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			
 			// Detect if this hit any entities
 			// TODO Add way to hit Gunsmoke entities too...
-			List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, velocity );
+			List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, getVelocity() );
+			
 			for ( Entity entity : nearbyEntities ) {
 				if ( getHitEntities().contains( entity.getUniqueId() ) ) {
 					continue;
@@ -62,12 +66,11 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 					// We know we hit something
 					GunsmokeEntityWrapper wrappedEntity = GunsmokeEntityWrapperFactory.wrap( entity );
 
-					hitTargets.add( new ProjectileTargetEntity( this, intersection.copyOf(), wrappedEntity ) );
+					CollisionResult copy = intersection.copyOf();
+					hitTargets.add( new ProjectileTargetEntity( this, copy, wrappedEntity ) );
 					getHitEntities().add( entity.getUniqueId() );
 				}
 			}
-			Set< Location > tickHitBlocks = new HashSet< Location >();
-			
 			// Now start on block hit detection
 			// Get the point where our projectile should be after this tick
 			Location destination = location.clone().add( getVelocity() );
@@ -75,30 +78,60 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			double distance = location.distanceSquared( destination );
 	
 			// Get the first iteration done
-			CollisionResultBlock hitBlock = GunsmokeUtil.rayTrace( location, velocity );
-			Location hitLoc = hitBlock.getLocation();
-			// PINEAPPLE GHOST FUWA FUWA
+//			Vector increasedVel = getVelocity().multiply( 2 );
+//			CollisionResultBlock hitBlock = GunsmokeUtil.rayTrace( location, increasedVel );
+//			Location hitLoc = hitBlock.getLocation();
 			// While we still haven't reached the full destination
-			while ( distance >= location.distanceSquared( hitLoc ) ) {
-				Block block = hitBlock.getBlock();
+//			while ( distance >= location.distanceSquared( hitLoc ) ) {
+//				Block block = hitBlock.getBlock();
+				
+//				if ( !tickHitBlocks.contains( block.getLocation() ) ) {
+//					if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
+						// TODO Add proper collision type list
+//						if ( block.getType() != Material.AIR ) {
+							// TODO Add GunsmokeStructure detection
+//							System.out.println( block.getType() + ":" + hitBlock.getDirection() );
+//							Vector dirVec = BukkitUtil.toVector( hitBlock.getDirection() );
+//							hitBlock.getLocation().add( dirVec.multiply( .01 ) );
+//							hitBlock.getLocation().getWorld().spawnParticle( Particle.DRIP_LAVA, hitBlock.getLocation(), 0 );
+//							ProjectileTarget target = new ProjectileTargetBlock( this, hitBlock );
+//							hitTargets.add( target );
+//							getHitBlocks().add( block.getLocation() );
+//							tickHitBlocks.add( block.getLocation() );
+//						}
+//					}
+//				}
+//				
+//				hitBlock = GunsmokeUtil.rayTrace( hitLoc, increasedVel );
+//				hitLoc = hitBlock.getLocation();
+//			}
+			
+			List< CollisionResultBlock > collisions = GunsmokeUtil.rayTraceAll( location, getVelocity() );
+			// For each collision...
+			for ( CollisionResultBlock collision : collisions ) {
+				Block block = collision.getBlock();
+				Location hitLoc = collision.getLocation();
+				if ( distance < location.distanceSquared( hitLoc ) ) {
+					System.out.println( "Too long!" );
+					break;
+				}
 				
 				if ( !tickHitBlocks.contains( block.getLocation() ) ) {
-					if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
+					if ( collision.getCollisionType() == CollisionType.BLOCK ) {
 						// TODO Add proper collision type list
 						if ( block.getType() != Material.AIR ) {
 							// TODO Add GunsmokeStructure detection
-							Vector dirVec = BukkitUtil.toVector( hitBlock.getDirection() );
-							hitBlock.getLocation().add( dirVec.multiply( .01 ) );
-							ProjectileTarget target = new ProjectileTargetBlock( this, hitBlock );
+							System.out.println( block.getType() + ":" + collision.getDirection() );
+							Vector dirVec = BukkitUtil.toVector( collision.getDirection() );
+							collision.getLocation().add( dirVec.multiply( .01 ) );
+							collision.getLocation().getWorld().spawnParticle( Particle.DRIP_LAVA, collision.getLocation(), 0 );
+							ProjectileTarget target = new ProjectileTargetBlock( this, collision );
 							hitTargets.add( target );
 							getHitBlocks().add( block.getLocation() );
 							tickHitBlocks.add( block.getLocation() );
 						}
 					}
 				}
-				
-				hitBlock = GunsmokeUtil.rayTrace( hitLoc, velocity );
-				hitLoc = hitBlock.getLocation();
 			}
 			
 			// Now that we have our targets we can start calling our other methods in order
@@ -122,6 +155,10 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 	
 	protected Set< Location > getHitBlocks() {
 		return hitBlocks;
+	}
+	
+	protected Set< Location > getTickHitBlocks() {
+		return tickHitBlocks;
 	}
 
 	abstract public EnumTickResult hit( ProjectileTarget target );

@@ -56,7 +56,9 @@ public class ConfigBullet extends GunsmokeProjectile {
 		// Save last hit block for ricochet
 		collision = null;
 		Location previous = location.clone();
-		super.tick();
+		if ( super.tick() == EnumTickResult.CANCEL ) {
+			return EnumTickResult.CANCEL;
+		}
 		Vector velocity = getVelocity();
 		velocity.setY( Math.max( -2, velocity.getY() - options.getGravity() ) );
 		
@@ -77,6 +79,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 			if ( direction.getZ() != 0 ) {
 				velocity.setZ( velocity.getZ() * direction.getZ() );
 			}
+			getTickHitBlocks().clear();
 		}
 		
 		distanceTravelled += location.distance( previous );
@@ -84,14 +87,11 @@ public class ConfigBullet extends GunsmokeProjectile {
 		setVelocity( velocity );
 		
 		// Bullet trail
-		Vector line = previous.subtract( location ).toVector().multiply( 2 );
+		Vector line = previous.subtract( location ).toVector();
 		for ( int i = 0; i < 10; i++ ) {
-			location.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( line.clone().multiply( i / 10.0 ) ), 0 );
+			location.getWorld().spawnParticle( Particle.DRIP_WATER, location.clone().add( line.clone().multiply( i / 10.0 ) ), 0 );
 		}
 		
-		if ( super.tick() == EnumTickResult.CANCEL ) {
-			return EnumTickResult.CANCEL;
-		}
 		return ( distanceTravelled > options.getRange() || System.currentTimeMillis() - created > options.getMaxLife() || power <= 0 ) ? EnumTickResult.CANCEL : EnumTickResult.CONTINUE;
 	}
 	

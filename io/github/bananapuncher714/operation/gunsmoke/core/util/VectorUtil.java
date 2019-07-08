@@ -161,9 +161,7 @@ public final class VectorUtil {
 		    return true;
 	}
 	
-	public static boolean fastCanSeeTwo( Location start, Location end ) {
-		double scale = 3;
-		
+	public static boolean fastCanSeeTwo( Location start, Location end, double scale ) {
 		// Get the coords
 		double px1 = start.getX();
 		double py1 = start.getY();
@@ -194,10 +192,9 @@ public final class VectorUtil {
 
 	    for (; n > 0; --n) {
 	    	Location newLocation = new Location( start.getWorld(), x, y, z );
-	        if ( newLocation.getBlock().getType() != Material.AIR && newLocation.getBlock().getType() != Material.GLASS ) {
+	        if ( newLocation.getBlock().getType() != Material.AIR ) {
 	        	return false;
 	        }
-	        newLocation.getBlock().setType( Material.GLASS );
 
 	        if ( errorxy > 0 && errorxz > 0 ) {
 	        	x += x_inc;

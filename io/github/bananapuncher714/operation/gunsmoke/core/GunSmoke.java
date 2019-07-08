@@ -1,5 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -156,6 +157,14 @@ public class Gunsmoke extends JavaPlugin {
 						blockManager.registerBlock( structure );
 					} else {
 						player.sendMessage( "No structure was formed!" );
+					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "trace" ) ) {
+					Location location = player.getEyeLocation();
+					List< CollisionResultBlock > results = protocol.getHandler().getInterceptedBlocks( location, location.getDirection().multiply( 100 ) );
+					for ( CollisionResultBlock result : results ) {
+						System.out.println( result.getBlock().getType() + ":" + result.getDirection() );
+						result.getLocation().getWorld().spawnParticle( Particle.DRIP_LAVA, result.getLocation(), 0 );
+						result.getLocation().getWorld().spawnParticle( Particle.DRIP_WATER, result.getBlock().getLocation().add( .5, .5, .5 ), 0 );
 					}
 				}
 			}

@@ -80,7 +80,7 @@ public class ConfigGun extends GunsmokeItemInteractable {
 	@Override
 	public EnumEventResult onClick( RightClickEvent event ) {
 		ConfigBulletOptions options = GunsmokeImplementation.getInstance().getBullet( "example_bullet" );
-		GunsmokeProjectile projectile = new ConfigBullet( GunsmokeUtil.getEntity( holder ), holder.getEyeLocation(), options);
+		GunsmokeProjectile projectile = new ConfigBullet( GunsmokeUtil.getEntity( holder ), holder.getEyeLocation(), options );
 		GunsmokeUtil.getPlugin().getItemManager().register( projectile );
 		
 		GunsmokeUtil.flash( event.getPlayer() );
@@ -92,7 +92,7 @@ public class ConfigGun extends GunsmokeItemInteractable {
 		
 		CrosshairMovement movement = GunsmokeUtil.getPlugin().getMovementManager().getMovement( holder.getName() );
 		if ( movement != null ) {
-			movement.addMovementModifier( modifier );
+//			movement.addMovementModifier( modifier );
 		}
 		
 		return EnumEventResult.COMPLETED;
@@ -104,6 +104,8 @@ public class ConfigGun extends GunsmokeItemInteractable {
 		
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeEntity.getMainHand() : gunsmokeEntity.getOffHand() ).setItem( display );
 		gunsmokeEntity.setHandState( State.BOW, slot == EquipmentSlot.HAND );
+		
+		GunsmokeUtil.getPlugin().getMovementManager().setMovement( holder.getName(), new CrosshairMovement() );
 	}
 	
 	@Override
