@@ -156,7 +156,6 @@ public final class VectorUtil {
 		        	errorxy += dx;
 		        	errorzy += dz;
 		        }
-		        
 		    }
 		    return true;
 	}
@@ -195,6 +194,7 @@ public final class VectorUtil {
 	        if ( newLocation.getBlock().getType() != Material.AIR ) {
 	        	return false;
 	        }
+	        newLocation.getBlock().setType( Material.GLASS );
 
 	        if ( errorxy > 0 && errorxz > 0 ) {
 	        	x += x_inc;

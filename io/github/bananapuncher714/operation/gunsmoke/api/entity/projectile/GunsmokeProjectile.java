@@ -76,43 +76,13 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			Location destination = location.clone().add( getVelocity() );
 			// Get the distance squared because getting the root is a scam
 			double distance = location.distanceSquared( destination );
-	
-			// Get the first iteration done
-//			Vector increasedVel = getVelocity().multiply( 2 );
-//			CollisionResultBlock hitBlock = GunsmokeUtil.rayTrace( location, increasedVel );
-//			Location hitLoc = hitBlock.getLocation();
-			// While we still haven't reached the full destination
-//			while ( distance >= location.distanceSquared( hitLoc ) ) {
-//				Block block = hitBlock.getBlock();
-				
-//				if ( !tickHitBlocks.contains( block.getLocation() ) ) {
-//					if ( hitBlock.getCollisionType() == CollisionType.BLOCK ) {
-						// TODO Add proper collision type list
-//						if ( block.getType() != Material.AIR ) {
-							// TODO Add GunsmokeStructure detection
-//							System.out.println( block.getType() + ":" + hitBlock.getDirection() );
-//							Vector dirVec = BukkitUtil.toVector( hitBlock.getDirection() );
-//							hitBlock.getLocation().add( dirVec.multiply( .01 ) );
-//							hitBlock.getLocation().getWorld().spawnParticle( Particle.DRIP_LAVA, hitBlock.getLocation(), 0 );
-//							ProjectileTarget target = new ProjectileTargetBlock( this, hitBlock );
-//							hitTargets.add( target );
-//							getHitBlocks().add( block.getLocation() );
-//							tickHitBlocks.add( block.getLocation() );
-//						}
-//					}
-//				}
-//				
-//				hitBlock = GunsmokeUtil.rayTrace( hitLoc, increasedVel );
-//				hitLoc = hitBlock.getLocation();
-//			}
-			
-			List< CollisionResultBlock > collisions = GunsmokeUtil.rayTraceAll( location, getVelocity() );
+
+			List< CollisionResultBlock > collisions = GunsmokeUtil.rayTrace( location, getVelocity() );
 			// For each collision...
 			for ( CollisionResultBlock collision : collisions ) {
 				Block block = collision.getBlock();
 				Location hitLoc = collision.getLocation();
 				if ( distance < location.distanceSquared( hitLoc ) ) {
-					System.out.println( "Too long!" );
 					break;
 				}
 				
@@ -121,7 +91,6 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 						// TODO Add proper collision type list
 						if ( block.getType() != Material.AIR ) {
 							// TODO Add GunsmokeStructure detection
-							System.out.println( block.getType() + ":" + collision.getDirection() );
 							Vector dirVec = BukkitUtil.toVector( collision.getDirection() );
 							collision.getLocation().add( dirVec.multiply( .01 ) );
 							collision.getLocation().getWorld().spawnParticle( Particle.DRIP_LAVA, collision.getLocation(), 0 );

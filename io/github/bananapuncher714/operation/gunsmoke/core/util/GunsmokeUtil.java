@@ -67,16 +67,12 @@ public class GunsmokeUtil {
 		getPlugin().getTaskManager().callEventSync( event );
 	}
 	
-	public static CollisionResultBlock rayTrace( Location start, Vector ray ) {
+	public static List< CollisionResultBlock > rayTrace( Location start, Vector ray ) {
 		return getPlugin().getProtocol().getHandler().rayTrace( start, ray );
 	}
 	
-	public static CollisionResultBlock rayTrace( Location start, Vector ray, double dist ) {
+	public static List< CollisionResultBlock > rayTrace( Location start, Vector ray, double dist ) {
 		return getPlugin().getProtocol().getHandler().rayTrace( start, ray, dist );
-	}
-	
-	public static List< CollisionResultBlock > rayTraceAll( Location start, Vector ray ) {
-		return getPlugin().getProtocol().getHandler().getInterceptedBlocks( start, ray );
 	}
 	
 	public static int getCurrentTick() {

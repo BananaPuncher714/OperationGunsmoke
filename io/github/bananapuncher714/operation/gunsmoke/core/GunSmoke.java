@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BlockIterator;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeStructure;
@@ -26,6 +27,7 @@ import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.EventListener;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
@@ -84,7 +86,7 @@ public class Gunsmoke extends JavaPlugin {
 			Player player = ( Player ) sender;
 			if ( args.length == 0 ) {
 				player.sendMessage( "Finding..." );
-				CollisionResultBlock location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 );
+				CollisionResultBlock location = protocol.getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 ).get( 0 );
 
 				player.sendMessage( "Type: " + location.getBlock().getType() );
 				player.sendMessage( "Collision: " + location.getCollisionType() );
@@ -160,11 +162,21 @@ public class Gunsmoke extends JavaPlugin {
 					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "trace" ) ) {
 					Location location = player.getEyeLocation();
-					List< CollisionResultBlock > results = protocol.getHandler().getInterceptedBlocks( location, location.getDirection().multiply( 100 ) );
+					List< CollisionResultBlock > results = protocol.getHandler().rayTrace( location, location.getDirection().multiply( 100 ) );
 					for ( CollisionResultBlock result : results ) {
 						System.out.println( result.getBlock().getType() + ":" + result.getDirection() );
 						result.getLocation().getWorld().spawnParticle( Particle.DRIP_LAVA, result.getLocation(), 0 );
 						result.getLocation().getWorld().spawnParticle( Particle.DRIP_WATER, result.getBlock().getLocation().add( .5, .5, .5 ), 0 );
+					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "see" ) ) {
+					Location location = player.getEyeLocation().clone().add( player.getEyeLocation().getDirection().multiply( 100 ) );
+					BlockIterator iterator = new BlockIterator( player, 100 );
+					while ( iterator.hasNext() ) {
+						Block block = iterator.next();
+						if ( block.getType() != Material.AIR ) {
+							break;
+						}
+						block.setType( Material.GLASS, false );
 					}
 				}
 			}

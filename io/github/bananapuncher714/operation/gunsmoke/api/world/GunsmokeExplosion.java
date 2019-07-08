@@ -176,6 +176,8 @@ public class GunsmokeExplosion extends GunsmokeRepresentable {
 	}
 	
 	protected double getDamageReduction( Location start, Location end ) {
+		// TODO Maybe use BlockIterator?!
+		
 		// Get the coords
 		double px1 = start.getX();
 		double py1 = start.getY();

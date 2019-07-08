@@ -62,9 +62,6 @@ public class ConfigBullet extends GunsmokeProjectile {
 		Vector velocity = getVelocity();
 		velocity.setY( Math.max( -2, velocity.getY() - options.getGravity() ) );
 		
-		if ( power <= 0 ) {
-			return EnumTickResult.CANCEL;
-		}
 		if ( collision != null ) {
 			Vector direction = BukkitUtil.toVector( collision.getDirection() );
 			

@@ -43,10 +43,8 @@ public interface PacketHandler {
 	
 	int getServerTick();
 	
-	CollisionResultBlock rayTrace( Location start, Vector ray );
-	CollisionResultBlock rayTrace( Location start, Vector ray, double dist );
-	
-	List< CollisionResultBlock > getInterceptedBlocks( Location start, Vector ray );
+	List< CollisionResultBlock > rayTrace( Location start, Vector ray );
+	List< CollisionResultBlock > rayTrace( Location start, Vector ray, double dist );
 	
 	List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector );
 	
