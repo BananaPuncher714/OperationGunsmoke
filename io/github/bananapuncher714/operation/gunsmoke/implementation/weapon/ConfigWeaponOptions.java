@@ -4,4 +4,6 @@ import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.b
 
 public class ConfigWeaponOptions {
 	protected ConfigBulletOptions bullet;
+	protected boolean automatic;
+	protected int shootDelay;
 }

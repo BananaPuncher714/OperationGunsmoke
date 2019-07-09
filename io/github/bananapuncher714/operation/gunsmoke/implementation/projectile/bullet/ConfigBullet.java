@@ -26,6 +26,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion
 import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 
 public class ConfigBullet extends GunsmokeProjectile {
@@ -41,6 +42,8 @@ public class ConfigBullet extends GunsmokeProjectile {
 	public ConfigBullet( GunsmokeEntity shooter, Location location, ConfigBulletOptions options ) {
 		super( location );
 		this.shooter = shooter;
+		
+		getTickHitEntities().add( shooter.getUUID() );
 		
 		created = System.currentTimeMillis();
 		
@@ -60,7 +63,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 			return EnumTickResult.CANCEL;
 		}
 		Vector velocity = getVelocity();
-		velocity.setY( Math.max( -2, velocity.getY() - options.getGravity() ) );
+		velocity.setY( velocity.getY() - options.getGravity() );
 		
 		if ( collision != null ) {
 			Vector direction = BukkitUtil.toVector( collision.getDirection() );
@@ -76,6 +79,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 			if ( direction.getZ() != 0 ) {
 				velocity.setZ( velocity.getZ() * direction.getZ() );
 			}
+			getTickHitEntities().clear();
 			getTickHitBlocks().clear();
 		}
 		
@@ -155,15 +159,19 @@ public class ConfigBullet extends GunsmokeProjectile {
 				return EnumTickResult.CONTINUE;
 			}
 			
-			GunsmokeEntity entity = entTarget.getHitEntity();
-			if ( !entity.isInvincible() && !entity.getUUID().equals( shooter.getUUID() ) ) {
+			GunsmokeEntity entity = entTarget.getEntity();
+			if ( !entity.isInvincible() ) {
 				double distance = distanceTravelled + location.distance( target.getIntersection().getLocation() );
 				double damage = getDamage( distance ) * power;
 				if ( damage > 0 ) {
 					GunsmokeUtil.damage( entity, DamageType.PHYSICAL, power, this );
 					if ( shooter instanceof GunsmokeEntityWrapperPlayer ) {
 						Player player = ( ( GunsmokeEntityWrapperPlayer ) shooter ).getEntity();
-						player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 1 );
+						if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {
+							player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 2 );
+						} else {
+							player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 1 );
+						}
 					}
 				}
 				if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {

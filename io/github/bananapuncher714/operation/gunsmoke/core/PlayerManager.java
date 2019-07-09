@@ -14,6 +14,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
@@ -68,10 +69,19 @@ public class PlayerManager {
 				
 				if ( newItem == null && items[ index ] == null ) {
 					continue;
-				} else if ( ( newItem == null ^ items[ index ] == null ) || ( newItem.hashCode() != items[ index ].hashCode() ) ) {
-					PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, items[ index ], slot );
+				} else if ( newItem == null ^ items[ index ] == null ) {
+					new PlayerUpdateItemEvent( player, items[ index ], slot ).callEvent();
+				} else if ( newItem.hashCode() != items[ index ].hashCode() ) {
+					ItemStack old = items[ index ];
 					
-					plugin.getTaskManager().callEventSync( event );
+					GunsmokeRepresentable oldRep = plugin.getItemManager().getRepresentable( old );
+					GunsmokeRepresentable newRep = plugin.getItemManager().getRepresentable( newItem );
+					
+					// Don't bother calling the events if the item they're holding is the same GunsmokeRepresentable
+					if ( oldRep != null && oldRep == newRep ) {
+						continue;
+					}
+					new PlayerUpdateItemEvent( player, items[ index ], slot ).callEvent();
 				}
 				
 				items[ index++ ] = newItem; 

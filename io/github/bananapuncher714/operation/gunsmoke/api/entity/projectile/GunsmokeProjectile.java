@@ -21,6 +21,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeE
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTargetEntity;
@@ -30,6 +31,7 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public abstract class GunsmokeProjectile extends GunsmokeEntity {
 	private Set< UUID > hitEntities;
+	private Set< UUID > tickHitEntities;
 	private Set< Location > hitBlocks;
 	private Set< Location > tickHitBlocks;
 	
@@ -38,6 +40,7 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 		
 		hitEntities = new HashSet< UUID >();
 		hitBlocks = new HashSet< Location >();
+		tickHitEntities = new HashSet< UUID >();
 		tickHitBlocks = new HashSet< Location >();
 	}
 
@@ -54,21 +57,21 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, getVelocity() );
 			
 			for ( Entity entity : nearbyEntities ) {
-				if ( getHitEntities().contains( entity.getUniqueId() ) ) {
+				if ( tickHitEntities.contains( entity.getUniqueId() ) ) {
 					continue;
 				}
-				CollisionResult intersection = VectorUtil.rayIntersect( entity, location, velocity );
+				CollisionResultEntity intersection = VectorUtil.rayIntersect( entity, location, velocity );
 				if ( intersection != null ) {
 					if ( intersection.getLocation().distanceSquared( location ) > speedSquared ) {
 						continue;
 					}
 					
 					// We know we hit something
-					GunsmokeEntityWrapper wrappedEntity = GunsmokeEntityWrapperFactory.wrap( entity );
-
-					CollisionResult copy = intersection.copyOf();
-					hitTargets.add( new ProjectileTargetEntity( this, copy, wrappedEntity ) );
+					CollisionResultEntity copy = intersection.copyOf();
+					
+					hitTargets.add( new ProjectileTargetEntity( this, copy ) );
 					getHitEntities().add( entity.getUniqueId() );
+					tickHitEntities.add( entity.getUniqueId() );
 				}
 			}
 			// Now start on block hit detection
@@ -112,6 +115,7 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 					break;
 				}
 			}
+			
 			location = newLoc;
 		}
 		// Erase this projectile from existence if it falls beyond the void
@@ -120,6 +124,10 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 	
 	protected Set< UUID > getHitEntities() {
 		return hitEntities;
+	}
+
+	protected Set< UUID > getTickHitEntities() {
+		return tickHitEntities;
 	}
 	
 	protected Set< Location > getHitBlocks() {

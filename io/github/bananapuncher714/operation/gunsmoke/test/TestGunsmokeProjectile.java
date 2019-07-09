@@ -65,7 +65,7 @@ public class TestGunsmokeProjectile extends GunsmokeProjectile {
 	}
 	
 	protected void hit( ProjectileTargetEntity target ) {
-		GunsmokeEntity hitEntity = target.getHitEntity();
+		GunsmokeEntity hitEntity = target.getEntity();
 		if ( hitEntity instanceof GunsmokeEntityWrapper ) {
 			Entity bukkitEntity = ( ( GunsmokeEntityWrapper ) hitEntity ).getEntity();
 			

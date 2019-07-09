@@ -92,7 +92,7 @@ public class ConfigGun extends GunsmokeItemInteractable {
 		
 		CrosshairMovement movement = GunsmokeUtil.getPlugin().getMovementManager().getMovement( holder.getName() );
 		if ( movement != null ) {
-//			movement.addMovementModifier( modifier );
+			movement.addMovementModifier( modifier );
 		}
 		
 		return EnumEventResult.COMPLETED;

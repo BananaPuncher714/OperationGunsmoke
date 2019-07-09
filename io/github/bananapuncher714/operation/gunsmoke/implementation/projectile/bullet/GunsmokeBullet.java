@@ -54,7 +54,7 @@ public class GunsmokeBullet extends GunsmokeProjectile {
 		} else if ( target instanceof ProjectileTargetEntity ) {
 			ProjectileTargetEntity entTarget = ( ProjectileTargetEntity ) target;
 			
-			GunsmokeEntity entity = entTarget.getHitEntity();
+			GunsmokeEntity entity = entTarget.getEntity();
 			if ( !entity.isInvincible() && !entity.getUUID().equals( shooter.getUUID() ) ) {
 				GunsmokeUtil.damage( entity, DamageType.PHYSICAL, power, this );
 				power--;

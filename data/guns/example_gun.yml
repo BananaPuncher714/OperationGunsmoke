@@ -1,1 +1,21 @@
 bullet: "example_bullet"
+automatic: false
+shoot-delay: 170
+recoil-yaw: 3
+recoil-pitch: 5
+spread: 5
+
+shots: 1
+bullet-spread: 0
+
+use-ammo: true
+clip-size: 30
+reload-delay: 2000
+
+scope: true
+zoom-level: _1
+scoped-recoil-yaw: 1
+scoped-recoil-pitch: 2 
+scoped-spread: 0
+scope-delay: 200
+

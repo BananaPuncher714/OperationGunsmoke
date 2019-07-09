@@ -4,14 +4,19 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 
 public class ProjectileTargetEntity extends ProjectileTarget {
-	protected GunsmokeEntity hitEntity;
+	protected CollisionResultEntity collision;
 	
-	public ProjectileTargetEntity( GunsmokeProjectile projectile, CollisionResult intersection, GunsmokeEntity hitEntity ) {
+	public ProjectileTargetEntity( GunsmokeProjectile projectile, CollisionResultEntity intersection ) {
 		super( projectile, intersection );
-		this.hitEntity = hitEntity;
+		this.collision = intersection;
 	}
 
-	public GunsmokeEntity getHitEntity() {
-		return hitEntity;
+	@Override
+	public CollisionResultEntity getIntersection() {
+		return collision;
+	}
+	
+	public GunsmokeEntity getEntity() {
+		return collision.getEntity();
 	}
 }

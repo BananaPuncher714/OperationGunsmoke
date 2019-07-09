@@ -7,12 +7,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEntity;
 
 /**
  * Simple vector math
@@ -23,9 +23,8 @@ public final class VectorUtil {
 	private VectorUtil() {
 	}
 	
-	// This can be made so much faster since I know where the origin is
 	// This checks to see if a ray intersects with an entity
-	public static CollisionResult rayIntersect( Entity entity, Location origin, Vector ray ) {
+	public static CollisionResultEntity rayIntersect( Entity entity, Location origin, Vector ray ) {
 		if ( origin.getWorld() != entity.getWorld() ) {
 			return null;
 		}
@@ -38,29 +37,31 @@ public final class VectorUtil {
 		Location lower = new Location( location.getWorld(), box.getMinX(), box.getMinY(), box.getMinZ() );
 		Location upper = new Location( location.getWorld(), box.getMaxX(), box.getMaxY(), box.getMaxZ() );
 
-		// TODO Add a way to determine the entry and exit point?
-		// TODO This is somewhat important
-		// TODO so I thought I'd add
-		// TODO a few more here to remind myself
-		
-		CollisionResult collision = null;
+		Location entry = null;
+		Location exit = null;
+		BlockFace entryFace = null;
+		BlockFace exitFace = null;
 		
 		if ( lower.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zLow = calculateVector( lower, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zLow != null && zLow.getX() >= lower.getX() && zLow.getX() <= upper.getX() && zLow.getY() >= lower.getY() && zLow.getY() <= upper.getY() ) {
-				CollisionResult hitPoint = new CollisionResult( zLow, BlockFace.EAST, CollisionType.ENTITY );
-				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
-					collision = hitPoint;
-				}
+				// Since this is the first one, no point in seeing if entry is null
+				entry = zLow;
+				entryFace = BlockFace.EAST;
 			}
 		}
 		
 		if ( upper.getZ() - origin.getZ() > 0 ^ ray.getZ() < 0 ) {
 			Location zHigh = calculateVector( upper, new Vector( 0, 0, 1 ), origin, ray );
 			if ( zHigh != null && zHigh.getX() >= lower.getX() && zHigh.getX() <= upper.getX() && zHigh.getY() >= lower.getY() && zHigh.getY() <= upper.getY() ) {
-				CollisionResult hitPoint = new CollisionResult( zHigh, BlockFace.WEST, CollisionType.ENTITY );
-				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
-					collision = hitPoint;
+				if ( entry == null || origin.distanceSquared( zHigh ) < origin.distanceSquared( entry ) ) {
+					exit = entry;
+					exitFace = entryFace;
+					entry = zHigh;
+					entryFace = BlockFace.WEST;
+				} else {
+					exit = zHigh;
+					exitFace = BlockFace.WEST;
 				}
 			}
 		}
@@ -68,9 +69,14 @@ public final class VectorUtil {
 		if ( lower.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xLow = calculateVector( lower, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xLow != null && xLow.getZ() >= lower.getZ() && xLow.getZ() <= upper.getZ() && xLow.getY() >= lower.getY() && xLow.getY() <= upper.getY() ) {
-				CollisionResult hitPoint = new CollisionResult( xLow, BlockFace.SOUTH, CollisionType.ENTITY );
-				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
-					collision = hitPoint;
+				if ( entry == null || origin.distanceSquared( xLow ) < origin.distanceSquared( entry ) ) {
+					exit = entry;
+					exitFace = entryFace;
+					entry = xLow;
+					entryFace = BlockFace.SOUTH;
+				} else {
+					exit = xLow;
+					exitFace = BlockFace.SOUTH;
 				}
 			}
 		}
@@ -78,9 +84,14 @@ public final class VectorUtil {
 		if ( upper.getX() - origin.getX() > 0 ^ ray.getX() < 0 ) {
 			Location xHigh = calculateVector( upper, new Vector( 1, 0, 0 ), origin, ray );
 			if ( xHigh != null && xHigh.getZ() >= lower.getZ() && xHigh.getZ() <= upper.getZ() && xHigh.getY() >= lower.getY() && xHigh.getY() <= upper.getY() ) {
-				CollisionResult hitPoint = new CollisionResult( xHigh, BlockFace.NORTH, CollisionType.ENTITY );
-				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
-					collision = hitPoint;
+				if ( entry == null || origin.distanceSquared( xHigh ) < origin.distanceSquared( entry ) ) {
+					exit = entry;
+					exitFace = entryFace;
+					entry = xHigh;
+					entryFace = BlockFace.NORTH;
+				} else {
+					exit = xHigh;
+					exitFace = BlockFace.NORTH;
 				}
 			}
 		}
@@ -88,9 +99,14 @@ public final class VectorUtil {
 		if ( lower.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yLow = calculateVector( lower, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yLow != null && yLow.getX() >= lower.getX() && yLow.getX() <= upper.getX() && yLow.getZ() >= lower.getZ() && yLow.getZ() <= upper.getZ() ) {
-				CollisionResult hitPoint = new CollisionResult( yLow, BlockFace.DOWN, CollisionType.ENTITY );
-				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
-					collision = hitPoint;
+				if ( entry == null || origin.distanceSquared( yLow ) < origin.distanceSquared( entry ) ) {
+					exit = entry;
+					exitFace = entryFace;
+					entry = yLow;
+					entryFace = BlockFace.DOWN;
+				} else {
+					exit = yLow;
+					exitFace = BlockFace.DOWN;
 				}
 			}
 		}
@@ -98,13 +114,22 @@ public final class VectorUtil {
 		if ( upper.getY() - origin.getY() > 0 ^ ray.getY() < 0 ) {
 			Location yHigh = calculateVector( upper, new Vector( 0, 1, 0 ), origin, ray );
 			if ( yHigh != null && yHigh.getX() >= lower.getX() && yHigh.getX() <= upper.getX() && yHigh.getZ() >= lower.getZ() && yHigh.getZ() <= upper.getZ() ) {
-				CollisionResult hitPoint = new CollisionResult( yHigh, BlockFace.UP, CollisionType.ENTITY );
-				if ( collision == null || origin.distanceSquared( hitPoint.getLocation() ) < origin.distanceSquared( collision.getLocation() ) ) {
-					collision = hitPoint;
+				if ( entry == null || origin.distanceSquared( yHigh ) < origin.distanceSquared( entry ) ) {
+					exit = entry;
+					exitFace = entryFace;
+					entry = yHigh;
+					entryFace = BlockFace.UP;
+				} else {
+					exit = yHigh;
+					exitFace = BlockFace.UP;
 				}
 			}
 		}
-		return collision;
+
+		if ( entry != null ) {
+			return new CollisionResultEntity( GunsmokeUtil.getEntity( entity ), entry, entryFace, exit, exitFace );
+		}
+		return null;
 	}
 	
 	public static boolean fastCanSee( Location start, Location end ) {
@@ -258,11 +283,25 @@ public final class VectorUtil {
 		return location.getDirection().multiply( length );
 	}
 	
-	public static boolean isHeadshot( LivingEntity entity, Location intersection ) {
-		double upper = entity.getHeight() + entity.getLocation().getY();
-		double lower = upper - ( entity.getHeight() - entity.getEyeHeight() ) * 2;
-		
-		return intersection.getY() >= lower;
+	public static boolean isHeadshot( CollisionResultEntity intersection ) {
+		GunsmokeEntity entity = intersection.getEntity();
+		if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
+			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) entity;
+			
+			double entityTop = wrapper.getEntity().getLocation().getY() + wrapper.getEntity().getHeight();
+			
+			double headLevel = wrapper.getEntity().getHeight() - wrapper.getEntity().getEyeHeight();
+			
+			entityTop -= headLevel * 2;
+
+			if ( intersection.getLocation().getY() >= entityTop ) {
+				return true;
+			}
+			if ( intersection.getExit() != null && intersection.getExit().getY() >= entityTop ) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

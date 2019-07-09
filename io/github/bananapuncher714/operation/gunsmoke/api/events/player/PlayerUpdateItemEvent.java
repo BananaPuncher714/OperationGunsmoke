@@ -7,6 +7,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
+
 // Not sure why this doesn't extend PlayerEvent, but just in case if I find some use for it in the future
 public class PlayerUpdateItemEvent extends PlayerEvent {
 	private static final HandlerList handlers = new HandlerList();
@@ -29,6 +31,10 @@ public class PlayerUpdateItemEvent extends PlayerEvent {
 	
 	public ItemStack getItem() {
 		return itemSnapshot;
+	}
+	
+	public void callEvent() {
+		GunsmokeUtil.callEventSync( this );
 	}
 	
 	public static HandlerList getHandlerList() {
