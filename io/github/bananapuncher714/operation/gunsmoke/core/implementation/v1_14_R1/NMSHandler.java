@@ -30,6 +30,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
@@ -442,7 +443,7 @@ public class NMSHandler implements PacketHandler {
 
 		// Now either disguise or something
 		// Temporary
-		org.bukkit.inventory.ItemStack item;
+		org.bukkit.inventory.ItemStack item = null;
 		if ( equipment == EquipmentSlot.HAND ) {
 			GunsmokePlayerHand hand = gEntity.getMainHand();
 			item = hand.getHolding();
@@ -450,7 +451,10 @@ public class NMSHandler implements PacketHandler {
 			GunsmokePlayerHand hand = gEntity.getOffHand();
 			item = hand.getHolding();
 		} else {
-			item = gEntity.getWearing( equipment );
+			ItemStackGunsmoke gItem = gEntity.getWearing( equipment );
+			if ( gItem != null ) {
+				item = gItem.getItem();
+			}
 		}
 
 		if ( item == null ) {
@@ -458,7 +462,7 @@ public class NMSHandler implements PacketHandler {
 		}
 
 		try {
-			ENTITYEQUIPMENT_ITEMSTACK.set(packet, CraftItemStack.asNMSCopy(item));
+			ENTITYEQUIPMENT_ITEMSTACK.set( packet, CraftItemStack.asNMSCopy( item ) );
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -596,7 +600,8 @@ public class NMSHandler implements PacketHandler {
 		EnumItemSlot NMSSlot = NMSUtils.getEnumItemSlot( slot );
 		int id = ( ( CraftEntity ) entity ).getEntityId();
 		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
-		org.bukkit.inventory.ItemStack item = gEntity.getWearing( slot );
+		ItemStackGunsmoke gItem = gEntity.getWearing( slot );
+		org.bukkit.inventory.ItemStack item = gItem == null ? null : gItem.getItem();
 
 		if ( slot == EquipmentSlot.HAND ) {
 			item = gEntity.getMainHand().getHolding();

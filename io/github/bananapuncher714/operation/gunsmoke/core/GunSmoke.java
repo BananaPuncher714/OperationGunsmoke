@@ -1,37 +1,16 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.block.Block;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.BlockIterator;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
-import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeStructure;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
-import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion;
-import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosionResult;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
-import io.github.bananapuncher714.operation.gunsmoke.implementation.EventListener;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
-import io.github.bananapuncher714.operation.gunsmoke.test.ProneListener;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
 
 public class Gunsmoke extends JavaPlugin {
@@ -61,8 +40,6 @@ public class Gunsmoke extends JavaPlugin {
 		
 		Bukkit.getScheduler().runTaskTimer( this, this::run, 0, 1 );
 		Bukkit.getPluginManager().registerEvents( new PlayerListener( this ), this );
-		
-		Bukkit.getPluginManager().registerEvents( new ProneListener( this ), this );
 		
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 			protocol.getPlayerConnection( player.getName() );

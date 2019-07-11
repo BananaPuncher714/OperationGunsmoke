@@ -272,7 +272,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		meta.setUnbreakable( true );
 		meta.setDisplayName( options.getName() );
 		
-		( ( Damageable ) meta ).setDamage( ( isScoped || isScoping ) ? 1 : 0 );
+		( ( Damageable ) meta ).setDamage( ( isScoped || isScoping ) ? options.getModel() + 1 : options.getModel() );
 		
 		item.setItemMeta( meta );
 		

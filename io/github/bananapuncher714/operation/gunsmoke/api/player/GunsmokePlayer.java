@@ -54,12 +54,16 @@ public class GunsmokePlayer {
 		this.isRightClicking = isRightClicking;
 	}
 
-	public ItemStack getWearing( EquipmentSlot slot ) {
-		ItemStackGunsmoke wearing = equipment.get( slot );
-		if ( wearing == null ) {
-			return null;
+	public void setWearing( EquipmentSlot slot, ItemStackGunsmoke item ) {
+		if ( item != null ) {
+			equipment.put( slot, item );
+		} else {
+			equipment.remove( slot );
 		}
-		return wearing.getItem();
+	}
+	
+	public ItemStackGunsmoke getWearing( EquipmentSlot slot ) {
+		return equipment.get( slot );
 	}
 
 	public GunsmokePlayerHand getOffHand() {
