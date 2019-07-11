@@ -18,6 +18,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClic
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
 
 public class ProneListener implements Listener {
@@ -30,13 +31,13 @@ public class ProneListener implements Listener {
 	
 	@EventHandler
 	public void onEvent( PlayerUpdateItemEvent event ) {
-		System.out.println( "Updated item!" );
-		System.out.println( event.getSlot() + ":" + event.getItem() );
+//		System.out.println( "Updated item!" );
+//		System.out.println( event.getSlot() + ":" + event.getItem() );
 	}
 	
 	@EventHandler
 	public void onEvent( LeftClickEvent event ) {
-		System.out.println( "Left clicked!" );
+//		System.out.println( "Left clicked!" );
 	}
 	
 	@EventHandler
@@ -46,22 +47,22 @@ public class ProneListener implements Listener {
 	
 	@EventHandler
 	public void onEvent( RightClickEntityEvent event ) {
-		System.out.println( "Right clicked entity!" );
+//		System.out.println( "Right clicked entity!" );
 	}
 	
 	@EventHandler
 	public void onEvent( RightClickEvent event ) {
-		System.out.println( "Right clicked!" );
+//		System.out.println( "Right clicked!" );
 	}
 	
 	@EventHandler
 	public void onEvent( HoldRightClickEvent event ) {
-		System.out.println( "Holding right click!" );
+//		System.out.println( "Holding right click!" );
 	}
 	
 	@EventHandler
 	public void onEvent( ReleaseRightClickEvent event ) {
-		System.out.println( "Released right click!" );
+//		System.out.println( "Released right click!" );
 	}
 	
 	@EventHandler
@@ -85,27 +86,17 @@ public class ProneListener implements Listener {
 		} else if ( event.getPlayer().getEquipment().getItemInMainHand().getType() == Material.GHAST_TEAR ) {
 			event.setCancelled( true );
 			
-			item = new ConfigGun();
+			item = new ConfigGun( GunsmokeImplementation.getInstance().getGun( "example_gun" ) );
 			
 			plugin.getItemManager().register( item );
 			
 			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
 		}
-		System.out.println( "Drop item event!" );
+//		System.out.println( "Drop item event!" );
 	}
 	
 	@EventHandler
 	public void onEvent( AdvancementOpenEvent event ) {
-		System.out.println( "Advancement Done! " + event.getTab() );
-	}
-	
-	@EventHandler
-	public void onEvent( EntityDamageEvent event ) {
-		Entity entity = event.getEntity();
-		if ( entity instanceof LivingEntity ) {
-			LivingEntity livingEntity = ( LivingEntity ) entity;
-			livingEntity.setNoDamageTicks( 0 );
-			livingEntity.setMaximumNoDamageTicks( Integer.MIN_VALUE );
-		}
+//		System.out.println( "Advancement Done! " + event.getTab() );
 	}
 }

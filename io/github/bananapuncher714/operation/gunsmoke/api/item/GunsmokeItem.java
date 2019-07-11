@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 
 public abstract class GunsmokeItem extends GunsmokeRepresentable {
@@ -46,6 +47,12 @@ public abstract class GunsmokeItem extends GunsmokeRepresentable {
 	
 	public boolean canDualWieldWith( GunsmokeItem other ) {
 		return true;
+	}
+	
+	public void updateItem() {
+		if ( holder != null ) {
+			BukkitUtil.setEquipment( holder, getItem(), slot);
+		}
 	}
 	
 	public abstract ItemStack getItem();

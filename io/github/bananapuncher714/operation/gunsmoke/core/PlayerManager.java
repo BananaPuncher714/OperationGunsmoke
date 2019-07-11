@@ -79,11 +79,13 @@ public class PlayerManager {
 					
 					// Don't bother calling the events if the item they're holding is the same GunsmokeRepresentable
 					if ( oldRep != null && oldRep == newRep ) {
+						items[ index++ ] = newItem; 
 						continue;
 					}
 					new PlayerUpdateItemEvent( player, items[ index ], slot ).callEvent();
 				}
-				
+
+				BukkitUtil.setEquipment( player, newItem, slot );
 				items[ index++ ] = newItem; 
 			}
 		}

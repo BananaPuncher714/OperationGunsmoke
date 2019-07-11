@@ -409,35 +409,8 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGH )
 	private void onEvent( EntityDamageEvent event ) {
-		boolean useVanillaDamage = false;
-		if ( useVanillaDamage ) {
-			Entity entity = event.getEntity();
-			if ( entity instanceof LivingEntity ) {
-				LivingEntity lEntity = ( LivingEntity ) entity;
-				EnumEventResult result = EnumEventResult.SKIPPED;
-
-				for ( EquipmentSlot slot : GunsmokeUtil.getEquipmentSlotOrdering() ) {
-					GunsmokeRepresentable representable = getRepresentable( lEntity, slot );
-
-					if ( representable instanceof GunsmokeItemInteractable ) {
-						GunsmokeItemInteractable interactable = ( GunsmokeItemInteractable ) representable;
-
-						if ( interactable.isEquipped() ) {
-							if ( interactable instanceof InteractableDamage ) {
-								InteractableDamage damageInteractable = ( InteractableDamage ) interactable;
-								result = damageInteractable.onTakeDamage( event );
-							}
-						}
-					}
-					if ( result == EnumEventResult.COMPLETED || result == EnumEventResult.STOPPED ) {
-						break;
-					}
-				}
-			}
-		} else {
-			plugin.getEntityManager().damage( getEntityWrapper( event.getEntity() ), event.getDamage(), DamageType.VANILLA, event.getCause() );
-			event.setCancelled( true );
-		}
+		plugin.getEntityManager().damage( getEntityWrapper( event.getEntity() ), event.getDamage(), DamageType.VANILLA, event.getCause() );
+		event.setCancelled( true );
 	}
 	
 

@@ -40,6 +40,29 @@ public class BukkitUtil {
 		}
 	}
 	
+	public final static void setEquipment( LivingEntity entity, ItemStack item, EquipmentSlot slot ) {
+		switch ( slot ) {
+		case CHEST:
+			entity.getEquipment().setChestplate( item );
+			return;
+		case FEET:
+			entity.getEquipment().setBoots( item );
+			return;
+		case HEAD:
+			entity.getEquipment().setHelmet( item );
+			return;
+		case LEGS:
+			entity.getEquipment().setLeggings( item );
+			return;
+		case HAND:
+			entity.getEquipment().setItemInMainHand( item );
+			return;
+		case OFF_HAND:
+			entity.getEquipment().setItemInOffHand( item );
+			return;
+		}
+	}
+	
 	public final static boolean isRightClickable( Material material ) {
 		switch ( material ) {
 		case BOW:

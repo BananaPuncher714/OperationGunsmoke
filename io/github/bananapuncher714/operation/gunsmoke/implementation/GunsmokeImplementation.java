@@ -11,6 +11,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.FileUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.ConfigBulletOptions;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 
 public class GunsmokeImplementation {
@@ -24,6 +25,7 @@ public class GunsmokeImplementation {
 	
 	protected Map< String, ConfigBulletOptions > bullets = new HashMap< String, ConfigBulletOptions >();
 	protected Map< String, ConfigExplosion > explosions = new HashMap< String, ConfigExplosion >();
+	protected Map< String, ConfigWeaponOptions > guns = new HashMap< String, ConfigWeaponOptions >();
 	
 	public GunsmokeImplementation( Gunsmoke plugin ) {
 		INSTANCE = this;
@@ -41,10 +43,11 @@ public class GunsmokeImplementation {
 	private void init() {
 		FileUtil.saveToFile( plugin.getResource( "data/bullets/example_bullet.yml" ), new File( BULLET_FOLDER + "/" + "example_bullet.yml" ), false );
 		FileUtil.saveToFile( plugin.getResource( "data/explosions/example_explosion.yml" ), new File( EXPLOSION_FOLDER + "/" + "example_explosion.yml" ), false );
-		FileUtil.saveToFile( plugin.getResource( "data/guns/example_gun.yml" ), new File( WEAPON_FOLDER + "/" + "example_weapon.yml" ), false );
+		FileUtil.saveToFile( plugin.getResource( "data/guns/example_gun.yml" ), new File( WEAPON_FOLDER + "/" + "example_gun.yml" ), false );
 		
 		loadExplosions();
 		loadBullets();
+		loadGuns();
 	}
 	
 	private void loadExplosions() {
@@ -69,12 +72,27 @@ public class GunsmokeImplementation {
 		}
 	}
 	
+	private void loadGuns() {
+		for ( File file : WEAPON_FOLDER.listFiles() ) {
+			FileConfiguration config = YamlConfiguration.loadConfiguration( file );
+			String id = file.getName().replaceAll( "\\.yml$", "" );
+			ConfigWeaponOptions options = new ConfigWeaponOptions( config );
+			
+			System.out.println( "Loaded gun " + id );
+			guns.put( id, options );
+		}
+	}
+	
 	public ConfigBulletOptions getBullet( String id ) {
 		return bullets.get( id );
 	}
 	
 	public ConfigExplosion getExplosion( String id ) {
 		return explosions.get( id );
+	}
+	
+	public ConfigWeaponOptions getGun( String id ) {
+		return guns.get( id );
 	}
 	
 	public static GunsmokeImplementation getInstance() {

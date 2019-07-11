@@ -55,14 +55,6 @@ public class TestBroadsword extends GunsmokeItemMelee implements InteractableDam
 	}
 
 	@Override
-	public EnumEventResult onTakeDamage( EntityDamageEvent event ) {
-		if ( blocking ) {
-			event.setDamage( event.getDamage() / 3.0 );
-		}
-		return EnumEventResult.COMPLETED;
-	}
-	
-	@Override
 	public EnumEventResult onClick( RightClickEvent event ) {
 		blocking = true;
 		return EnumEventResult.COMPLETED;

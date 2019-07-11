@@ -90,7 +90,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 		// Bullet trail
 		Vector line = previous.subtract( location ).toVector();
 		for ( int i = 0; i < 10; i++ ) {
-			location.getWorld().spawnParticle( Particle.DRIP_WATER, location.clone().add( line.clone().multiply( i / 10.0 ) ), 0 );
+			location.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( line.clone().multiply( i / 10.0 ) ), 0 );
 		}
 		
 		return ( distanceTravelled > options.getRange() || System.currentTimeMillis() - created > options.getMaxLife() || power <= 0 ) ? EnumTickResult.CANCEL : EnumTickResult.CONTINUE;
@@ -163,8 +163,11 @@ public class ConfigBullet extends GunsmokeProjectile {
 			if ( !entity.isInvincible() ) {
 				double distance = distanceTravelled + location.distance( target.getIntersection().getLocation() );
 				double damage = getDamage( distance ) * power;
+				if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {
+					damage *= options.getHeadshotMultiplier();
+				}
 				if ( damage > 0 ) {
-					GunsmokeUtil.damage( entity, DamageType.PHYSICAL, power, this );
+					GunsmokeUtil.damage( entity, DamageType.PHYSICAL, damage, this );
 					if ( shooter instanceof GunsmokeEntityWrapperPlayer ) {
 						Player player = ( ( GunsmokeEntityWrapperPlayer ) shooter ).getEntity();
 						if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {
@@ -173,19 +176,38 @@ public class ConfigBullet extends GunsmokeProjectile {
 							player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 1 );
 						}
 					}
-				}
-				if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
-					GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) entity;
-					if ( options.getFireTicks() > 0 ) {
-						wrapper.getEntity().setFireTicks( options.getFireTicks() );
-					}
-					for ( PotionEffect effect : options.getEffects() ) {
-						wrapper.getEntity().addPotionEffect( effect );
+					if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
+						GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) entity;
+						if ( options.getFireTicks() > 0 ) {
+							wrapper.getEntity().setFireTicks( options.getFireTicks() );
+						}
+						for ( PotionEffect effect : options.getEffects() ) {
+							wrapper.getEntity().addPotionEffect( effect );
+						}
 					}
 				}
 				power -= options.getEntityHitReduction();
 				if ( !options.isPiercing() ) {
 					power = 0;
+				}
+			}
+			if ( power <= 0 ) {
+				ConfigExplosion configExplosion = options.getExplosion();
+				if ( configExplosion != null ) {
+					
+					GunsmokeExplosion explosion = configExplosion.getExplosion( this, target.getIntersection().getLocation() );
+					
+					GunsmokeExplosionResult result = explosion.explode();
+					
+					for ( Location location : result.getBlockDamage().keySet() ) {
+						if ( location.getBlock().getType() != Material.AIR ) {
+							GunsmokeUtil.damageBlockAt( location, result.getBlockDamage().get( location ), this, DamageType.EXPLOSION );
+						}
+					}
+					
+					for ( Entity explosionDamage : result.getEntityDamage().keySet() ) {
+						GunsmokeUtil.damage( GunsmokeEntityWrapperFactory.wrap( explosionDamage ), DamageType.EXPLOSION, result.getEntityDamage().get( explosionDamage ), this );
+					}
 					return EnumTickResult.CANCEL;
 				}
 			}

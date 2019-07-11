@@ -1,3 +1,6 @@
+name: "Test gun"
+model: 0
+
 bullet: "example_bullet"
 automatic: false
 shoot-delay: 170
@@ -11,6 +14,7 @@ bullet-spread: 0
 use-ammo: true
 clip-size: 30
 reload-delay: 2000
+reload-amount: 30
 
 scope: true
 zoom-level: _1
@@ -19,3 +23,4 @@ scoped-recoil-pitch: 2
 scoped-spread: 0
 scope-delay: 200
 
+switch-delay: 820

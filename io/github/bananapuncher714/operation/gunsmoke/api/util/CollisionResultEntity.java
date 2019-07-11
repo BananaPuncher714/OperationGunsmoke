@@ -18,7 +18,6 @@ public class CollisionResultEntity extends CollisionResult {
 			setLocation( exit );
 			setDirection( exitDirection );
 		} else {
-			System.out.println( exit + ":" + exitDirection );
 			this.exit = exit;
 			this.exitDirection = exitDirection;
 		}

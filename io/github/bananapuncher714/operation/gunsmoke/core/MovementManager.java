@@ -44,7 +44,7 @@ public class MovementManager {
 				RelativeFacing facing = move.getMovement( time );
 				
 				if ( facing.pitch != 0 || facing.pitch != 0 ) {
-					GunsmokeUtil.teleportRelative( player, null, facing.yaw, facing.pitch );
+					GunsmokeUtil.teleportRelative( player, null, facing.yaw, -facing.pitch );
 				}
 			}
 		}

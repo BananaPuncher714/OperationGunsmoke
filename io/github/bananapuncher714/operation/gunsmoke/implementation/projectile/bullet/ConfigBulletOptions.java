@@ -16,6 +16,7 @@ public class ConfigBulletOptions {
 	protected double gravity;
 	protected double range;
 	protected double speed;
+	protected double headshotMultiplier;
 	protected int maxLife;
 	protected int hitEntityReduction;
 	protected boolean piercing;
@@ -39,6 +40,7 @@ public class ConfigBulletOptions {
 		gravity = config.getDouble( "gravity", .01 );
 		speed = config.getDouble( "speed", 3 );
 		range = config.getDouble( "range", 100 );
+		headshotMultiplier = config.getDouble( "headshot-multiplier", 1 );
 		maxLife = config.getInt( "max-life", 3000 );
 		hitEntityReduction = config.getInt( "hit-entity-reduction", 3 );
 		piercing = config.getBoolean( "piercing" );
@@ -126,6 +128,14 @@ public class ConfigBulletOptions {
 
 	public void setSpeed( double speed ) {
 		this.speed = speed;
+	}
+	
+	public double getHeadshotMultiplier() {
+		return headshotMultiplier;
+	}
+
+	public void setHeadshotMultiplier(double headshotMultiplier) {
+		this.headshotMultiplier = headshotMultiplier;
 	}
 
 	public int getMaxLife() {
