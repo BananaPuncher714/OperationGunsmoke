@@ -10,6 +10,8 @@ hit-entity-reduction: 3
 piercing: true
 damage-entity: true
 
+damage-type: PHYSICAL
+
 # This is a percent
 block-hit-reduction: 1
 damageable-blocks:

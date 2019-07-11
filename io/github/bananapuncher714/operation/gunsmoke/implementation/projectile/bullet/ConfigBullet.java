@@ -150,7 +150,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 			}
 			
 			double health = block.getHealth();
-			GunsmokeUtil.damageBlockAt( block.getLocation(), power, this, DamageType.PHYSICAL );
+			GunsmokeUtil.damageBlockAt( block.getLocation(), power, this, options.getType() );
 			power -= health * options.getBlockHitReduction();
 		} else if ( target instanceof ProjectileTargetEntity ) {
 			ProjectileTargetEntity entTarget = ( ProjectileTargetEntity ) target;
@@ -167,7 +167,7 @@ public class ConfigBullet extends GunsmokeProjectile {
 					damage *= options.getHeadshotMultiplier();
 				}
 				if ( damage > 0 ) {
-					GunsmokeUtil.damage( entity, DamageType.PHYSICAL, damage, this );
+					GunsmokeUtil.damage( entity, options.getType(), damage, this );
 					if ( shooter instanceof GunsmokeEntityWrapperPlayer ) {
 						Player player = ( ( GunsmokeEntityWrapperPlayer ) shooter ).getEntity();
 						if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {

@@ -115,10 +115,10 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	}
 	
 	protected void unscope() {
-		isScoping = false;
-		if ( isScoped ) {
+		if ( isScoped || isScoping ) {
 			GunsmokeUtil.getPlugin().getZoomManager().removeZoom( holder );
 			isScoped = false;
+			isScoping = false;
 			updateItem();
 		}
 		lastScoped = System.currentTimeMillis();
@@ -205,7 +205,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		event.setCancelled( true );
 		if ( !isReloading && !isSwitching ) {
 			if ( options.getZoom() != null ) {
-				if ( isScoped ) {
+				if ( isScoped || isScoping ) {
 					unscope();
 				} else {
 					scope();
@@ -259,9 +259,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		isReloading = false;
 		isSwitching = false;
 		
-		GunsmokeUtil.getPlugin().getZoomManager().removeZoom( holder );
-		isScoped = false;
-		isScoping = false;
+		unscope();
 		
 		super.onUnequip();
 	}

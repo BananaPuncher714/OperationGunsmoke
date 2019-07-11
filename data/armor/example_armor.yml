@@ -1,0 +1,12 @@
+physical-armor: 30
+misaka-armor: 0
+chemical-armor: 0 
+explosion-armor: 15
+fire-armor: 0
+vanilla-armor: 0
+
+slot: CHEST
+
+name: "Example armor"
+visible-item: IRON_CHESTPLATE
+client-item: LEATHER_CHESTPLATE

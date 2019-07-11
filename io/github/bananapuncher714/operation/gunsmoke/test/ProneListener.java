@@ -19,6 +19,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClic
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmor;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
 
 public class ProneListener implements Listener {
@@ -42,7 +43,7 @@ public class ProneListener implements Listener {
 	
 	@EventHandler
 	public void onEvent( LeftClickEntityEvent event ) {
-		System.out.println( "Left clicked entity!" );
+//		System.out.println( "Left clicked entity!" );
 	}
 	
 	@EventHandler
@@ -52,17 +53,17 @@ public class ProneListener implements Listener {
 	
 	@EventHandler
 	public void onEvent( RightClickEvent event ) {
-//		System.out.println( "Right clicked!" );
+		System.out.println( "Right clicked!" );
 	}
 	
 	@EventHandler
 	public void onEvent( HoldRightClickEvent event ) {
-//		System.out.println( "Holding right click!" );
+		System.out.println( "Holding right click!" );
 	}
 	
 	@EventHandler
 	public void onEvent( ReleaseRightClickEvent event ) {
-//		System.out.println( "Released right click!" );
+		System.out.println( "Released right click!" );
 	}
 	
 	@EventHandler
@@ -87,6 +88,14 @@ public class ProneListener implements Listener {
 			event.setCancelled( true );
 			
 			item = new ConfigGun( GunsmokeImplementation.getInstance().getGun( "example_gun" ) );
+			
+			plugin.getItemManager().register( item );
+			
+			event.getPlayer().getEquipment().setItemInMainHand( item.getItem() );
+		} else if ( event.getPlayer().getEquipment().getItemInMainHand().getType() == Material.MAGMA_CREAM ) {
+			event.setCancelled( true );
+			
+			item = new ConfigArmor( GunsmokeImplementation.getInstance().getArmor( "example_armor" ) );
 			
 			plugin.getItemManager().register( item );
 			

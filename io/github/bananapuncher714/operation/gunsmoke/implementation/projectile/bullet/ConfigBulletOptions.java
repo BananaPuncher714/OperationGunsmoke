@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 
@@ -31,6 +32,8 @@ public class ConfigBulletOptions {
 	
 	protected ConfigExplosion explosion;
 	
+	protected DamageType type;
+	
 	protected boolean bounce;
 	protected double bounceReduction;
 	protected Set< Material > bounceableBlocks = new HashSet< Material >();
@@ -45,6 +48,7 @@ public class ConfigBulletOptions {
 		hitEntityReduction = config.getInt( "hit-entity-reduction", 3 );
 		piercing = config.getBoolean( "piercing" );
 		damageEntity = config.getBoolean( "damage-entity", true );
+		type = DamageType.valueOf( config.getString( "damage-type", "PHYSICAL" ).toUpperCase() );
 		
 		blockHitReduction = config.getDouble( "block-hit-reduction" );
 		for ( String str : config.getStringList( "damageable-blocks" ) ) {
@@ -162,6 +166,14 @@ public class ConfigBulletOptions {
 		this.piercing = piercing;
 	}
 	
+	public DamageType getType() {
+		return type;
+	}
+
+	public void setType( DamageType type ) {
+		this.type = type;
+	}
+
 	public boolean isDamageEntity() {
 		return damageEntity;
 	}

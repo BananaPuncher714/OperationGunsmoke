@@ -85,7 +85,6 @@ public class PlayerManager {
 					new PlayerUpdateItemEvent( player, items[ index ], slot ).callEvent();
 				}
 
-				BukkitUtil.setEquipment( player, newItem, slot );
 				items[ index++ ] = newItem; 
 			}
 		}
@@ -117,6 +116,14 @@ public class PlayerManager {
 	
 	public long getHoldingTime( Player player ) {
 		return System.currentTimeMillis() - ( holdingRC.containsKey( player.getUniqueId() ) ? holdingRC.get( player.getUniqueId() ) : 0 );
+	}
+
+	public void rightClick( Player player, Cancellable parent ) {
+		RightClickEvent event = new RightClickEvent( player );
+		plugin.getTaskManager().callEventSync( event );
+		if ( event.isCancelled() ) {
+			parent.setCancelled( true );
+		}
 	}
 	
 	public void leftClick( Player player, Cancellable parent ) {

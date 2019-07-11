@@ -25,6 +25,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJum
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class PlayerListener implements Listener {
 	public static final long PRONE_DELAY = 500;
@@ -109,12 +110,18 @@ public class PlayerListener implements Listener {
 		// It occurs when opening a door and there is nothing behind it
 		// Does not happen if the BlockBreakEvent is cancelled accordingly
 		
-		if ( callInteract( event.getPlayer() ) ) {
-			if ( event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK ) {
-				plugin.getPlayerManager().leftClick( event.getPlayer(), event );
+		Player player = event.getPlayer();
+		Action action = event.getAction();
+		if ( action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK ) {
+			if ( callInteract( player ) ) {
+				plugin.getPlayerManager().leftClick( player, event );
+			} else {
+				event.setCancelled( true );
 			}
-		} else {
-			event.setCancelled( true );
+		} else if ( action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK ) {
+			if ( !BukkitUtil.isRightClickable( player.getEquipment().getItemInMainHand().getType() ) ) {
+				plugin.getPlayerManager().rightClick( player, event );
+			}
 		}
 	}
 	
@@ -123,10 +130,12 @@ public class PlayerListener implements Listener {
 	 */
 	private boolean callInteract( Player player ) {
 		int currentTick = plugin.getProtocol().getHandler().getServerTick();
+		
 		boolean canCall = true;
 		
 		if ( interactLastCalled.containsKey( player.getUniqueId() ) ) {
-			canCall = interactLastCalled.get( player.getUniqueId() ) != currentTick;
+			int tick = interactLastCalled.get( player.getUniqueId() );
+			canCall = currentTick - tick > 1;
 		}
 		interactLastCalled.put( player.getUniqueId(), currentTick );
 		

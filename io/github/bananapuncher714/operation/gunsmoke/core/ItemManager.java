@@ -128,16 +128,17 @@ public class ItemManager implements Listener {
 	private void onEvent( PlayerUpdateItemEvent event ) {
 		ItemStack item = event.getItem();
 		Player player = event.getPlayer();
+		ItemStack newItem = BukkitUtil.getEquipment( player, event.getSlot() );
 		GunsmokeRepresentable representable = getRepresentable( item );
 		if ( representable instanceof GunsmokeItem ) {
 			GunsmokeItem gItem = ( GunsmokeItem ) representable;
 			
 			if ( gItem.isEquipped() ) {
 				gItem.onUnequip();
+				BukkitUtil.setEquipment( player, newItem, event.getSlot() );
 			}
 		}
 		
-		ItemStack newItem = BukkitUtil.getEquipment( player, event.getSlot() );
 		GunsmokeRepresentable newRepresentable = getRepresentable( newItem );
 		GunsmokeRepresentable otherRepresentable = getRepresentable( player, event.getSlot() == EquipmentSlot.HAND ? EquipmentSlot.OFF_HAND : EquipmentSlot.HAND );
 		if ( newRepresentable instanceof GunsmokeItem ) {

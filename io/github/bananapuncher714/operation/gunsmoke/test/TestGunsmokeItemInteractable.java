@@ -23,6 +23,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItemInteractable;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement.MovementModifier;
+import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovementStandard;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.MovementModifierRecoil;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
@@ -130,8 +131,8 @@ public class TestGunsmokeItemInteractable extends GunsmokeItemInteractable {
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeEntity.getMainHand() : gunsmokeEntity.getOffHand() ).setItem( display );
 		gunsmokeEntity.setHandState( State.SHIELD, slot == EquipmentSlot.HAND );
 		
-//		plugin.getMovementManager().setMovement( holder.getName(), new CrosshairMovementStandard( .02, 3000 ) );
-		plugin.getMovementManager().setMovement( holder.getName(), new CrosshairMovement() );
+		plugin.getMovementManager().setMovement( holder.getName(), new CrosshairMovementStandard( .02, 3000 ) );
+//		plugin.getMovementManager().setMovement( holder.getName(), new CrosshairMovement() );
 	}
 	
 	@Override
