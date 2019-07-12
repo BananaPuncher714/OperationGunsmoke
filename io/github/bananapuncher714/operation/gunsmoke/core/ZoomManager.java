@@ -14,7 +14,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.ZoomLevel;
 
 public class ZoomManager {
 	private Gunsmoke plugin;
+	// TODO This definitely needs refractoring
 	private final Map< UUID, ZoomLevel > zooms = new HashMap< UUID, ZoomLevel >();
+	private final Map< UUID, Double > speedMultiplier = new HashMap< UUID, Double >();
 	private final Map< UUID, PotionEffect > slowness = new HashMap< UUID, PotionEffect >();
 
 	protected ZoomManager( Gunsmoke plugin ) {
@@ -30,25 +32,30 @@ public class ZoomManager {
 			}
 			if ( !player.hasPotionEffect( PotionEffectType.SLOW ) || !player.hasPotionEffect( PotionEffectType.JUMP ) ) {
 				ZoomLevel level = zooms.get( uuid );
+				double speed = speedMultiplier.get( uuid );
 				if ( level != null ) {
 					player.addPotionEffect( new PotionEffect( PotionEffectType.SLOW, 999999999, level.getSlowAmp(), true, false ), true );
 					player.addPotionEffect( new PotionEffect( PotionEffectType.JUMP, 999999999, 129, true, false ), true );
+					player.addPotionEffect( new PotionEffect( PotionEffectType.SPEED, 999999999, ( int ) ( level.getSlowAmp() * speed * .5 ), true, false ), true );
 				}
 			}
 		}
 	}
 
-	public synchronized void setZoom( LivingEntity player, ZoomLevel level ) {
+	public synchronized void setZoom( LivingEntity player, ZoomLevel level, double speed ) {
 		if ( player.hasPotionEffect( PotionEffectType.SLOW ) && !zooms.containsKey( player.getUniqueId() ) ) {
 			slowness.put( player.getUniqueId(), player.getPotionEffect( PotionEffectType.SLOW ) );
 			player.removePotionEffect( PotionEffectType.SLOW );
 			player.removePotionEffect( PotionEffectType.JUMP );
+			player.removePotionEffect( PotionEffectType.SPEED );
 		}
 		zooms.put( player.getUniqueId(), level );
+		speedMultiplier.put( player.getUniqueId(), speed );
 		if ( level != null ) {
 			player.addPotionEffect( new PotionEffect( PotionEffectType.SLOW, 999999999, level.getSlowAmp(), true, false ), true );
 			player.addPotionEffect( new PotionEffect( PotionEffectType.JUMP, 999999999, 129, true, false ), true );
-
+			player.addPotionEffect( new PotionEffect( PotionEffectType.SPEED, 999999999, ( int ) ( level.getSlowAmp() * speed * .5 ), true, false ), true );
+			
 			if ( player instanceof Player ) {
 				Player entity = ( Player ) player;
 				entity.setWalkSpeed( level.getSpeed() );
@@ -67,7 +74,9 @@ public class ZoomManager {
 		}
 		player.removePotionEffect( PotionEffectType.SLOW );
 		player.removePotionEffect( PotionEffectType.JUMP );
+		player.removePotionEffect( PotionEffectType.SPEED );
 		zooms.remove( player.getUniqueId() );
+		speedMultiplier.remove( player.getUniqueId() );
 		if ( slowness.containsKey( player.getUniqueId() ) ) {
 			player.addPotionEffect( slowness.remove( player.getUniqueId() ) );
 		}

@@ -12,7 +12,10 @@ public class ConfigWeaponOptions {
 	protected int shootDelay;
 	protected double recoilYaw;
 	protected double recoilPitch;
-	protected double spread;
+	protected double spreadStart;
+	protected double spreadEnd;
+	protected int spreadShots;
+	protected int spreadRecover;
 	
 	protected int shots;
 	protected double bulletSpread;
@@ -25,8 +28,12 @@ public class ConfigWeaponOptions {
 	protected ZoomLevel zoom;
 	protected double scopeRecoilYaw;
 	protected double scopeRecoilPitch;
-	protected double scopeSpread;
+	protected double scopeSpreadStart;
+	protected double scopeSpreadEnd;
+	protected double scopeSpreadShots;
+	protected double scopeSpreadRecover;
 	protected int scopeDelay;
+	protected double scopeSpeed;
 	
 	protected int switchDelay;
 	
@@ -42,7 +49,10 @@ public class ConfigWeaponOptions {
 		shootDelay = config.getInt( "shoot-delay" );
 		recoilYaw = config.getDouble( "recoil-yaw" );
 		recoilPitch = config.getDouble( "recoil-pitch" );
-		spread = config.getDouble( "spread" );
+		spreadStart = config.getDouble( "spread-start" );
+		spreadEnd = config.getDouble( "spread-end" );
+		spreadShots = config.getInt( "spread-shots" );
+		spreadRecover = config.getInt( "spread-recover-time" );
 		
 		shots = config.getInt( "shots" );
 		bulletSpread = config.getDouble( "bullet-spread" );
@@ -55,8 +65,12 @@ public class ConfigWeaponOptions {
 		zoom = config.getBoolean( "scope" ) ? ZoomLevel.valueOf( config.getString( "zoom-level" ).toUpperCase() ) : null;
 		scopeRecoilYaw = config.getDouble( "scoped-recoil-yaw" );
 		scopeRecoilPitch = config.getDouble( "scoped-recoil-pitch" );
-		scopeSpread = config.getDouble( "scoped-spread" );
+		scopeSpreadStart = config.getDouble( "scoped-spread-start" );
+		scopeSpreadEnd = config.getDouble( "scoped-spread-end" );
+		scopeSpreadShots = config.getInt( "scoped-spread-shots" );
+		scopeSpreadRecover = config.getInt( "scoped-spread-recover-time" );
 		scopeDelay = config.getInt( "scope-delay" );
+		scopeSpeed = config.getDouble( "scope-speed", 1 );
 		
 		switchDelay = config.getInt( "switch-delay" );
 	}
@@ -109,12 +123,36 @@ public class ConfigWeaponOptions {
 		this.recoilPitch = recoilPitch;
 	}
 
-	public double getSpread() {
-		return spread;
+	public double getSpreadStart() {
+		return spreadStart;
 	}
 
-	public void setSpread( double spread ) {
-		this.spread = spread;
+	public void setSpreadStart( double spreadStart ) {
+		this.spreadStart = spreadStart;
+	}
+
+	public double getSpreadEnd() {
+		return spreadEnd;
+	}
+
+	public void setSpreadEnd( double spreadEnd ) {
+		this.spreadEnd = spreadEnd;
+	}
+
+	public int getSpreadShots() {
+		return spreadShots;
+	}
+
+	public void setSpreadShots( int spreadTime ) {
+		this.spreadShots = spreadTime;
+	}
+
+	public int getSpreadRecover() {
+		return spreadRecover;
+	}
+
+	public void setSpreadRecover( int spreadRecover ) {
+		this.spreadRecover = spreadRecover;
 	}
 
 	public int getShots() {
@@ -189,12 +227,36 @@ public class ConfigWeaponOptions {
 		this.scopeRecoilPitch = scopeRecoilPitch;
 	}
 
-	public double getScopeSpread() {
-		return scopeSpread;
+	public double getScopeSpreadStart() {
+		return scopeSpreadStart;
 	}
 
-	public void setScopeSpread( double scopeSpread ) {
-		this.scopeSpread = scopeSpread;
+	public void setScopeSpreadStart( double scopeSpreadStart ) {
+		this.scopeSpreadStart = scopeSpreadStart;
+	}
+
+	public double getScopeSpreadEnd() {
+		return scopeSpreadEnd;
+	}
+
+	public void setScopeSpreadEnd( double scopeSpreadEnd ) {
+		this.scopeSpreadEnd = scopeSpreadEnd;
+	}
+
+	public double getScopeSpreadShots() {
+		return scopeSpreadShots;
+	}
+
+	public void setScopeSpreadShots( double scopeSpreadTime ) {
+		this.scopeSpreadShots = scopeSpreadTime;
+	}
+
+	public double getScopeSpreadRecover() {
+		return scopeSpreadRecover;
+	}
+
+	public void setScopeSpreadRecover( double scopeSpreadRecover ) {
+		this.scopeSpreadRecover = scopeSpreadRecover;
 	}
 
 	public int getScopeDelay() {
@@ -203,6 +265,14 @@ public class ConfigWeaponOptions {
 
 	public void setScopeDelay( int scopeDelay ) {
 		this.scopeDelay = scopeDelay;
+	}
+	
+	public double getScopeSpeed() {
+		return scopeSpeed;
+	}
+
+	public void setScopeSpeed( double scopeSpeed ) {
+		this.scopeSpeed = scopeSpeed;
 	}
 
 	public int getSwitchDelay() {

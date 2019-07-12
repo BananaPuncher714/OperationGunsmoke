@@ -6,7 +6,10 @@ automatic: false
 shoot-delay: 170
 recoil-yaw: 3
 recoil-pitch: 5
-spread: 5
+spread-start: 3
+spread-end: 5
+spread-shots: 10
+spread-recover-time: 200
 
 shots: 1
 bullet-spread: 0
@@ -19,8 +22,12 @@ reload-amount: 30
 scope: true
 zoom-level: _1
 scoped-recoil-yaw: 1
-scoped-recoil-pitch: 2 
-scoped-spread: 0
+scoped-recoil-pitch: 2
+scoped-spread-start: 0
+scoped-spread-end: 0
+scoped-spread-shots: 7
+scoped-spread-recover-time: 500
 scope-delay: 200
+scope-speed: 1
 
 switch-delay: 820

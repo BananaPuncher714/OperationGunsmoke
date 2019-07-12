@@ -52,6 +52,8 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	
 	protected boolean isScoped = false;
 	
+	protected double shots = 0;
+	
 	protected int bullets = 0;
 	
 	protected ConfigWeaponOptions options;
@@ -59,13 +61,22 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	public ConfigGun( ConfigWeaponOptions options ) {
 		this.options = options;
 		bullets = options.getClipSize();
-		display = new ItemStackMultiState( new ItemStackGunsmoke( new ItemStack( Material.BOW ) ) );
+		
+		ItemStack item = new ItemStack( Material.BOW );
+		ItemMeta meta = item.getItemMeta();
+		if ( meta instanceof Damageable ) {
+			( ( Damageable ) meta ).setDamage( options.getModel() );
+		}
+		item.setItemMeta( meta );
+		
+		display = new ItemStackMultiState( new ItemStackGunsmoke( item ) );
 	}
 	
 	protected void shoot() {
 		long time = System.currentTimeMillis();
 		// Do last shot check
-		if ( time - lastShot < options.getShootDelay() ) {
+		long timeSinceLastShot = time - lastShot;
+		if ( timeSinceLastShot < options.getShootDelay() ) {
 			return;
 		}
 		// Do is reloading check
@@ -79,9 +90,25 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		
 		Vector facing = holder.getLocation().getDirection();
 		if ( isScoped ) {
-			facing = VectorUtil.randomizeSpread( facing, options.getScopeSpread(), options.getScopeSpread() );
+			if ( timeSinceLastShot > options.getScopeSpreadRecover() ) {
+				shots = 0;
+			}
+			double degrees = Math.sqrt( shots );
+			degrees *= options.getScopeSpreadEnd() - options.getScopeSpreadStart();
+			degrees += options.getScopeSpreadStart();
+			
+			facing = VectorUtil.randomizeSpread( facing, degrees, degrees );
+			shots = Math.min( 1, shots + 1 / ( double ) options.getScopeSpreadShots() );
 		} else {
-			facing = VectorUtil.randomizeSpread( facing, options.getSpread(), options.getSpread() );
+			if ( timeSinceLastShot > options.getSpreadRecover() ) {
+				shots = 0;
+			}
+			double degrees = Math.sqrt( shots );
+			degrees *= options.getSpreadEnd() - options.getSpreadStart();
+			degrees += options.getSpreadStart();
+			
+			facing = VectorUtil.randomizeSpread( facing, degrees, degrees );
+			shots = Math.min( 1, shots + 1 / ( double ) options.getSpreadShots() );
 		}
 		for ( int i = 0; i < options.getShots(); i++ ) {
 			GunsmokeProjectile projectile = new ConfigBullet( GunsmokeUtil.getEntity( holder ), holder.getEyeLocation(), options.getBullet() );
@@ -147,7 +174,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		if ( isScoping && time - lastScoped >= options.getScopeDelay() ) {
 			isScoping = false;
 			isScoped = true;
-			GunsmokeUtil.getPlugin().getZoomManager().setZoom( holder, options.getZoom() );
+			GunsmokeUtil.getPlugin().getZoomManager().setZoom( holder, options.getZoom(), options.getScopeSpeed() );
 		}
 		
 		if ( holder instanceof Player ) {
@@ -246,6 +273,8 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		lastSwitched = System.currentTimeMillis();
 		isSwitching = true;
 		
+		shots = 0;
+		
 		updateItem();
 	}
 	
@@ -258,6 +287,8 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		
 		isReloading = false;
 		isSwitching = false;
+		
+		shots = 0;
 		
 		unscope();
 		
