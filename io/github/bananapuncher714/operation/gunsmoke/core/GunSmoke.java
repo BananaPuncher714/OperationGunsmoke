@@ -1,11 +1,13 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
-import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
@@ -17,6 +19,7 @@ public class Gunsmoke extends JavaPlugin {
 	protected TinyProtocolGunsmoke protocol;
 	protected ItemManager itemManager;
 	protected EntityManager entityManager;
+	protected EntityTracker entityTracker;
 	protected BlockManager blockManager;
 	protected PlayerManager playerManager;
 	protected TaskManager taskManager;
@@ -30,6 +33,7 @@ public class Gunsmoke extends JavaPlugin {
 		
 		itemManager = new ItemManager( this );
 		entityManager = new EntityManager( this );
+		entityTracker = new EntityTracker( this );
 		blockManager = new BlockManager( this );
 		playerManager = new PlayerManager( this );
 		taskManager = new TaskManager( this );
@@ -59,12 +63,19 @@ public class Gunsmoke extends JavaPlugin {
 	 */
 	private void run() {
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
-			GunsmokePlayer entity = entityManager.getEntity( player.getUniqueId() );
+//			GunsmokePlayer entity = entityManager.getEntity( player.getUniqueId() );
 //			entity.update();
 
 			protocol.getHandler().setTint( player, 1 - player.getHealth() / player.getHealthScale() );
 			
 			NMSUtils.setNoFly( player );
+			
+			for ( Entity entity : player.getWorld().getNearbyEntities( player.getLocation(), 20, 20, 20 ) ) {
+				Location location = entityTracker.getLocationOf( entity.getUniqueId(), 6 );
+				if ( location != null ) {
+					entity.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( 0, entity.getHeight() + .5, 0 ), 0 );
+				}
+			}
 //			player.setRemainingAir( 285 );
 //			protocol.getHandler().setAir( player, 285 );
 //			entity.update();
@@ -81,6 +92,10 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public EntityManager getEntityManager() {
 		return entityManager;
+	}
+	
+	public EntityTracker getEntityTracker() {
+		return entityTracker;
 	}
 	
 	public BlockManager getBlockManager() {

@@ -1,5 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,15 +11,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
-import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
-import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEntity;
@@ -54,12 +51,22 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			
 			// Detect if this hit any entities
 			// TODO Add way to hit Gunsmoke entities too...
-			List< Entity > nearbyEntities = GunsmokeUtil.getNearbyEntities( null, location, getVelocity() );
+			
+			Collection< Entity > nearbyEntities = location.getWorld().getNearbyEntities( location, getSpeed(), getSpeed(), getSpeed() );//GunsmokeUtil.getNearbyEntities( null, location, getVelocity() );
 			
 			for ( Entity entity : nearbyEntities ) {
 				if ( tickHitEntities.contains( entity.getUniqueId() ) ) {
 					continue;
 				}
+				Location originalPos = GunsmokeUtil.getPlugin().getEntityTracker().getLocationOf( entity.getUniqueId() );
+				if ( originalPos == null ) {
+					continue;
+				}
+				Vector toEntity = originalPos.clone().subtract( location ).toVector();
+				if ( velocity.dot( toEntity ) <= 0 ) {
+					continue;
+				}
+				
 				CollisionResultEntity intersection = VectorUtil.rayIntersect( entity, location, velocity );
 				if ( intersection != null ) {
 					if ( intersection.getLocation().distanceSquared( location ) > speedSquared ) {

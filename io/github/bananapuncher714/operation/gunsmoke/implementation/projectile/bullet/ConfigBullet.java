@@ -7,12 +7,14 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
@@ -27,6 +29,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeExplosion
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmor;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 
 public class ConfigBullet extends GunsmokeProjectile {
@@ -163,7 +166,15 @@ public class ConfigBullet extends GunsmokeProjectile {
 			if ( !entity.isInvincible() ) {
 				double distance = distanceTravelled + location.distance( target.getIntersection().getLocation() );
 				double damage = getDamage( distance ) * power;
-				if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {
+				boolean isHeadshot = VectorUtil.isHeadshot( entTarget.getIntersection() );
+				if ( isHeadshot ) {
+					if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
+						GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) entity;
+						GunsmokeRepresentable helmet = GunsmokeUtil.getPlugin().getItemManager().getRepresentable( BukkitUtil.getEquipment( wrapper.getEntity(), EquipmentSlot.HEAD ) );
+						if ( helmet instanceof ConfigArmor ) {
+							damage *= ( ( ConfigArmor ) helmet ).getHeadshotReduction();
+						}
+					}
 					damage *= options.getHeadshotMultiplier();
 				}
 				if ( damage > 0 ) {

@@ -5,6 +5,7 @@ explosion-armor: 15
 fire-armor: 0
 vanilla-armor: 0
 
+headshot-reduction: .5
 slot: CHEST
 
 name: "Example armor"

@@ -29,6 +29,10 @@ public class ConfigArmor extends GunsmokeItemEquippable {
 		return options.get( type );
 	}
 	
+	public double getHeadshotReduction() {
+		return options.getHeadshotReduction();
+	}
+	
 	@Override
 	public EnumEventResult onTakeDamage( GunsmokeEntityDamageEvent event ) {
 		return EnumEventResult.SKIPPED;

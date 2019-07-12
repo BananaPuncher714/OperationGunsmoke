@@ -34,9 +34,16 @@ public final class VectorUtil {
 		
 		BoundingBox box = entity.getBoundingBox();
 		
+		// TODO Maybe create a special method that takes delay in account?
+		Location entLoc = GunsmokeUtil.getPlugin().getEntityTracker().getLocationOf( entity.getUniqueId() );
+		if ( entLoc != null ) {
+			Vector shift = entLoc.clone().subtract( entity.getLocation() ).toVector();
+			box.shift( shift );
+		}
+		
 		Location lower = new Location( location.getWorld(), box.getMinX(), box.getMinY(), box.getMinZ() );
 		Location upper = new Location( location.getWorld(), box.getMaxX(), box.getMaxY(), box.getMaxZ() );
-
+		
 		Location entry = null;
 		Location exit = null;
 		BlockFace entryFace = null;
@@ -133,73 +140,73 @@ public final class VectorUtil {
 	}
 	
 	public static boolean fastCanSee( Location start, Location end ) {
-			// Get the coords
-			int px1 = start.getBlockX();
-			int py1 = start.getBlockY();
-			int pz1 = start.getBlockZ();
-			
-			int px2 = end.getBlockX();
-			int py2 = end.getBlockY();
-			int pz2 = end.getBlockZ();
-			
-			// Get the width and height difference
-			int dx = Math.abs( px1 - px2 );
-		    int dy = Math.abs( py1 - py2 );
-		    int dz = Math.abs( pz1 - pz2 );
-		    
-		    int x = px1;
-		    int y = py1;
-		    int z = pz1;
-		    int n = 1 + dx + dy + dz;
-		    int x_inc = (px2 > px1) ? 1 : -1;
-		    int y_inc = (py2 > py1) ? 1 : -1;
-		    int z_inc = (pz2 > pz1) ? 1 : -1;
-		    int errorxy = dx - dy;
-		    int errorxz = dx - dz;
-		    int errorzy = dz - dy;
-		    dx *= 2;
-		    dy *= 2;
-		    dz *= 2;
+		// Get the coords
+		int px1 = start.getBlockX();
+		int py1 = start.getBlockY();
+		int pz1 = start.getBlockZ();
 
-		    for (; n > 0; --n) {
-		    	Location newLocation = new Location( start.getWorld(), x, y, z );
-		        if ( newLocation.getBlock().getType() != Material.AIR ) {
-		        	return false;
-		        }
-		        newLocation.getBlock().setType( Material.GLASS );
+		int px2 = end.getBlockX();
+		int py2 = end.getBlockY();
+		int pz2 = end.getBlockZ();
 
-		        if ( errorxy > 0 && errorxz > 0 ) {
-		        	x += x_inc;
-		        	errorxy -= dy;
-		        	errorxz -= dz;
-		        } else if ( errorxz <= 0 && errorzy > 0 ) {
-		        	z += z_inc;
-		        	errorxz += dx;
-		        	errorzy -= dy;
-		        } else {
-		        	y += y_inc;
-		        	errorxy += dx;
-		        	errorzy += dz;
-		        }
-		    }
-		    return true;
+		// Get the width and height difference
+		int dx = Math.abs( px1 - px2 );
+		int dy = Math.abs( py1 - py2 );
+		int dz = Math.abs( pz1 - pz2 );
+
+		int x = px1;
+		int y = py1;
+		int z = pz1;
+		int n = 1 + dx + dy + dz;
+		int x_inc = (px2 > px1) ? 1 : -1;
+		int y_inc = (py2 > py1) ? 1 : -1;
+		int z_inc = (pz2 > pz1) ? 1 : -1;
+		int errorxy = dx - dy;
+		int errorxz = dx - dz;
+		int errorzy = dz - dy;
+		dx *= 2;
+		dy *= 2;
+		dz *= 2;
+
+		for (; n > 0; --n) {
+			Location newLocation = new Location( start.getWorld(), x, y, z );
+			if ( newLocation.getBlock().getType() != Material.AIR ) {
+				return false;
+			}
+			newLocation.getBlock().setType( Material.GLASS );
+
+			if ( errorxy > 0 && errorxz > 0 ) {
+				x += x_inc;
+				errorxy -= dy;
+				errorxz -= dz;
+			} else if ( errorxz <= 0 && errorzy > 0 ) {
+				z += z_inc;
+				errorxz += dx;
+				errorzy -= dy;
+			} else {
+				y += y_inc;
+				errorxy += dx;
+				errorzy += dz;
+			}
+		}
+		return true;
 	}
-	
+
 	public static boolean fastCanSeeTwo( Location start, Location end, double scale ) {
 		// Get the coords
 		double px1 = start.getX();
 		double py1 = start.getY();
 		double pz1 = start.getZ();
-		
+
 		double px2 = end.getX();
 		double py2 = end.getY();
 		double pz2 = end.getZ();
-		
+
 		// Get the width and height difference
 		double dx = Math.abs( px1 - px2 );
 		double dy = Math.abs( py1 - py2 );
 		double dz = Math.abs( pz1 - pz2 );
-	    
+
 		double x = px1;
 		double y = py1;
 		double z = pz1;
@@ -210,34 +217,34 @@ public final class VectorUtil {
 		double errorxy = dx - dy;
 		double errorxz = dx - dz;
 		double errorzy = dz - dy;
-	    dx *= 2;
-	    dy *= 2;
-	    dz *= 2;
+		dx *= 2;
+		dy *= 2;
+		dz *= 2;
 
-	    for (; n > 0; --n) {
-	    	Location newLocation = new Location( start.getWorld(), x, y, z );
-	        if ( newLocation.getBlock().getType() != Material.AIR ) {
-	        	return false;
-	        }
-	        newLocation.getBlock().setType( Material.GLASS );
+		for (; n > 0; --n) {
+			Location newLocation = new Location( start.getWorld(), x, y, z );
+			if ( newLocation.getBlock().getType() != Material.AIR ) {
+				return false;
+			}
+			newLocation.getBlock().setType( Material.GLASS );
 
-	        if ( errorxy > 0 && errorxz > 0 ) {
-	        	x += x_inc;
-	        	errorxy -= dy;
-	        	errorxz -= dz;
-	        } else if ( errorxz <= 0 && errorzy > 0 ) {
-	        	z += z_inc;
-	        	errorxz += dx;
-	        	errorzy -= dy;
-	        } else {
-	        	y += y_inc;
-	        	errorxy += dx;
-	        	errorzy += dz;
-	        }
-	        
-	    }
-	    return true;
-}
+			if ( errorxy > 0 && errorxz > 0 ) {
+				x += x_inc;
+				errorxy -= dy;
+				errorxz -= dz;
+			} else if ( errorxz <= 0 && errorzy > 0 ) {
+				z += z_inc;
+				errorxz += dx;
+				errorzy -= dy;
+			} else {
+				y += y_inc;
+				errorxy += dx;
+				errorzy += dz;
+			}
+
+		}
+		return true;
+	}
 	
 	public static Vector randomizeSpread( Vector vec, double deg ) {
 		// No Y difference for you, only good for single shots
@@ -288,7 +295,13 @@ public final class VectorUtil {
 		if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
 			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) entity;
 			
-			double entityTop = wrapper.getEntity().getLocation().getY() + wrapper.getEntity().getHeight();
+			Location entityLocation = GunsmokeUtil.getPlugin().getEntityTracker().getLocationOf( entity.getUUID() );
+			
+			if ( entityLocation == null ) {
+				return false;
+			}
+			
+			double entityTop = entityLocation.getY() + wrapper.getEntity().getHeight();
 			
 			double headLevel = wrapper.getEntity().getHeight() - wrapper.getEntity().getEyeHeight();
 			

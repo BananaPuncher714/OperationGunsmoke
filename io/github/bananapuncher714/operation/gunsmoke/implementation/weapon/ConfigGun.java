@@ -16,7 +16,6 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
-import io.github.bananapuncher714.operation.gunsmoke.api.ZoomLevel;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
@@ -128,7 +127,6 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		if ( !isReloading ) {
 			isScoping = true;
 			lastScoped = System.currentTimeMillis();
-			GunsmokeUtil.getPlugin().getZoomManager().setZoom( holder, options.getZoom() );
 			updateItem();
 		}
 	}
@@ -138,6 +136,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		long time = System.currentTimeMillis();
 		if ( isSwitching && time - lastSwitched >= options.getSwitchDelay() ) {
 			isSwitching = false;
+			updateItem();
 		}
 		
 		if ( isReloading && time - lastReloaded >= options.getReloadDelay() ) {
@@ -148,6 +147,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		if ( isScoping && time - lastScoped >= options.getScopeDelay() ) {
 			isScoping = false;
 			isScoped = true;
+			GunsmokeUtil.getPlugin().getZoomManager().setZoom( holder, options.getZoom() );
 		}
 		
 		if ( holder instanceof Player ) {

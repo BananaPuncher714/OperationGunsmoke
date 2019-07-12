@@ -22,7 +22,6 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
-import io.github.bananapuncher714.operation.gunsmoke.core.MovementManager;
 
 public class GunsmokeUtil {
 	private static Gunsmoke GUNSMOKE_INSTANCE;

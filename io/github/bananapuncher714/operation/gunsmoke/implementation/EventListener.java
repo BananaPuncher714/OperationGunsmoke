@@ -3,7 +3,6 @@ package io.github.bananapuncher714.operation.gunsmoke.implementation;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
@@ -37,6 +36,7 @@ public class EventListener implements Listener {
 	
 	@EventHandler
 	private void onEvent( GunsmokeEntityDamageEvent event ) {
+		// TODO Get a gunsmoke bullet event
 		GunsmokeEntity entity = event.getRepresentable();
 		if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {
 			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) entity;

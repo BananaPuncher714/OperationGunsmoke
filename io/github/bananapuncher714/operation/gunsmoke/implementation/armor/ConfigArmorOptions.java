@@ -14,6 +14,7 @@ public class ConfigArmorOptions {
 	protected int fireArmor;
 	protected int vanillaArmor;
 	
+	protected double headshotReduction;
 	protected EquipmentSlot slot;
 	
 	protected String name;
@@ -28,6 +29,7 @@ public class ConfigArmorOptions {
 		fireArmor = config.getInt( "fire-armor" );
 		vanillaArmor = config.getInt( "vanilla-armor" );
 		
+		headshotReduction = config.getDouble( "headshot-reduction", .5 );
 		slot = EquipmentSlot.valueOf( config.getString( "slot" ).toUpperCase() );
 		
 		name = config.getString( "name" );
@@ -47,6 +49,15 @@ public class ConfigArmorOptions {
 		}
 	}
 	
+	
+	public double getHeadshotReduction() {
+		return headshotReduction;
+	}
+
+	public void setHeadshotReduction( double headshotReduction ) {
+		this.headshotReduction = headshotReduction;
+	}
+
 	public void set( DamageType type, int resistance ) {
 		switch ( type ) {
 		case CHEMICAL: chemicalArmor = resistance;
@@ -60,6 +71,8 @@ public class ConfigArmorOptions {
 		case PHYSICAL: physicalArmor = resistance;
 			break;
 		case VANILLA: vanillaArmor = resistance;
+			break;
+		default:
 			break;
 		}
 	}
