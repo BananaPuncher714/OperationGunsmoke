@@ -23,6 +23,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpd
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.movement.CrosshairMovement;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
@@ -66,8 +67,12 @@ public class PlayerManager {
 			int index = 0;
 			for ( EquipmentSlot slot : EquipmentSlot.values() ) {
 				ItemStack newItem = BukkitUtil.getEquipment( player, slot );
+				if ( newItem != null ) {
+					newItem = newItem.clone();
+				}
 				
 				if ( newItem == null && items[ index ] == null ) {
+					index++;
 					continue;
 				} else if ( newItem == null ^ items[ index ] == null ) {
 					new PlayerUpdateItemEvent( player, items[ index ], slot ).callEvent();
@@ -82,10 +87,26 @@ public class PlayerManager {
 						items[ index++ ] = newItem; 
 						continue;
 					}
-					new PlayerUpdateItemEvent( player, items[ index ], slot ).callEvent();
+					new PlayerUpdateItemEvent( player, old, slot ).callEvent();
 				}
 
 				items[ index++ ] = newItem; 
+			}
+		}
+	}
+	
+	protected void remove( Player player ) {
+		setHolding( player, false );
+
+		setProne( player, false, true );
+		
+		heldItems.remove( player.getUniqueId() );
+		for ( EquipmentSlot slot : EquipmentSlot.values() ) {
+			ItemStack item = BukkitUtil.getEquipment( player, slot );
+			GunsmokeRepresentable rep = plugin.getItemManager().getRepresentable( item );
+			if ( rep instanceof GunsmokeItem ) {
+				GunsmokeItem gItem = ( GunsmokeItem ) rep;
+				gItem.onUnequip();
 			}
 		}
 	}
@@ -151,8 +172,12 @@ public class PlayerManager {
 	}
 	
 	public void setProne( Player player, boolean prone ) {
+		setProne( player, prone, false );
+	}
+	
+	public void setProne( Player player, boolean prone, boolean force) {
 		GunsmokePlayer entity = plugin.getEntityManager().getEntity( player.getUniqueId() );
-		if ( entity.isProne() == prone ) {
+		if ( !force && entity.isProne() == prone ) {
 			return;
 		}
 		

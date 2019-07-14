@@ -214,6 +214,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( PlayerSwapHandItemsEvent event ) {
+		
 		Player player = event.getPlayer();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		

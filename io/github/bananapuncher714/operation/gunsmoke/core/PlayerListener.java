@@ -1,4 +1,4 @@
-package io.github.bananapuncher714.operation.gunsmoke.core.listeners;
+package io.github.bananapuncher714.operation.gunsmoke.core;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -24,7 +25,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
-import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class PlayerListener implements Listener {
@@ -35,13 +35,18 @@ public class PlayerListener implements Listener {
 	private Map< UUID, Integer > interactLastCalled = new HashMap< UUID, Integer >();
 	private Map< UUID, Long > lastSneak = new HashMap< UUID, Long >();
 	
-	public PlayerListener( Gunsmoke plugin ) {
+	protected PlayerListener( Gunsmoke plugin ) {
 		this.plugin = plugin;
 	}
 	
 	@EventHandler
 	private void onPlayerDeathEvent( PlayerDeathEvent event ) {
-		plugin.getPlayerManager().setHolding( event.getEntity(), false );
+		plugin.getPlayerManager().remove( event.getEntity() );
+	}
+	
+	@EventHandler
+	private void onPlayerRespawnEvent( PlayerRespawnEvent event ) {
+		plugin.getPlayerManager().remove( event.getPlayer() );
 	}
 	
 	@EventHandler
@@ -66,8 +71,7 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	private void onPlayerQuitEvent( PlayerQuitEvent event ) {
-		plugin.getPlayerManager().setHolding( ( Player ) event.getPlayer(), false );
-		// TODO add weapon unequip here
+		plugin.getPlayerManager().remove( event.getPlayer() );
 	}
 
 	// This is because bukkit has an abyssmal player left click detection system for adventure mode people

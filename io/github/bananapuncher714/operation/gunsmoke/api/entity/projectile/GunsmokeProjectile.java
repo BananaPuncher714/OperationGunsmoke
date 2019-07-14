@@ -62,14 +62,14 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 				if ( originalPos == null ) {
 					continue;
 				}
-				Vector toEntity = originalPos.clone().subtract( location ).toVector();
-				if ( velocity.dot( toEntity ) <= 0 ) {
-					continue;
-				}
 				
 				CollisionResultEntity intersection = VectorUtil.rayIntersect( entity, location, velocity );
 				if ( intersection != null ) {
 					if ( intersection.getLocation().distanceSquared( location ) > speedSquared ) {
+						continue;
+					}
+					Vector toEntity = intersection.getLocation().clone().subtract( location ).toVector();
+					if ( velocity.dot( toEntity ) <= 0 ) {
 						continue;
 					}
 					

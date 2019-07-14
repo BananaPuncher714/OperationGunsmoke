@@ -9,7 +9,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
-import io.github.bananapuncher714.operation.gunsmoke.core.listeners.PlayerListener;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;

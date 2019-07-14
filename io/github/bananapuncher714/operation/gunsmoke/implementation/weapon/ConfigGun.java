@@ -280,6 +280,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	
 	@Override
 	public void onUnequip() {
+		holder.sendMessage( "Unequpped" );
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeHolder.getMainHand() : gunsmokeHolder.getOffHand() ).setItem( null );
 		gunsmokeHolder.setHandState( State.DEFAULT, slot == EquipmentSlot.HAND );
 		
