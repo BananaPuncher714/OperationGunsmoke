@@ -34,7 +34,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					
 					ConfigWeaponOptions options = GunsmokeImplementation.getInstance().getGun( id );
 					if ( options != null ) {
-						item = new ConfigGun( GunsmokeImplementation.getInstance().getGun( id ) );
+						item = new ConfigGun( options );
 					} else {
 						ConfigArmorOptions armor = GunsmokeImplementation.getInstance().getArmor( id );
 						if ( armor != null ) {

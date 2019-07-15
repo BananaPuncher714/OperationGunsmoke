@@ -3,9 +3,11 @@ main: io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke
 version: 0.1
 description: The One Gun Plugin to Rule Them All
 api-version: 1.13
+load: STARTUP
 author: BananaPuncher714
 authors:
 - "Jetp"
+- "Remceau"
 
 commands:
   gunsmoke:

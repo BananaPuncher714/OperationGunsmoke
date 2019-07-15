@@ -24,6 +24,7 @@ import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -52,8 +53,12 @@ import net.minecraft.server.v1_14_R1.DataWatcherObject;
 import net.minecraft.server.v1_14_R1.DataWatcherRegistry;
 import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityHuman;
+import net.minecraft.server.v1_14_R1.EntityLiving;
 import net.minecraft.server.v1_14_R1.EntityPose;
 import net.minecraft.server.v1_14_R1.EntitySize;
+import net.minecraft.server.v1_14_R1.EntityTypes;
+import net.minecraft.server.v1_14_R1.EntityZombie;
+import net.minecraft.server.v1_14_R1.EnumCreatureType;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
 import net.minecraft.server.v1_14_R1.Fluid;
 import net.minecraft.server.v1_14_R1.GenericAttributes;
@@ -73,6 +78,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayInTeleportAccept;
 import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityStatus;
@@ -80,6 +86,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutLightUpdate;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFlags;
+import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAction;
@@ -190,8 +197,27 @@ public class NMSHandler implements PacketHandler {
 			e.printStackTrace();
 		}
 	}
-
+	
 	private Gunsmoke plugin;
+	private EntityInterceptor entityInterceptor;
+
+	public NMSHandler() {
+		EntityRegistry.register( "gunbot", EntityTypes.ZOMBIE, EntityRegistry.create( new EntityTypes.b< EntityZombie >() {
+			@Override
+			public GunBot create( EntityTypes< EntityZombie > arg0, net.minecraft.server.v1_14_R1.World arg1 ) {
+				return new GunBot( arg0, arg1 );
+			}
+		}, EnumCreatureType.MONSTER, .6, 1.8 ) );
+		
+		EntityRegistry.register( "test", EntityTypes.PLAYER, EntityRegistry.create( new EntityTypes.b< EntityHuman >() {
+			@Override
+			public EntityHuman create( EntityTypes< EntityHuman > arg0, net.minecraft.server.v1_14_R1.World arg1 ) {
+				return new TestEntity( arg0, arg1 );
+			}
+		}, EnumCreatureType.MISC, .6, 1.8 ) );
+		
+		entityInterceptor = new EntityInterceptor();
+	}
 	
 	public void setGunsmoke( Gunsmoke plugin ) {
 		this.plugin = plugin;
@@ -209,6 +235,10 @@ public class NMSHandler implements PacketHandler {
 			return handleEntityEquipmentPacket( reciever, ( PacketPlayOutEntityEquipment ) packet );
 		} else if ( packet instanceof PacketPlayOutAbilities ) {
 			handleAbilitiesPacket( reciever, ( PacketPlayOutAbilities ) packet );
+		} else if ( packet instanceof PacketPlayOutSpawnEntityLiving ) {
+			return entityInterceptor.onCapturePacket( reciever, ( PacketPlayOutSpawnEntityLiving ) packet );
+		} else if ( packet instanceof PacketPlayOutEntityDestroy ) {
+			return entityInterceptor.onCapturePacket( reciever, ( PacketPlayOutEntityDestroy ) packet );
 		}
 		return packet;
 	}
@@ -469,7 +499,7 @@ public class NMSHandler implements PacketHandler {
 		return packet;
 	}
 
-	private boolean handleAbilitiesPacket( Player player, PacketPlayOutAbilities packet ) {
+	private void handleAbilitiesPacket( Player player, PacketPlayOutAbilities packet ) {
 		// TODO
 		try {
 			 float fov = ( float ) PLAYERABILITIES_FOV.getFloat( packet );
@@ -478,10 +508,8 @@ public class NMSHandler implements PacketHandler {
 			 } else {
 				 packet.b( fov );
 			 }
-			 return true;
 		} catch ( IllegalArgumentException | IllegalAccessException e ) {
 			e.printStackTrace();
-			return false;
 		}
 	}
 	
@@ -752,6 +780,9 @@ public class NMSHandler implements PacketHandler {
 	    }
 	    
 	    return results;
+	}
+	
+	public void blockCollisionTest() {
 	}
 	
 	@Override

@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -13,7 +14,7 @@ import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.WorldServer;
 
 public class NMSUtils {
-	protected final static org.bukkit.entity.Entity getEntityFromId( World world, int id ) {
+	protected final static CraftEntity getEntityFromId( World world, int id ) {
 		net.minecraft.server.v1_14_R1.World nmsWorld = ( ( CraftWorld ) world ).getHandle();
 		net.minecraft.server.v1_14_R1.Entity nmsEntity = nmsWorld.getEntity( id );
 		return nmsEntity == null ? null : nmsEntity.getBukkitEntity();
