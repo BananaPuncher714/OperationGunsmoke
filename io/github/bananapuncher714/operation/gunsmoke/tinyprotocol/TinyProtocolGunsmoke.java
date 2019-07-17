@@ -29,6 +29,13 @@ public class TinyProtocolGunsmoke extends TinyProtocol {
 		return handler;
 	}
 	
+	@Override
+	public void sendPacket(Player player, Object packet) {
+		if ( handler.isRealPlayer( player ) ) {
+			sendPacket(getChannel(player), packet);
+		}
+	}
+	
 	public void sendPacket( String name, Object packet ) {
 		Channel channel = getChannel( name );
 		if ( channel == null ) {

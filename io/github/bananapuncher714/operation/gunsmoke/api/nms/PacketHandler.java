@@ -4,11 +4,13 @@ import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
@@ -30,7 +32,7 @@ public interface PacketHandler {
 	
 	void teleportRelative( String player, Vector vector, double yaw, double pitch );
 	
-	void set( Player player, boolean down );
+	void set( HumanEntity player, boolean down );
 	void setAir( Player player, int ticks );
 	void setTint( Player player, double tint );
 	void playHurtAnimationFor( LivingEntity entity );
@@ -47,6 +49,9 @@ public interface PacketHandler {
 	List< CollisionResultBlock > rayTrace( Location start, Vector ray, double dist );
 	
 	List< Entity > getNearbyEntities( Entity entity, Location location, Vector vector );
+	
+	boolean isRealPlayer( Player player );
+	GunsmokeNPC getNPC( Player player );
 	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );

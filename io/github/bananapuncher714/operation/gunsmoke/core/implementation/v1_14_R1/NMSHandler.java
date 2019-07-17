@@ -23,8 +23,9 @@ import org.bukkit.craftbukkit.v1_14_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_14_R1.block.CraftBlock;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftLivingEntity;
+import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -33,6 +34,7 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
@@ -43,6 +45,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHa
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import net.minecraft.server.v1_14_R1.AttributeInstance;
 import net.minecraft.server.v1_14_R1.AxisAlignedBB;
 import net.minecraft.server.v1_14_R1.BlockPosition;
@@ -53,7 +56,7 @@ import net.minecraft.server.v1_14_R1.DataWatcherObject;
 import net.minecraft.server.v1_14_R1.DataWatcherRegistry;
 import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityHuman;
-import net.minecraft.server.v1_14_R1.EntityLiving;
+import net.minecraft.server.v1_14_R1.EntityPlayer;
 import net.minecraft.server.v1_14_R1.EntityPose;
 import net.minecraft.server.v1_14_R1.EntitySize;
 import net.minecraft.server.v1_14_R1.EntityTypes;
@@ -78,7 +81,6 @@ import net.minecraft.server.v1_14_R1.PacketPlayInTeleportAccept;
 import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockBreakAnimation;
 import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_14_R1.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityStatus;
@@ -86,7 +88,6 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutLightUpdate;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFlags;
-import net.minecraft.server.v1_14_R1.PacketPlayOutSpawnEntityLiving;
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAction;
@@ -199,24 +200,21 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	private Gunsmoke plugin;
-	private EntityInterceptor entityInterceptor;
 
 	public NMSHandler() {
-		EntityRegistry.register( "gunbot", EntityTypes.ZOMBIE, EntityRegistry.create( new EntityTypes.b< EntityZombie >() {
+		NMSUtils.register( "gunbot", EntityTypes.ZOMBIE, NMSUtils.create( new EntityTypes.b< EntityZombie >() {
 			@Override
 			public GunBot create( EntityTypes< EntityZombie > arg0, net.minecraft.server.v1_14_R1.World arg1 ) {
 				return new GunBot( arg0, arg1 );
 			}
 		}, EnumCreatureType.MONSTER, .6, 1.8 ) );
 		
-		EntityRegistry.register( "test", EntityTypes.PLAYER, EntityRegistry.create( new EntityTypes.b< EntityHuman >() {
+		NMSUtils.register( "test", EntityTypes.PLAYER, NMSUtils.create( new EntityTypes.b< EntityPlayer >() {
 			@Override
-			public EntityHuman create( EntityTypes< EntityHuman > arg0, net.minecraft.server.v1_14_R1.World arg1 ) {
+			public EntityPlayer create( EntityTypes< EntityPlayer > arg0, net.minecraft.server.v1_14_R1.World arg1 ) {
 				return new TestEntity( arg0, arg1 );
 			}
 		}, EnumCreatureType.MISC, .6, 1.8 ) );
-		
-		entityInterceptor = new EntityInterceptor();
 	}
 	
 	public void setGunsmoke( Gunsmoke plugin ) {
@@ -235,10 +233,6 @@ public class NMSHandler implements PacketHandler {
 			return handleEntityEquipmentPacket( reciever, ( PacketPlayOutEntityEquipment ) packet );
 		} else if ( packet instanceof PacketPlayOutAbilities ) {
 			handleAbilitiesPacket( reciever, ( PacketPlayOutAbilities ) packet );
-		} else if ( packet instanceof PacketPlayOutSpawnEntityLiving ) {
-			return entityInterceptor.onCapturePacket( reciever, ( PacketPlayOutSpawnEntityLiving ) packet );
-		} else if ( packet instanceof PacketPlayOutEntityDestroy ) {
-			return entityInterceptor.onCapturePacket( reciever, ( PacketPlayOutEntityDestroy ) packet );
 		}
 		return packet;
 	}
@@ -250,7 +244,7 @@ public class NMSHandler implements PacketHandler {
 	@Override
 	public Object onPacketInterceptIn( Player reciever, Object packet ) {
 		if ( packet instanceof PacketPlayInFlying ) {
-			return handleFlyingPacket( reciever, (PacketPlayInFlying ) packet );
+			return handleFlyingPacket( reciever, ( PacketPlayInFlying ) packet );
 		} else if ( packet instanceof PacketPlayInBlockPlace ) {
 			return handleBlockPlacePacket( reciever, ( PacketPlayInBlockPlace ) packet );
 		} else if ( packet instanceof PacketPlayInBlockDig ) {
@@ -454,8 +448,7 @@ public class NMSHandler implements PacketHandler {
 			// Oh wait, this isnt ever called
 			if ( slot == EnumItemSlot.MAINHAND || slot == EnumItemSlot.OFFHAND ) {
 				PlayerUpdateItemEvent event = new PlayerUpdateItemEvent( player, nmsItem == null ? null : CraftItemStack.asBukkitCopy( nmsItem ), NMSUtils.getEquipmentSlot( slot ) );
-				
-				plugin.getTaskManager().callEventSync( event );
+				event.callEvent();
 			}
 			
 			return packet;
@@ -662,7 +655,7 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	@Override
-	public void set( Player player, boolean down ) {
+	public void set( HumanEntity player, boolean down ) {
 		try {
 			Field size = Entity.class.getDeclaredField( "size" );
 			size.setAccessible( true );
@@ -828,6 +821,20 @@ public class NMSHandler implements PacketHandler {
 		}
 	}
 
+	@Override
+	public boolean isRealPlayer( Player player ) {
+		return ( ( CraftPlayer ) player ).getHandle().getClass().equals( EntityPlayer.class );
+	}
+	
+	@Override
+	public GunsmokeNPC getNPC( Player player ) {
+		EntityPlayer ep = ( ( CraftPlayer ) player ).getHandle();
+		if ( ep instanceof GunsmokeNPC ) {
+			return ( GunsmokeNPC ) ep;
+		}
+		return null;
+	}
+	
 	// @Override
 	// public void sendMessage( Player player, String message, Display display ) {
 	// PacketPlayOutChat packet = new PacketPlayOutChat( new ChatComponentText(
@@ -907,18 +914,18 @@ public class NMSHandler implements PacketHandler {
 		return new CollisionResultBlock( interception, face, block );
 	}
 	
-	private void broadcastPacket( World world, Packet packet ) {
+	protected static void broadcastPacket( World world, Packet packet ) {
 		for ( Player player : world.getPlayers() ) {
-			plugin.getProtocol().sendPacket( player, packet );
+			GunsmokeUtil.getPlugin().getProtocol().sendPacket( player, packet );
 		}
 	}
 	
-	private void broadcastPacket( org.bukkit.entity.Entity origin, Packet<?> packet, boolean updateSelf ) {
+	protected static void broadcastPacket( org.bukkit.entity.Entity origin, Packet<?> packet, boolean updateSelf ) {
 		World world = origin.getWorld();
 		// TODO Get an entity tracker entry sometime or something similar
 		for ( Player player : world.getPlayers() ) {
 			if ( updateSelf || origin != player ) {
-				plugin.getProtocol().sendPacket( player, packet );
+				GunsmokeUtil.getPlugin().getProtocol().sendPacket( player, packet );
 			}
 		}
 	}

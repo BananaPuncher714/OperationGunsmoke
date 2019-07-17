@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -127,7 +128,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( PlayerUpdateItemEvent event ) {
 		ItemStack item = event.getItem();
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		ItemStack newItem = BukkitUtil.getEquipment( player, event.getSlot() );
 		GunsmokeRepresentable representable = getRepresentable( item );
 		if ( representable instanceof GunsmokeItem ) {
@@ -177,7 +178,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( AdvancementOpenEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		for ( EquipmentSlot slot : GunsmokeUtil.getEquipmentSlotOrdering() ) {
@@ -198,7 +199,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( DropItemEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
 		if ( mainRepresentable instanceof GunsmokeItemInteractable ) {
@@ -254,7 +255,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( LeftClickEntityEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
@@ -280,7 +281,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( LeftClickEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
@@ -306,7 +307,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( RightClickEntityEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
@@ -332,7 +333,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( RightClickEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
@@ -358,7 +359,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( HoldRightClickEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
@@ -384,7 +385,7 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( ReleaseRightClickEvent event ) {
-		Player player = event.getPlayer();
+		HumanEntity player = event.getEntity();
 		EnumEventResult result = EnumEventResult.SKIPPED;
 		
 		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );

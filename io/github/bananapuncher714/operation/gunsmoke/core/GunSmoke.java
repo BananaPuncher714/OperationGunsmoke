@@ -7,8 +7,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
@@ -24,6 +26,7 @@ public class Gunsmoke extends JavaPlugin {
 	protected TaskManager taskManager;
 	protected MovementManager movementManager;
 	protected ZoomManager zoomManager;
+	protected NPCManager npcManager;
 	
 	@Override
 	public void onEnable() {
@@ -38,6 +41,7 @@ public class Gunsmoke extends JavaPlugin {
 		taskManager = new TaskManager( this );
 		movementManager = new MovementManager( this );
 		zoomManager = new ZoomManager( this );
+		npcManager = new NPCManager( this );
 		
 		NGui.init( this );
 		
@@ -55,6 +59,8 @@ public class Gunsmoke extends JavaPlugin {
 	public void onDisable() {
 		movementManager.stop();
 		NGui.disable();
+		
+		npcManager.disable();
 	}
 	
 	/**
@@ -75,8 +81,16 @@ public class Gunsmoke extends JavaPlugin {
 					entity.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( 0, entity.getHeight() + .5, 0 ), 0 );
 				}
 			}
+			
+			for ( GunsmokeNPC npc : GunsmokeUtil.getPlugin().getNPCManager().getNPCs() ) {
+				if ( npc.getPlayer() == player ) {
+					continue;
+				}
+				npc.look( player.getEyeLocation() );
+			}
+			
 //			player.setRemainingAir( 285 );
-//			protocol.getHandler().setAir( player, 285 );
+//	 		protocol.getHandler().setAir( player, 285 );
 //			entity.update();
 		}
 	}
@@ -115,5 +129,9 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public ZoomManager getZoomManager() {
 		return zoomManager;
+	}
+	
+	public NPCManager getNPCManager() {
+		return npcManager;
 	}
 }

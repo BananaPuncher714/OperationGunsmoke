@@ -1,15 +1,14 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
-public class DropItemEvent extends PlayerEvent implements Cancellable {
+public class DropItemEvent extends HumanEntityEvent implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled = false;
 	
-	public DropItemEvent( Player updater ) {
+	public DropItemEvent( HumanEntity updater ) {
 		super( updater );
 	}
 	

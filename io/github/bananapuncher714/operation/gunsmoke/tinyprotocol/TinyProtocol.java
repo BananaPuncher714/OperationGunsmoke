@@ -245,7 +245,7 @@ public abstract class TinyProtocol {
 	}
 
 	private void registerPlayers(Plugin plugin) {
-		for (Player player : plugin.getServer().getOnlinePlayers()) {
+		for ( Player player : plugin.getServer().getOnlinePlayers() ) {
 			injectPlayer(player);
 		}
 	}

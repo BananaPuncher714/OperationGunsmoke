@@ -1,13 +1,12 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
-public class PlayerJumpEvent extends PlayerEvent {
+public class PlayerJumpEvent extends HumanEntityEvent {
 	private static final HandlerList handlers = new HandlerList();
 
-	public PlayerJumpEvent( Player player ) {
+	public PlayerJumpEvent( HumanEntity player ) {
 		super( player );
 	}
 	

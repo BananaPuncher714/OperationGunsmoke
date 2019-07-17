@@ -1,16 +1,15 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
-public class PlayerProneEvent extends PlayerEvent implements Cancellable {
+public class PlayerProneEvent extends HumanEntityEvent implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
 	private boolean cancelled = false;
 	private final boolean isProne;
 	
-	public PlayerProneEvent( Player who, boolean isProne ) {
+	public PlayerProneEvent( HumanEntity who, boolean isProne ) {
 		super( who );
 		this.isProne = isProne;
 	}

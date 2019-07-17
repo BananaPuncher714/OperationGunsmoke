@@ -72,7 +72,11 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		display = new ItemStackMultiState( new ItemStackGunsmoke( item ) );
 	}
 	
-	protected void shoot() {
+	public int getBulletsRemaining() {
+		return bullets;
+	}
+	
+	public void shoot() {
 		long time = System.currentTimeMillis();
 		// Do last shot check
 		long timeSinceLastShot = time - lastShot;
@@ -140,7 +144,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		}
 	}
 	
-	protected void unscope() {
+	public void unscope() {
 		if ( isScoped || isScoping ) {
 			GunsmokeUtil.getPlugin().getZoomManager().removeZoom( holder );
 			isScoped = false;
@@ -150,11 +154,20 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		lastScoped = System.currentTimeMillis();
 	}
 	
-	protected void scope() {
+	public void scope() {
 		if ( !isReloading ) {
 			isScoping = true;
 			lastScoped = System.currentTimeMillis();
 			updateItem();
+		}
+	}
+	
+	public void reload() {
+		if ( !isSwitching && !isReloading && bullets < options.getClipSize() ) {
+			unscope();
+			
+			isReloading = true;
+			lastReloaded = System.currentTimeMillis();
 		}
 	}
 	
@@ -199,18 +212,13 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	
 	@Override
 	public EnumEventResult onClick( AdvancementOpenEvent event ) {
-		event.getPlayer().closeInventory();
+		event.getEntity().closeInventory();
 		return EnumEventResult.COMPLETED;
 	}
 
 	@Override
 	public EnumEventResult onClick( DropItemEvent event ) {
-		if ( !isSwitching && !isReloading && bullets < options.getClipSize() ) {
-			unscope();
-			
-			isReloading = true;
-			lastReloaded = System.currentTimeMillis();
-		}
+		reload();
 		
 		event.setCancelled( true );
 		return EnumEventResult.COMPLETED;

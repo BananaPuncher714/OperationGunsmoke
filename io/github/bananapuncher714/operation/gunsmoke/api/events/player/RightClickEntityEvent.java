@@ -1,16 +1,16 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
-public class RightClickEntityEvent extends RightClickEvent implements Cancellable {
+public class RightClickEntityEvent extends HumanEntityEvent implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
 	private final Entity clicked ;
 	private boolean cancelled = false;
 	
-	public RightClickEntityEvent( Player player, Entity entity ) {
+	public RightClickEntityEvent( HumanEntity player, Entity entity ) {
 		super( player );
 		clicked = entity;
 	}

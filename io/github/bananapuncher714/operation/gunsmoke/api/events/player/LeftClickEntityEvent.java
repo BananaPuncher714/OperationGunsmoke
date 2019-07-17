@@ -1,14 +1,14 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.HandlerList;
 
 public class LeftClickEntityEvent extends LeftClickEvent {
 	private static final HandlerList handlers = new HandlerList();
 	private final Entity hitEntity;
 	
-	public LeftClickEntityEvent( Player player, Entity entity ) {
+	public LeftClickEntityEvent( HumanEntity player, Entity entity ) {
 		super( player );
 		this.hitEntity = entity;
 	}

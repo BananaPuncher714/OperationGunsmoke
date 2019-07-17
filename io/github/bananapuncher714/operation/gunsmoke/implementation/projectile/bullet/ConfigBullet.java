@@ -6,6 +6,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
@@ -17,8 +18,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFa
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperHumanEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;
@@ -179,12 +180,15 @@ public class ConfigBullet extends GunsmokeProjectile {
 				}
 				if ( damage > 0 ) {
 					GunsmokeUtil.damage( entity, options.getType(), damage, this );
-					if ( shooter instanceof GunsmokeEntityWrapperPlayer ) {
-						Player player = ( ( GunsmokeEntityWrapperPlayer ) shooter ).getEntity();
-						if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {
-							player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 2 );
-						} else {
-							player.playSound( player.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 1 );
+					if ( shooter instanceof GunsmokeEntityWrapperHumanEntity ) {
+						HumanEntity human = ( ( GunsmokeEntityWrapperHumanEntity ) shooter ).getEntity();
+						if ( human instanceof Player ) {
+							Player player = ( Player ) human;
+							if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {
+								player.playSound( human.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 2 );
+							} else {
+								player.playSound( human.getLocation(), Sound.ENTITY_ARROW_HIT_PLAYER, 15, 1 );
+							}
 						}
 					}
 					if ( entity instanceof GunsmokeEntityWrapperLivingEntity ) {

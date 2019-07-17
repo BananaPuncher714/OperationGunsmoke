@@ -12,6 +12,8 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.NPCAction;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmor;
@@ -20,13 +22,21 @@ import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.Confi
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 
 public class GunsmokeCommand implements CommandExecutor, TabCompleter {
-
 	@Override
 	public boolean onCommand( CommandSender sender, Command command, String label, String[] args ) {
 		if ( sender instanceof Player ) {
 			Player player = ( Player ) sender;
 			
-			if ( args.length == 2 ) {
+			if ( args.length == 1 ) {
+				if ( args[ 0 ].equalsIgnoreCase( "sneak" ) ) {
+					
+					for ( GunsmokeNPC npc : GunsmokeUtil.getPlugin().getNPCManager().getNPCs() ) {
+						npc.interact( NPCAction.START_SNEAKING );
+						npc.interact( NPCAction.STOP_SNEAKING );
+						npc.interact( NPCAction.START_SNEAKING );
+					}
+				}
+			} else if ( args.length == 2 ) {
 				if ( args[ 0 ].equalsIgnoreCase( "get" ) ) {
 					String id = args[ 1 ];
 					

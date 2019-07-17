@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.inventory.EquipmentSlot;
@@ -95,7 +96,7 @@ public class PlayerManager {
 		}
 	}
 	
-	protected void remove( Player player ) {
+	protected void remove( HumanEntity player ) {
 		setHolding( player, false );
 
 		setProne( player, false, true );
@@ -111,7 +112,7 @@ public class PlayerManager {
 		}
 	}
 	
-	public void setHolding( Player entity, boolean isHolding ) {
+	public void setHolding( HumanEntity entity, boolean isHolding ) {
 		GunsmokePlayer gEntity = plugin.getEntityManager().getEntity( entity.getUniqueId() );
 		gEntity.setRightClicking( isHolding );
 		if ( isHolding ) {
@@ -131,15 +132,15 @@ public class PlayerManager {
 		}
 	}
 	
-	public boolean isHolding( Player entity ) {
+	public boolean isHolding( HumanEntity entity ) {
 		return holdingRC.containsKey( entity.getUniqueId() );
 	}
 	
-	public long getHoldingTime( Player player ) {
+	public long getHoldingTime( HumanEntity player ) {
 		return System.currentTimeMillis() - ( holdingRC.containsKey( player.getUniqueId() ) ? holdingRC.get( player.getUniqueId() ) : 0 );
 	}
 
-	public void rightClick( Player player, Cancellable parent ) {
+	public void rightClick( HumanEntity player, Cancellable parent ) {
 		RightClickEvent event = new RightClickEvent( player );
 		plugin.getTaskManager().callEventSync( event );
 		if ( event.isCancelled() ) {
@@ -147,7 +148,7 @@ public class PlayerManager {
 		}
 	}
 	
-	public void leftClick( Player player, Cancellable parent ) {
+	public void leftClick( HumanEntity player, Cancellable parent ) {
 		LeftClickEvent event = new LeftClickEvent( player );
 		plugin.getTaskManager().callEventSync( event );
 		if ( event.isCancelled() ) {
@@ -155,7 +156,7 @@ public class PlayerManager {
 		}
 	}
 	
-	public void rightClickEntity( Player player, Entity clicked, Cancellable parent ) {
+	public void rightClickEntity( HumanEntity player, Entity clicked, Cancellable parent ) {
 		RightClickEntityEvent event = new RightClickEntityEvent( player, clicked );
 		plugin.getTaskManager().callEventSync( event );
 		if ( event.isCancelled() ) {
@@ -163,7 +164,7 @@ public class PlayerManager {
 		}
 	}
 	
-	public void leftClickEntity( Player player, Entity clicked, Cancellable parent ) {
+	public void leftClickEntity( HumanEntity player, Entity clicked, Cancellable parent ) {
 		LeftClickEvent event = new LeftClickEntityEvent( player, clicked );
 		plugin.getTaskManager().callEventSync( event );
 		if ( event.isCancelled() ) {
@@ -171,11 +172,11 @@ public class PlayerManager {
 		}
 	}
 	
-	public void setProne( Player player, boolean prone ) {
+	public void setProne( HumanEntity player, boolean prone ) {
 		setProne( player, prone, false );
 	}
 	
-	public void setProne( Player player, boolean prone, boolean force) {
+	public void setProne( HumanEntity player, boolean prone, boolean force) {
 		GunsmokePlayer entity = plugin.getEntityManager().getEntity( player.getUniqueId() );
 		if ( !force && entity.isProne() == prone ) {
 			return;

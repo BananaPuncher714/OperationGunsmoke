@@ -1,12 +1,15 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
-public class ReleaseRightClickEvent extends PlayerEvent {
+public class ReleaseRightClickEvent extends HumanEntityEvent {
 	private static final HandlerList handlers = new HandlerList();
 
+	public ReleaseRightClickEvent( HumanEntity player ) {
+		super( player );
+	}
+	
 	@Override
 	public HandlerList getHandlers() {
 	    return handlers;
@@ -14,9 +17,5 @@ public class ReleaseRightClickEvent extends PlayerEvent {
 
 	public static HandlerList getHandlerList() {
 	    return handlers;
-	}
-	
-	public ReleaseRightClickEvent( Player player ) {
-		super( player );
 	}
 }

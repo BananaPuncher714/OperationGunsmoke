@@ -1,14 +1,13 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 
-public class AdvancementOpenEvent extends PlayerEvent {
+public class AdvancementOpenEvent extends HumanEntityEvent {
 	private static final HandlerList handlers = new HandlerList();
 	private final String tab;
 	
-	public AdvancementOpenEvent( Player who, String tab ) {
+	public AdvancementOpenEvent( HumanEntity who, String tab ) {
 		super( who );
 		this.tab = tab;
 	}

@@ -1,21 +1,19 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.player;
 
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
-// Not sure why this doesn't extend PlayerEvent, but just in case if I find some use for it in the future
-public class PlayerUpdateItemEvent extends PlayerEvent {
+public class PlayerUpdateItemEvent extends HumanEntityEvent {
 	private static final HandlerList handlers = new HandlerList();
 	protected EquipmentSlot slot;
 	protected ItemStack itemSnapshot;
 	
-	public PlayerUpdateItemEvent( Player updater, ItemStack item, EquipmentSlot slot ) {
+	public PlayerUpdateItemEvent( HumanEntity updater, ItemStack item, EquipmentSlot slot ) {
 		super( updater );
 		this.slot = slot;
 		if ( item == null ) {

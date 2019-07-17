@@ -4,7 +4,6 @@ import org.bukkit.craftbukkit.v1_14_R1.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
@@ -81,14 +80,18 @@ public class GunBot extends EntityZombie implements IRangedEntity {
 	    this.setSlot( EnumItemSlot.MAINHAND, CraftItemStack.asNMSCopy( gun.getItem() ) );
 	    
 	    gun.onEquip( ( LivingEntity ) this.getBukkitEntity(), GunsmokeUtil.getPlugin().getEntityManager().getEntity( this.getUniqueID() ), EquipmentSlot.HAND );
-	    // TODO Give it a gun
+	    GunsmokeUtil.getPlugin().getItemManager().register( gun );
 	    
 	    return groupdataentity;
 	}
 	
 	@Override
 	public void a( final EntityLiving target, final float f ) {
-		System.out.println( "SHOOT ARROW" );
+		if ( gun.getBulletsRemaining() > 0 ) {
+			gun.shoot();
+		} else {
+			gun.reload();
+		}
 		
 //	    // Preparing the projectile
 //	    final EntityArrow entityarrow = this.prepareProjectile(f);

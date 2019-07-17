@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -42,6 +43,11 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	private void onPlayerDeathEvent( PlayerDeathEvent event ) {
 		plugin.getPlayerManager().remove( event.getEntity() );
+		if ( !plugin.getProtocol().getHandler().isRealPlayer( event.getEntity() ) ) {
+			Bukkit.getScheduler().runTaskLater( plugin, () -> {
+				plugin.getNPCManager().remove( event.getEntity().getUniqueId() );
+			}, 40 );
+		}
 	}
 	
 	@EventHandler
@@ -51,6 +57,7 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	private void onPlayerTeleportEvent( PlayerTeleportEvent event ) {
+		Thread.dumpStack();
 		plugin.getPlayerManager().setHolding( event.getPlayer(), false );
 	}
 	
@@ -61,7 +68,7 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	private void onPlayerSwitchItem( PlayerUpdateItemEvent event ) {
-		plugin.getPlayerManager().setHolding( event.getPlayer(), false );
+		plugin.getPlayerManager().setHolding( event.getEntity(), false );
 	}
 	
 	@EventHandler
@@ -148,7 +155,7 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	private void onPlayerJump( PlayerJumpEvent event ) {
-		plugin.getPlayerManager().setProne( event.getPlayer(), false );
+		plugin.getPlayerManager().setProne( event.getEntity(), false );
 	}
 	
 	@EventHandler

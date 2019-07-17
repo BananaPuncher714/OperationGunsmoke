@@ -9,9 +9,17 @@ import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+
+import io.github.bananapuncher714.operation.gunsmoke.core.util.SessionUtil;
+import net.minecraft.server.v1_14_R1.Entity;
+import net.minecraft.server.v1_14_R1.EntityTypes;
+import net.minecraft.server.v1_14_R1.EnumCreatureType;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
+import net.minecraft.server.v1_14_R1.IRegistry;
+import net.minecraft.server.v1_14_R1.MinecraftKey;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
-import net.minecraft.server.v1_14_R1.WorldServer;
 
 public class NMSUtils {
 	protected final static CraftEntity getEntityFromId( World world, int id ) {
@@ -58,14 +66,26 @@ public class NMSUtils {
 		}
 	}
 	
-	public static boolean getBool( Player player ) {
-		World world = player.getWorld();
-		WorldServer server = ( ( CraftWorld ) world ).getHandle();
-		
-		return server.a( ( ( CraftPlayer ) player ).getHandle().getBoundingBox().g( 0.0625D).b( 0.0D, -0.55D, 0.0D ) );
+	protected static void register( String id, EntityTypes< ? > parent, EntityTypes.a< ? > type ) {
+		// TODO Do some safe checking to see if id already exists?
+		IRegistry.ENTITY_TYPE.a( IRegistry.ENTITY_TYPE.a( parent ), new MinecraftKey( id ), type.a( id ) );
 	}
-
+	
+	protected static EntityTypes.a< ? extends Entity > create( EntityTypes.b< ? extends Entity > constructor, EnumCreatureType type, double width, double height ) {
+		EntityTypes.a< ? extends Entity > a = EntityTypes.a.a( constructor, type ).b().a( ( float ) width, ( float ) height );
+		return a;
+	}
+	
+	protected static GameProfile convert( GameProfile profile, String name ) {
+		String[] properties = SessionUtil.getTextureFrom( name, false );
+		if ( properties != null ) {
+			profile.getProperties().put( "textures", new Property( "textures", properties[ 0 ], properties[ 1 ] ) );
+		}
+		return profile;
+	}
+	
 	public static void setNoFly( Player player ) {
+		// TODO Remove some time
 		try {
 			Field c = PlayerConnection.class.getDeclaredField( "C" );
 			c.setAccessible( true );
