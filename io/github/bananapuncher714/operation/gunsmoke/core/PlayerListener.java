@@ -57,7 +57,6 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler
 	private void onPlayerTeleportEvent( PlayerTeleportEvent event ) {
-		Thread.dumpStack();
 		plugin.getPlayerManager().setHolding( event.getPlayer(), false );
 	}
 	

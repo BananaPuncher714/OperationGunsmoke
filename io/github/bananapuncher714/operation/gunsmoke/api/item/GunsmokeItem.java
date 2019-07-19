@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
 
 public abstract class GunsmokeItem extends GunsmokeRepresentable {
@@ -51,7 +52,9 @@ public abstract class GunsmokeItem extends GunsmokeRepresentable {
 	
 	public void updateItem() {
 		if ( holder != null ) {
-			BukkitUtil.setEquipment( holder, getItem(), slot);
+			BukkitUtil.setEquipment( holder, getItem(), slot );
+			GunsmokePlayer player = GunsmokeUtil.getPlugin().getEntityManager().getEntity( holder.getUniqueId() );
+			player.updateHands();
 		}
 	}
 	

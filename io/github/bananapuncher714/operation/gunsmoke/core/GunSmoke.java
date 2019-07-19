@@ -6,12 +6,16 @@ import org.bukkit.Particle;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
 import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
@@ -74,6 +78,13 @@ public class Gunsmoke extends JavaPlugin {
 			protocol.getHandler().setTint( player, 1 - player.getHealth() / player.getHealthScale() );
 			
 			NMSUtils.setNoFly( player );
+			
+			protocol.getHandler().display( player );
+			
+			AABB[] boxes = protocol.getHandler().getBoxesFor( player.getLocation() );
+			if ( VectorUtil.intersects( new Vector( 0, 0, 0 ), new AABB( player.getBoundingBox().expand(-9.999999747378752E-6D) ), BukkitUtil.getBlockLocation( player.getLocation() ).toVector(), boxes ) ) {
+				player.sendMessage( "IN BLOCK" );
+			}
 			
 			for ( Entity entity : player.getWorld().getNearbyEntities( player.getLocation(), 20, 20, 20 ) ) {
 				Location location = entityTracker.getLocationOf( entity.getUniqueId(), 6 );

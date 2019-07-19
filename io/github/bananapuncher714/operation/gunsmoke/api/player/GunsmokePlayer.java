@@ -92,7 +92,7 @@ public class GunsmokePlayer {
 		updateHands();
 	}
 	
-	protected void updateHands() {
+	public void updateHands() {
 		update( EquipmentSlot.HAND );
 		update( EquipmentSlot.OFF_HAND );
 		

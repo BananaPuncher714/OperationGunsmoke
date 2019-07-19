@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
@@ -53,6 +54,8 @@ public interface PacketHandler {
 	boolean isRealPlayer( Player player );
 	GunsmokeNPC getNPC( Player player );
 	
+	void display( Player player );
+	AABB[] getBoxesFor( Location location );
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );
 //	void updateBow( LivingEntity entity, Player viewer );

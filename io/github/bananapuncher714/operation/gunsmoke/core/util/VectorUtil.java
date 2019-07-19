@@ -12,6 +12,7 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEntity;
 
 /**
@@ -139,135 +140,25 @@ public final class VectorUtil {
 		return null;
 	}
 	
-	public static boolean fastCanSee( Location start, Location end ) {
-		// Get the coords
-		int px1 = start.getBlockX();
-		int py1 = start.getBlockY();
-		int pz1 = start.getBlockZ();
+	public static boolean intersects( Vector offset1, AABB box, Vector offset2, AABB... boxes ) {
+		double originX = offset2.getX() - offset1.getX();
+		double originY = offset2.getY() - offset1.getY();
+		double originZ = offset2.getZ() - offset1.getZ();
 
-		int px2 = end.getBlockX();
-		int py2 = end.getBlockY();
-		int pz2 = end.getBlockZ();
-
-		// Get the width and height difference
-		int dx = Math.abs( px1 - px2 );
-		int dy = Math.abs( py1 - py2 );
-		int dz = Math.abs( pz1 - pz2 );
-
-		int x = px1;
-		int y = py1;
-		int z = pz1;
-		int n = 1 + dx + dy + dz;
-		int x_inc = (px2 > px1) ? 1 : -1;
-		int y_inc = (py2 > py1) ? 1 : -1;
-		int z_inc = (pz2 > pz1) ? 1 : -1;
-		int errorxy = dx - dy;
-		int errorxz = dx - dz;
-		int errorzy = dz - dy;
-		dx *= 2;
-		dy *= 2;
-		dz *= 2;
-
-		for (; n > 0; --n) {
-			Location newLocation = new Location( start.getWorld(), x, y, z );
-			if ( newLocation.getBlock().getType() != Material.AIR ) {
-				return false;
-			}
-			newLocation.getBlock().setType( Material.GLASS );
-
-			if ( errorxy > 0 && errorxz > 0 ) {
-				x += x_inc;
-				errorxy -= dy;
-				errorxz -= dz;
-			} else if ( errorxz <= 0 && errorzy > 0 ) {
-				z += z_inc;
-				errorxz += dx;
-				errorzy -= dy;
-			} else {
-				y += y_inc;
-				errorxy += dx;
-				errorzy += dz;
+		double oriX = box.oriX - originX;
+		double oriY = box.oriY - originY;
+		double oriZ = box.oriZ - originZ;
+		
+		for ( AABB otherBox : boxes ) {
+			if ( Math.abs( oriY - otherBox.oriY ) < box.radY + otherBox.radY ) {
+				if ( Math.abs( oriX - otherBox.oriX ) < box.radX + otherBox.radX ) {
+					if ( Math.abs( oriZ - otherBox.oriZ ) < box.radZ + otherBox.radZ ) {
+						return true;
+					}					
+				}
 			}
 		}
-		return true;
-	}
-
-	public static boolean fastCanSeeTwo( Location start, Location end, double scale ) {
-		// Get the coords
-		double px1 = start.getX();
-		double py1 = start.getY();
-		double pz1 = start.getZ();
-
-		double px2 = end.getX();
-		double py2 = end.getY();
-		double pz2 = end.getZ();
-
-		// Get the width and height difference
-		double dx = Math.abs( px1 - px2 );
-		double dy = Math.abs( py1 - py2 );
-		double dz = Math.abs( pz1 - pz2 );
-
-		double x = px1;
-		double y = py1;
-		double z = pz1;
-		double n = ( dx + dy + dz ) * scale;
-		double x_inc = ((px2 > px1) ? 1 : -1 ) / scale;
-		double y_inc = ((py2 > py1) ? 1 : -1 ) / scale;
-		double z_inc = ((pz2 > pz1) ? 1 : -1 ) / scale;
-		double errorxy = dx - dy;
-		double errorxz = dx - dz;
-		double errorzy = dz - dy;
-		dx *= 2;
-		dy *= 2;
-		dz *= 2;
-
-		for (; n > 0; --n) {
-			Location newLocation = new Location( start.getWorld(), x, y, z );
-			if ( newLocation.getBlock().getType() != Material.AIR ) {
-				return false;
-			}
-			newLocation.getBlock().setType( Material.GLASS );
-
-			if ( errorxy > 0 && errorxz > 0 ) {
-				x += x_inc;
-				errorxy -= dy;
-				errorxz -= dz;
-			} else if ( errorxz <= 0 && errorzy > 0 ) {
-				z += z_inc;
-				errorxz += dx;
-				errorzy -= dy;
-			} else {
-				y += y_inc;
-				errorxy += dx;
-				errorzy += dz;
-			}
-
-		}
-		return true;
-	}
-	
-	public static Vector randomizeSpread( Vector vec, double deg ) {
-		// No Y difference for you, only good for single shots
-		double length = vec.length();
-		vec.normalize();
-		double x = vec.getX();
-		double y = vec.getY();
-		double z = vec.getZ();
-		
-		double flatLength = Math.sqrt( x * x + z * z );
-		double ratio = y / flatLength;
-		
-		double degree = FastMath.atan2( ( float ) x, ( float ) z ) * FastMath.DEG;
-		degree = degree + ( ThreadLocalRandom.current().nextDouble() * ( 2 * deg ) ) - deg;
-		double ydeg = FastMath.atan2( ( float ) flatLength, ( float ) vec.getY() ) * FastMath.DEG + ( ThreadLocalRandom.current().nextDouble() * deg );
-		double rad = ( degree * Math.PI ) / 180.0;
-		double yrad = ( ydeg * Math.PI ) / 180.0;
-		
-		vec.setZ( flatLength * Math.cos( rad ) );
-		vec.setX( flatLength * Math.sin( rad ) );
-		vec.setY( ratio * Math.sin( yrad ) );
-		vec.normalize().multiply( length );
-		return vec;
+		return false;
 	}
 	
 	public static Vector randomizeSpread( Vector vec, double yaw, double pitch ) {

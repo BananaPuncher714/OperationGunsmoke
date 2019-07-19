@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,8 @@ import java.util.function.BiFunction;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -42,6 +45,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpd
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
@@ -95,6 +99,7 @@ import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
 import net.minecraft.server.v1_14_R1.Vec3D;
 import net.minecraft.server.v1_14_R1.VoxelShape;
+import net.minecraft.server.v1_14_R1.WorldServer;
 
 public class NMSHandler implements PacketHandler {
 	private final static int HAND_STATE_INDEX = 7;
@@ -833,6 +838,46 @@ public class NMSHandler implements PacketHandler {
 			return ( GunsmokeNPC ) ep;
 		}
 		return null;
+	}
+	
+	@Override
+	public void display( Player player ) {
+		List< CollisionResultBlock > collisions = rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 20 );
+		if ( collisions.isEmpty() ) {
+			return;
+		}
+		Block block = collisions.get( 0 ).getBlock();
+		WorldServer world = ( ( CraftWorld ) player.getWorld() ).getHandle();
+		Location location = block.getLocation();
+		BlockPosition blockPos = new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+		IBlockData hitBlock = world.getType( blockPos );
+		VoxelShape blockShape = hitBlock.getCollisionShape( world, blockPos );
+		
+		for ( AxisAlignedBB box : blockShape.d() ) {
+			player.getWorld().spawnParticle( Particle.FLAME, box.maxX + location.getBlockX(), box.maxY + location.getBlockY(), box.maxZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.minX + location.getBlockX(), box.maxY + location.getBlockY(), box.maxZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.maxX + location.getBlockX(), box.minY + location.getBlockY(), box.maxZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.minX + location.getBlockX(), box.minY + location.getBlockY(), box.maxZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.maxX + location.getBlockX(), box.maxY + location.getBlockY(), box.minZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.minX + location.getBlockX(), box.maxY + location.getBlockY(), box.minZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.maxX + location.getBlockX(), box.minY + location.getBlockY(), box.minZ + location.getBlockZ(), 0 );
+			player.getWorld().spawnParticle( Particle.FLAME, box.minX + location.getBlockX(), box.minY + location.getBlockY(), box.minZ + location.getBlockZ(), 0 );
+		}
+	}
+	
+	@Override
+	public AABB[] getBoxesFor( Location location ) {
+		WorldServer world = ( ( CraftWorld ) location.getWorld() ).getHandle();
+		BlockPosition blockPos = new BlockPosition( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+		IBlockData hitBlock = world.getType( blockPos );
+		VoxelShape blockShape = hitBlock.getCollisionShape( world, blockPos );
+		List< AxisAlignedBB > boxes = blockShape.d();
+		AABB[] boundingBoxes = new AABB[ boxes.size() ];
+		for ( int i = 0; i < boxes.size(); i++ ) {
+			AxisAlignedBB box = boxes.get( i );
+			boundingBoxes[ i ] = new AABB( box.maxX, box.maxY, box.maxZ, box.minX, box.minY, box.minZ );
+		}
+		return boundingBoxes;
 	}
 	
 	// @Override
