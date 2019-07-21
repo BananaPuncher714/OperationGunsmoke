@@ -40,7 +40,55 @@ public class AABB {
 	public AABB( BoundingBox box ) {
 		this( box.getMaxX(), box.getMaxY(), box.getMaxZ(), box.getMinX(), box.getMinY(), box.getMinZ() );
 	}
+
+	public AABB shift( double x, double y, double z ) {
+		return new AABB( maxX + x, maxY + y, maxZ + z, minX + x, minY + y, minZ + z );
+	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		long temp;
+		temp = Double.doubleToLongBits(maxX);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(maxY);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(maxZ);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(minX);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(minY);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(minZ);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		AABB other = (AABB) obj;
+		if (Double.doubleToLongBits(maxX) != Double.doubleToLongBits(other.maxX))
+			return false;
+		if (Double.doubleToLongBits(maxY) != Double.doubleToLongBits(other.maxY))
+			return false;
+		if (Double.doubleToLongBits(maxZ) != Double.doubleToLongBits(other.maxZ))
+			return false;
+		if (Double.doubleToLongBits(minX) != Double.doubleToLongBits(other.minX))
+			return false;
+		if (Double.doubleToLongBits(minY) != Double.doubleToLongBits(other.minY))
+			return false;
+		if (Double.doubleToLongBits(minZ) != Double.doubleToLongBits(other.minZ))
+			return false;
+		return true;
+	}
+
 	@Override
 	public String toString() {
 		return "AABB{[" + minX + "," + minY + "," + minZ + "]->[" + maxX + "," + maxY + "," + maxZ + "]}";

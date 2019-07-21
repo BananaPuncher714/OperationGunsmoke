@@ -161,6 +161,15 @@ public final class VectorUtil {
 		return false;
 	}
 	
+	public static boolean overlaps( AABB box, AABB other ) {
+		if ( Math.abs( box.oriX - other.oriX ) < box.radX + other.radX ) {
+			if ( Math.abs( box.oriZ - other.oriZ ) < box.radZ + other.radZ ) {
+				return true;
+			}					
+		}
+		return false;
+	}
+	
 	public static Vector randomizeSpread( Vector vec, double yaw, double pitch ) {
 		Random rand = ThreadLocalRandom.current();
 		double length = vec.length();
