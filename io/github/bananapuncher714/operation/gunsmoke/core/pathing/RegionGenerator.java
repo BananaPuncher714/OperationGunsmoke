@@ -1,10 +1,16 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.pathing;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
+import java.util.Queue;
+import java.util.Set;
 
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
@@ -24,7 +30,7 @@ public class RegionGenerator {
 		return boxes;
 	}
 	
-	public static List< AABB > generateRegions( Location location ) {
+	public static EnclosingRegion generateRegions( Location location ) {
 		List< AABB > regions = new ArrayList< AABB >();
 		// Given some real bounding boxes
 		List< AABB > boxes = getBoxesAt( location );
@@ -72,7 +78,7 @@ public class RegionGenerator {
 						addNextTick.add( bottom );
 					}
 					// We know that they overlap, so now we need to get the overlap space
-					if ( box.minY != region.minY ) {
+					if ( box.minY > region.minY ) {
 						AABB overlap = new AABB( Math.min( box.maxX, region.maxX ), box.minY, Math.min( box.maxZ, region.maxZ ), Math.max( region.minX, box.minX ), region.minY, Math.max( region.minZ, box.minZ ) );
 						regions.add( overlap );
 					}
@@ -92,6 +98,86 @@ public class RegionGenerator {
 			}
 		}
 		
-		return regions;
+		return new EnclosingRegion( boxes, regions );
+	}
+	
+	public static List< AABB > combineRegions( List< AABB > regions ) {
+		List< AABB > combined = new ArrayList< AABB >();
+		Queue< AABB > uncombined = new ArrayDeque< AABB >();
+		Set< AABB > toAdd = new HashSet< AABB >();
+		uncombined.addAll( regions );
+		
+		// First combine the regions across similar x values
+		while ( !uncombined.isEmpty() ) {
+			// Get the first empty one or something like that...
+			AABB region = uncombined.poll();
+			
+			boolean success = false;
+			for (  Iterator< AABB > iterator = uncombined.iterator(); iterator.hasNext(); ) {
+				AABB box = iterator.next();
+				// If their height are the same
+				if ( box.maxY == region.maxY && box.minY == region.minY ) {
+					// If their Z value is the same
+					if ( box.maxZ == region.maxZ && box.minZ == region.minZ ) {
+						// If they're touching along the x axis
+						if ( box.minX == region.maxX || box.maxX == region.minX ) {
+							// Combine and add back to the list
+							iterator.remove();
+							success = true;
+
+							AABB combinedRegion = new AABB( Math.max( box.maxX, region.maxX ), region.maxY, region.maxZ, Math.min( box.minX, region.minX ), region.minY, region.minZ );
+							toAdd.add( combinedRegion );
+							break;
+						}
+					}
+				}
+			}
+			
+			if ( !success ) {
+				combined.add( region );
+			} else {
+				uncombined.addAll( toAdd );
+				toAdd.clear();
+			}
+		}
+		
+		// Now we combine them across the z values
+		uncombined.clear();
+		uncombined.addAll( combined );
+		combined.clear();
+		while ( !uncombined.isEmpty() ) {
+			// Get the first empty one or something like that...
+			AABB region = uncombined.poll();
+			
+			boolean success = false;
+			for ( Iterator< AABB > iterator = uncombined.iterator(); iterator.hasNext(); ) {
+				AABB box = iterator.next();
+				// If their height are the same
+				if ( box.maxY == region.maxY && box.minY == region.minY ) {
+					// If their Z value is the same
+					if ( box.maxX == region.maxX && box.minX == region.minX ) {
+						// If they're touching along the x axis
+						if ( box.minZ == region.maxZ || box.maxZ == region.minZ ) {
+							// Combine and add back to the list
+							iterator.remove();
+							success = true;
+
+							AABB combinedRegion = new AABB( region.maxX, region.maxY, Math.max( box.maxZ, region.maxZ ), region.minX, region.minY, Math.min( box.minZ, region.minZ ) );
+							toAdd.add( combinedRegion );
+							break;
+						}
+					}
+				}
+			}
+			
+			if ( !success ) {
+				combined.add( region );
+			} else {
+				uncombined.addAll( toAdd );
+				toAdd.clear();
+			}
+		}
+		
+		return combined;
 	}
 }

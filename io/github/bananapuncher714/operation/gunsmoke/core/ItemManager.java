@@ -127,7 +127,6 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( PlayerUpdateItemEvent event ) {
-		System.out.println( event.getEntity().getName() );
 		ItemStack item = event.getItem();
 		HumanEntity player = event.getEntity();
 		ItemStack newItem = BukkitUtil.getEquipment( player, event.getSlot() );

@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,8 @@ public class PathingPanel extends PaintPanel implements WindowListener {
 	private AABB player;
 	private AABB[] boxes;
 	
+	private Collection< AABB > corners = new ArrayList< AABB >();
+	
 	protected PathingPanel( AABB player, AABB... boxes ) {
 		INSTANCE = this;
 		
@@ -68,7 +71,7 @@ public class PathingPanel extends PaintPanel implements WindowListener {
 		g.setColor( Color.BLUE );
 		draw( player );
 
-		boolean calculateCorners = true;
+		boolean calculateCorners = false;
 		boolean calculateRegions = true;
 
 		if ( calculateCorners ) {
@@ -172,9 +175,6 @@ public class PathingPanel extends PaintPanel implements WindowListener {
 				corners.add( s2 );
 			}
 
-			if ( calculateRegions ) {
-				// TODO do something
-			}
 			
 			for ( AABB corner : corners ) {
 				if ( intersects2d( corner, boxes ) ) {
@@ -197,7 +197,15 @@ public class PathingPanel extends PaintPanel implements WindowListener {
 		}
 		
 		if ( calculateRegions ) {
-			
+			Set< AABB > corners = new HashSet< AABB >();
+			for ( AABB box : boxes ) {
+				
+			}
+		}
+		
+		g.setColor( Color.GREEN );
+		for ( AABB corner : corners ) {
+			draw( corner );
 		}
 		
 		g.setColor( Color.BLACK );
@@ -211,6 +219,79 @@ public class PathingPanel extends PaintPanel implements WindowListener {
 		this.drawLine( box.maxX, box.minZ, box.maxX, box.maxZ );
 		this.drawLine( box.maxX, box.maxZ, box.minX, box.maxZ );
 		this.drawLine( box.minX, box.maxZ, box.minX, box.minZ );
+	}
+	
+	private double swept3d( AABB box, Vector movement, AABB check ) {
+		double distEntX;
+		double distEntY;
+		double distEntZ;
+		double distExtX;
+		double distExtY;
+		double distExtZ;
+		
+		if ( movement.getX() > 0 ) {
+			distEntX = check.minX - box.maxX;
+			distExtX = check.maxX - box.minX;
+		} else {
+			distEntX = check.maxX - box.minX;
+			distExtX = check.minX - box.maxX;
+		}
+		
+		if ( movement.getY() > 0 ) {
+			distEntY = check.minY - box.maxY;
+			distExtY = check.maxY - box.minY;
+		} else {
+			distEntY = check.maxY - box.minY;
+			distExtY = check.minY - box.maxY;
+		}
+		
+		if ( movement.getZ() > 0 ) {
+			distEntZ = check.minZ - box.maxZ;
+			distExtZ = check.maxZ - box.minZ;
+		} else {
+			distEntZ = check.maxZ - box.minZ;
+			distExtZ = check.minZ - box.maxZ;
+		}
+		
+		double entryX;
+		double entryY;
+		double entryZ;
+		double exitX;
+		double exitY;
+		double exitZ;
+		
+		if ( movement.getX() == 0 ) {
+			entryX = Double.NEGATIVE_INFINITY;
+			exitX = Double.POSITIVE_INFINITY;
+		} else {
+			entryX = distEntX / movement.getX();
+			exitX = distExtX / movement.getX();
+		}
+		
+		if ( movement.getY() == 0 ) {
+			entryY = Double.NEGATIVE_INFINITY;
+			exitY = Double.POSITIVE_INFINITY;
+		} else {
+			entryY = distEntY / movement.getY();
+			exitY = distExtY / movement.getY();
+		}
+		
+		if ( movement.getZ() == 0 ) {
+			entryZ = Double.NEGATIVE_INFINITY;
+			exitZ = Double.POSITIVE_INFINITY;
+		} else {
+			entryZ = distEntZ / movement.getZ();
+			exitZ = distExtZ / movement.getZ();
+		}
+		
+		double entryTime = Math.max( entryX, Math.max( entryY, entryZ ) );
+		double exitTime = Math.min( exitX, Math.min( exitY, exitZ ) );
+		
+		 if ( entryTime >= exitTime || ( entryX < 0 && entryY < 0 && entryZ < 0 ) || entryX >= 1 || entryY >= 1 || entryZ >= 1 ) {
+			 return 1;
+		 } else {
+			 return 0;
+		 }
 	}
 	
 	private double swept2d( AABB box, Vector movement, AABB check ) {
@@ -280,6 +361,11 @@ public class PathingPanel extends PaintPanel implements WindowListener {
 	public void set( AABB player, AABB... boxes ) {
 		this.player = player;
 		this.boxes = boxes;
+		repaint();
+	}
+	
+	public void setCorners( Collection< AABB > corners ) {
+		this.corners = corners;
 		repaint();
 	}
 

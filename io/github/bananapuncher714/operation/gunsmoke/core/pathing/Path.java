@@ -34,8 +34,12 @@ public class Path {
 		return checklist.contains( location );
 	}
 	
-	public int getDistance() {
-		return waypoints.size();
+	public double getDistance() {
+		double sum = 0;
+		for ( int i = 1; i < waypoints.size(); i++ ) {
+			sum += waypoints.get( i ).distance( waypoints.get( i - 1 ) );
+		}
+		return sum;
 	}
 	
 	public Path copyOf() {

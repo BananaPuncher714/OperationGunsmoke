@@ -161,6 +161,17 @@ public final class VectorUtil {
 		return false;
 	}
 	
+	public static boolean intersects( AABB box, AABB otherBox ) {
+		if ( Math.abs( box.oriY - otherBox.oriY ) < box.radY + otherBox.radY ) {
+			if ( Math.abs( box.oriX - otherBox.oriX ) < box.radX + otherBox.radX ) {
+				if ( Math.abs( box.oriZ - otherBox.oriZ ) < box.radZ + otherBox.radZ ) {
+					return true;
+				}					
+			}
+		}
+		return false;
+	}
+	
 	public static boolean overlaps( AABB box, AABB other ) {
 		if ( Math.abs( box.oriX - other.oriX ) < box.radX + other.radX ) {
 			if ( Math.abs( box.oriZ - other.oriZ ) < box.radZ + other.radZ ) {
@@ -168,6 +179,115 @@ public final class VectorUtil {
 			}					
 		}
 		return false;
+	}
+	
+	public static boolean touching( AABB box, AABB other ) {
+		// Check how much each axis overlaps each other
+		// They must all be non-negative and only 1 can be zero
+		double yOverlap = box.radY + other.radY - Math.abs( box.oriY - other.oriY );
+		if ( yOverlap < 0 ) {
+			return false;
+		}
+		double xOverlap = box.radX + other.radX - Math.abs( box.oriX - other.oriX );
+		if ( xOverlap < 0 ) {
+			return false;
+		}
+		double zOverlap = box.radZ + other.radZ - Math.abs( box.oriZ - other.oriZ );
+		if ( zOverlap < 0 ) {
+			return false;
+		}
+		return ( yOverlap == 0 ^ xOverlap == 0 ^ zOverlap == 0 ) && ( yOverlap + xOverlap + zOverlap > 0 );
+	}
+	
+	public static boolean contains( AABB box, Vector vector ) {
+		if ( Math.abs( box.oriY - vector.getY() ) <= box.radY ) {
+			if ( Math.abs( box.oriX - vector.getX() ) <= box.radX ) {
+				if ( Math.abs( box.oriZ - vector.getZ() ) <= box.radZ ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static Vector closestPoint( AABB box, Vector point ) {
+		double x = Math.max( box.minX, Math.min( box.maxX, point.getX() ) );
+		double y = Math.max( box.minY, Math.min( box.maxY, point.getY() ) );
+		double z = Math.max( box.minZ, Math.min( box.maxZ, point.getZ() ) );
+		return new Vector( x, y, z );
+	}
+	
+	public static double swept( AABB box, Vector movement, AABB check ) {
+		double distEntX;
+		double distEntY;
+		double distEntZ;
+		double distExtX;
+		double distExtY;
+		double distExtZ;
+
+		if ( movement.getX() > 0 ) {
+			distEntX = check.minX - box.maxX;
+			distExtX = check.maxX - box.minX;
+		} else {
+			distEntX = check.maxX - box.minX;
+			distExtX = check.minX - box.maxX;
+		}
+
+		if ( movement.getY() > 0 ) {
+			distEntY = check.minY - box.maxY;
+			distExtY = check.maxY - box.minY;
+		} else {
+			distEntY = check.maxY - box.minY;
+			distExtY = check.minY - box.maxY;
+		}
+
+		if ( movement.getZ() > 0 ) {
+			distEntZ = check.minZ - box.maxZ;
+			distExtZ = check.maxZ - box.minZ;
+		} else {
+			distEntZ = check.maxZ - box.minZ;
+			distExtZ = check.minZ - box.maxZ;
+		}
+
+		double entryX;
+		double entryY;
+		double entryZ;
+		double exitX;
+		double exitY;
+		double exitZ;
+
+		if ( movement.getX() == 0 ) {
+			entryX = Double.NEGATIVE_INFINITY;
+			exitX = Double.POSITIVE_INFINITY;
+		} else {
+			entryX = distEntX / movement.getX();
+			exitX = distExtX / movement.getX();
+		}
+
+		if ( movement.getY() == 0 ) {
+			entryY = Double.NEGATIVE_INFINITY;
+			exitY = Double.POSITIVE_INFINITY;
+		} else {
+			entryY = distEntY / movement.getY();
+			exitY = distExtY / movement.getY();
+		}
+
+		if ( movement.getZ() == 0 ) {
+			entryZ = Double.NEGATIVE_INFINITY;
+			exitZ = Double.POSITIVE_INFINITY;
+		} else {
+			entryZ = distEntZ / movement.getZ();
+			exitZ = distExtZ / movement.getZ();
+		}
+
+		double entryTime = Math.max( entryX, Math.max( entryY, entryZ ) );
+		double exitTime = Math.min( exitX, Math.min( exitY, exitZ ) );
+
+		if ( entryTime >= exitTime || ( entryX < 0 && entryY < 0 && entryZ < 0 ) || entryX >= 1 || entryY >= 1 || entryZ >= 1 ) {
+			return 1;
+		} else {
+			return 0;
+		}
 	}
 	
 	public static Vector randomizeSpread( Vector vec, double yaw, double pitch ) {
@@ -237,6 +357,14 @@ public final class VectorUtil {
 		}
 		
 		double distance = ( plane.dot( planeLoc.toVector() ) - plane.dot( origin.toVector() ) ) / plane.dot( direction );
+		return origin.clone().add( direction.multiply( distance ) );
+	}
+	
+	public static Vector calculateVector( Vector planeLoc, Vector plane, Vector origin, Vector direction ) {
+		if ( plane.dot( direction ) == 0 ) {
+			return null;
+		}
+		double distance = ( plane.dot( planeLoc ) - plane.dot( origin ) ) / plane.dot( direction );
 		return origin.clone().add( direction.multiply( distance ) );
 	}
 	

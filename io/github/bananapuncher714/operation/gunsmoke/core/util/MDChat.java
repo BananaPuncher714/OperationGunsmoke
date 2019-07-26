@@ -60,10 +60,10 @@ public class MDChat {
 		if ( readExtra ) {
 			// Thanks to StarShadow#3546 for negative look behind
 			// Will stop certain strings from getting converted
-			List< String > caught = getMatches( message, "<(.+?)(?<!\\\\)>" );
+			List< String > caught = getMatches( message, "(?<!\\\\)<(.+?)(?<!\\\\)>" );
 			for ( String action : caught ) {
-				String hover = getMatch( action, "\\{(.+?)(?<!\\\\)\\}" );
-				String click = getMatch( action, "\\((.+?\\:.+?)(?<!\\\\)\\)" );
+				String hover = getMatch( action, "(?<!\\\\)\\{(.+?)(?<!\\\\)\\}" );
+				String click = getMatch( action, "(?<!\\\\)\\((.+?\\:.+?)(?<!\\\\)\\)" );
 				if ( hover == null && click == null ) {
 					// Requires a click or hover, or skip
 					continue;
@@ -89,7 +89,8 @@ public class MDChat {
 					}
 				}
 				if ( hover != null ) {
-					hAction = new HoverEvent( HoverEvent.Action.SHOW_TEXT, new ComponentBuilder( hover ).create() );
+					// Thanks to MrMaurice211 for the heads up about newlines not getting replaced
+					hAction = new HoverEvent( HoverEvent.Action.SHOW_TEXT, new ComponentBuilder( hover.replace( "\\n", "\n" ) ).create() );
 					desc = desc.replace( "{" + hover + "}", "" );
 				}
 				// Replace all the escaped tags
