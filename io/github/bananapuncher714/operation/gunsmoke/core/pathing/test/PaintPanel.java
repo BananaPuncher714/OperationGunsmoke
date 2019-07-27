@@ -2,7 +2,6 @@ package io.github.bananapuncher714.operation.gunsmoke.core.pathing.test;
 
 import java.awt.Graphics;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public abstract class PaintPanel extends JPanel {

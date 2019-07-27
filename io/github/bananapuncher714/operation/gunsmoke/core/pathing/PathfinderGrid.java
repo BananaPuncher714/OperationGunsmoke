@@ -22,7 +22,7 @@ public class PathfinderGrid implements Pathfinder {
 	}
 	
 	@Override
-	public Path calculate( long timeout ) {
+	public PathRegion calculate( long timeout ) {
 		long startTime = System.currentTimeMillis();
 		
 		Set< Location > checked = new HashSet< Location >();
@@ -40,7 +40,7 @@ public class PathfinderGrid implements Pathfinder {
 				if ( BukkitUtil.getBlockLocation( newLoc ).equals( BukkitUtil.getBlockLocation( end ) ) ) {
 					Path newPath = path.copyOf();
 					newPath.addLocation( newLoc );
-					return newPath;
+					return null;
 				}
 				
 				if ( checked.contains( newLoc ) ) {

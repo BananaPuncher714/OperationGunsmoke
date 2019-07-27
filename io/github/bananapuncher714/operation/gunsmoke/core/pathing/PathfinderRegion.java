@@ -1,10 +1,8 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.pathing;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -28,7 +26,7 @@ public class PathfinderRegion implements Pathfinder {
 	}
 
 	@Override
-	public Path calculate( long timeout ) {
+	public PathRegion calculate( long timeout ) {
 		long startTime = System.currentTimeMillis();
 		if ( start == null || endRegion == null ) {
 			// START OR END DOES NOT EXIST!
@@ -36,21 +34,33 @@ public class PathfinderRegion implements Pathfinder {
 		}
 		Set< Location > checked = new HashSet< Location >();
 		checked.add( start );
-		Queue< PathRegion > paths = new ArrayDeque< PathRegion >();
+		TreeSet< PathRegion > paths = new TreeSet< PathRegion >();
 		PathRegion startPath = new PathRegion( startRegion );
 		paths.add( startPath );
-		Set< PathRegion > solutions = new HashSet< PathRegion >();
+
+		Path solution = null;
+		double distance = 0;
+		
+		int solutions = 0;
 		int iterations = 0;
 		while ( !paths.isEmpty() ) {
 			iterations++;
-			PathRegion path = paths.poll();
+			PathRegion path = paths.pollFirst();
 			Region currentRegion = path.lastRegion();
 			
 			if ( currentRegion == endRegion ) {
 				// Our path has finally reached the end after a long long time
 				// We can end this right here since we're in the same region
-				solutions.add( path );
-				continue;
+				return path;
+
+				// Since we don't overestimate the cost then it means once we've found a solution we can't find a shorter one
+//				double newDist = path.weight;
+//				if ( solution == null || newDist < distance ) {
+//					solution = path.optimized;
+//					distance = newDist;
+//				}
+//				solutions++;
+//				continue;
 			}
 			
 			// For each neighbor, we want to go through there
@@ -63,7 +73,7 @@ public class PathfinderRegion implements Pathfinder {
 				PathRegion newPath = path.copyOf();
 				newPath.add( neighbor );
 				Path cost = optimize( newPath );
-				newPath.weight = cost.getDistance();
+				newPath.setOptimized( cost );
 				paths.add( newPath );
 			}
 			
@@ -74,29 +84,19 @@ public class PathfinderRegion implements Pathfinder {
 		}
 		System.out.println( "Considered " + iterations + " paths" );
 
-		Path solution = null;
-		double distance = Double.MAX_VALUE;
-		for ( PathRegion path : solutions ) {
-			Path optimized = optimize( path );
-			double dist = optimized.getDistance();
-			if ( solution == null || dist < distance ) {
-				solution = optimized;
-				distance = dist;
-			}
-		}
-		
 		if ( solution == null ) {
 			System.out.println( "No solution found!" );
 		} else {
-			System.out.println( "Considered " + solutions.size() + " solutions" );
+			System.out.println( "Considered " + solutions + " solutions" );
 		}
 		
-		return solution;
+		return null;
 	}
-
+	
 	private Path optimize( PathRegion path ) {
 		Vector lastSolid = start.toVector();
-		Vector solidToEnd = end.clone().subtract( start ).toVector().normalize();
+		Vector lastClosest = end.toVector();
+		Vector solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
 		
 		Path optimized = new Path( start );
 		
@@ -116,7 +116,7 @@ public class PathfinderRegion implements Pathfinder {
 		// First check if we can directly go from start to stop
 		boolean direct = true;
 		for ( Edge edge : edges ) {
-			if ( !edge.intersects( lastSolid, solidToEnd ) ) {
+			if ( !edge.intersects( lastSolid, solidToLastClosest ) ) {
 				direct = false;
 				break;
 			}
@@ -124,10 +124,15 @@ public class PathfinderRegion implements Pathfinder {
 		
 		int closestEdge = -1;
 		while ( !direct ) {
+			lastClosest = end.toVector();
 			for ( int i = edges.size() - 1; i > closestEdge; i-- ) {
+				// First construct a vector from the last solid to the last closest
+				solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
 				Edge edge = edges.get( i );
-				Vector closest = edge.getClosestPoint( lastSolid, solidToEnd );
-				Vector solidToClosest = closest.clone().subtract( lastSolid );
+				// Get the edge and the closest point
+				Vector closest = edge.getClosestPoint( lastSolid, solidToLastClosest );
+				// Construct a new one that goes directly to the solid
+				Vector solidToClosest = closest.clone().subtract( lastSolid ).normalize();
 				boolean valid = true;
 				for ( int j = i - 1; j > closestEdge; j-- ) {
 					Edge nextEdge = edges.get( j );
@@ -140,12 +145,12 @@ public class PathfinderRegion implements Pathfinder {
 					closestEdge = i;
 					lastSolid = closest;
 					optimized.addLocation( new Location( start.getWorld(), closest.getX(), closest.getY(), closest.getZ() ) );
-					solidToEnd = end.clone().subtract( lastSolid ).toVector().normalize();
 					if ( i == edges.size() - 1 ) {
 						direct = true;
-						break;
 					}
+					break;
 				}
+				lastClosest = closest;
 			}
 		}
 		optimized.addLocation( end );

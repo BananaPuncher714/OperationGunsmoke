@@ -79,7 +79,7 @@ public class Gunsmoke extends JavaPlugin {
 			
 			NMSUtils.setNoFly( player );
 			
-			protocol.getHandler().display( player );
+//			protocol.getHandler().display( player );
 			
 			AABB[] boxes = protocol.getHandler().getBoxesFor( player.getLocation() );
 			if ( VectorUtil.intersects( new Vector( 0, 0, 0 ), new AABB( player.getBoundingBox().expand(-9.999999747378752E-6D) ), BukkitUtil.getBlockLocation( player.getLocation() ).toVector(), boxes ) ) {

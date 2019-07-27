@@ -3,11 +3,9 @@ package io.github.bananapuncher714.operation.gunsmoke.implementation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -29,17 +27,15 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.NPCAction;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Edge;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.EnclosingRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Pathfinder;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderGrid;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionGenerator;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionMap;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.PathingPanel;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.MDChat;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
@@ -47,10 +43,12 @@ import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.Config
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmorOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
+import net.md_5.bungee.api.ChatMessageType;
 
 public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	protected Location end;
 	protected Path result = null;
+	protected PathRegion regionResult = null;
 	
 	protected World world;
 	protected List< AABB > spaces = null;
@@ -63,10 +61,29 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	}
 	
 	private void update() {
+//		if ( regionMap != null && end != null ) {
+//			for ( Player player : Bukkit.getOnlinePlayers() ) {
+//				Pathfinder pathfinder = new PathfinderRegion( regionMap, player.getLocation(), end );
+//				result = pathfinder.calculate( 200 );
+//			}
+//		}
+		
 		if ( result != null ) {
 			List< Location > points = result.getWaypoints();
 			for ( int i = 1; i < points.size(); i++ ) {
 				drawLine( points.get( i - 1 ), points.get( i ) );
+			}
+			for ( Location loc : points ) {
+				loc.getWorld().spawnParticle( Particle.FLAME, loc, 0 );
+			}
+			for ( Player player : Bukkit.getOnlinePlayers() ) {
+				Location location = player.getLocation();
+				Region region = regionMap.getRegion( location );
+				if ( region != null && regionResult.contains( region ) ) {
+					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "In region", true ) );
+				} else {
+					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Not in region", true ) );
+				}
 			}
 		}
 		if ( end != null ) {
@@ -77,7 +94,8 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	private void drawLine( Location start, Location stop ) {
 		Vector to = stop.clone().subtract( start ).toVector();
 		for ( int i = 0; i < 10; i++ ) {
-			start.getWorld().spawnParticle( Particle.REDSTONE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0, new DustOptions( Color.RED, 1 ) );
+//			start.getWorld().spawnParticle( Particle.REDSTONE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0, new DustOptions( Color.RED, 1 ) );
+			start.getWorld().spawnParticle( Particle.WATER_BUBBLE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0 );
 		}
 	}
 	
@@ -102,9 +120,10 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 							Location start = player.getLocation();
 							Pathfinder pathfinder = new PathfinderRegion( regionMap, start, end );
 							Bukkit.getScheduler().runTaskAsynchronously( GunsmokeUtil.getPlugin(), () -> {
-								Path path = pathfinder.calculate( 5000 );
+								PathRegion path = pathfinder.calculate( 5000 );
 								Bukkit.getScheduler().runTask( GunsmokeUtil.getPlugin(), () -> {
-									result = path;
+									regionResult = path;
+									result = path.getPath();
 									if ( result != null ) {
 										player.sendMessage( "Number of points: " + result.getWaypoints().size() );
 										for ( Location location : result.getWaypoints() ) {

@@ -4,7 +4,6 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.BoundingBox;
@@ -361,6 +360,7 @@ public final class VectorUtil {
 	}
 	
 	public static Vector calculateVector( Vector planeLoc, Vector plane, Vector origin, Vector direction ) {
+		direction = direction.clone().normalize();
 		if ( plane.dot( direction ) == 0 ) {
 			return null;
 		}

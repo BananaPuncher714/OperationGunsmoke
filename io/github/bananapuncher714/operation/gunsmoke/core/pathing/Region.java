@@ -9,7 +9,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 
 public class Region {
 	protected AABB region;
-	protected HashMap< Region, Edge > neighbors = new HashMap< Region, Edge >();
+	protected Map< Region, Edge > neighbors = new HashMap< Region, Edge >();
 	protected Set< AABB > walls = new HashSet< AABB >();
 	
 	public Region( AABB bounds ) {
