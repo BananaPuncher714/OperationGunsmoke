@@ -1,29 +1,21 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.pathing;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.bukkit.util.Vector;
-
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 
 public class Corner {
-	Vector point;
-	Set< AABB > positions = new HashSet< AABB >();
+	Region owner;
+	AABB corner;
 	
-	public Corner( Vector point ) {
-		this.point = point.clone();
+	public Corner( Region owner, AABB corner ) {
+		this.owner = owner;
+		this.corner = corner;
 	}
 	
-	public void addPosition( AABB position ) {
-		positions.add( position );
+	public Region getOwner() {
+		return owner;
 	}
 	
-	public Set< AABB > getPositions() {
-		return positions;
-	}
-	
-	public boolean isDead() {
-		return positions.isEmpty();
+	public AABB getCorner() {
+		return corner;
 	}
 }

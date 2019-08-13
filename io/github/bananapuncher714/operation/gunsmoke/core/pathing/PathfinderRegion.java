@@ -9,6 +9,8 @@ import java.util.TreeSet;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
+
 public class PathfinderRegion implements Pathfinder {
 	protected RegionMap map;
 	protected Location start;
@@ -32,9 +34,9 @@ public class PathfinderRegion implements Pathfinder {
 			// START OR END DOES NOT EXIST!
 			return null;
 		}
-		Set< Location > checked = new HashSet< Location >();
-		checked.add( start );
+		// TODO speed up traversal of regions?
 		TreeSet< PathRegion > paths = new TreeSet< PathRegion >();
+		Set< Region > regions = new HashSet< Region >();
 		PathRegion startPath = new PathRegion( startRegion );
 		paths.add( startPath );
 
@@ -49,8 +51,11 @@ public class PathfinderRegion implements Pathfinder {
 			Region currentRegion = path.lastRegion();
 			
 			if ( currentRegion == endRegion ) {
+				System.out.println( iterations );
 				// Our path has finally reached the end after a long long time
 				// We can end this right here since we're in the same region
+				Path optimized = optimize( start, end, path );
+				path.optimized = optimized;
 				return path;
 
 				// Since we don't overestimate the cost then it means once we've found a solution we can't find a shorter one
@@ -63,17 +68,41 @@ public class PathfinderRegion implements Pathfinder {
 //				continue;
 			}
 			
+			regions.add( currentRegion );
 			// For each neighbor, we want to go through there
 			for ( Region neighbor : currentRegion.getNeighbors().keySet() ) {
 				// Don't want to iterate over the same region
-				if ( path.contains( neighbor ) ) {
+				if ( regions.contains( neighbor ) ) {
+					continue;
+				}
+				
+				// Custom checks regarding the current circumstances
+				if ( neighbor.region.minY - currentRegion.region.minY > 1.25 ) {
+					// Check the player's jump height
 					continue;
 				}
 				
 				PathRegion newPath = path.copyOf();
 				newPath.add( neighbor );
-				Path cost = optimize( newPath );
-				newPath.setOptimized( cost );
+				Path cost = fastOptimize( start, end, newPath );
+				double pathDist = cost.getDistance();
+				double y = cost.getWaypoints().get( cost.getWaypoints().size() - 2 ).getY();
+				double yDiff = end.getY() - y;
+				// So the Y diff makes a huge difference to our heuristic algorithm
+				// We want it to matter less the farther away you are, and matter more the close you are
+				// Also, we want it to weigh less if the current point is above the end, rather than below
+				
+				// Given the distance, we want a sort of \_ formula where it nears infinity as it gets closer to 0 and nears 0 as it gets close to infinity
+				// Seems like a 1/x equation to me...
+				// Now, for the top one, we don't really care atm
+//				if ( yDiff > 0 ) {
+//					pathDist += yDiff * yDiff;
+//				} else if ( yDiff < 0 ) {
+//					// Maybe start caring at somepoint
+//					pathDist += yDiff;
+//				}
+				
+				newPath.setOptimized( cost, pathDist );
 				paths.add( newPath );
 			}
 			
@@ -82,18 +111,11 @@ public class PathfinderRegion implements Pathfinder {
 				break;
 			}
 		}
-		System.out.println( "Considered " + iterations + " paths" );
-
-		if ( solution == null ) {
-			System.out.println( "No solution found!" );
-		} else {
-			System.out.println( "Considered " + solutions + " solutions" );
-		}
 		
-		return null;
+		return paths.pollFirst();
 	}
 	
-	private Path optimize( PathRegion path ) {
+	protected Path optimize( Location start, Location end, PathRegion path ) {
 		Vector lastSolid = start.toVector();
 		Vector lastClosest = end.toVector();
 		Vector solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
@@ -113,6 +135,7 @@ public class PathfinderRegion implements Pathfinder {
 				System.out.println( "An edge doesn't exist between 2 neighbors!" );
 			}
 		}
+		
 		// First check if we can directly go from start to stop
 		boolean direct = true;
 		for ( Edge edge : edges ) {
@@ -136,15 +159,26 @@ public class PathfinderRegion implements Pathfinder {
 				boolean valid = true;
 				for ( int j = i - 1; j > closestEdge; j-- ) {
 					Edge nextEdge = edges.get( j );
-					if ( !nextEdge.intersects( lastSolid, solidToClosest ) ) {
+					// This check is just for the fact that minecraft players have to jump
+					if ( nextEdge.r1.region.minY != nextEdge.r2.region.minY || !nextEdge.intersects( lastSolid, solidToClosest ) ) {
 						valid = false;
 						break;
 					}
 				}
 				if ( valid ) {
+					double h1 = edge.r1.region.minY;
+					double h2 = edge.r2.region.minY;
+					closest.setY( h2 );
+					
 					closestEdge = i;
 					lastSolid = closest;
-					optimized.addLocation( new Location( start.getWorld(), closest.getX(), closest.getY(), closest.getZ() ) );
+					// Simple peasants can't fly
+					if ( h1 == h2 ) {
+						optimized.addLocation( new Location( start.getWorld(), closest.getX(), h1, closest.getZ() ) );
+					} else {
+						optimized.addLocation( new Location( start.getWorld(), closest.getX(), h1, closest.getZ() ) );
+						optimized.addLocation( new Location( start.getWorld(), closest.getX(), h2, closest.getZ() ) );
+					}
 					if ( i == edges.size() - 1 ) {
 						direct = true;
 					}
@@ -172,4 +206,19 @@ public class PathfinderRegion implements Pathfinder {
 		// The path is now optimized
 	}
 	
+	protected Path fastOptimize( Location start, Location end, PathRegion path ) {
+		Path newPath = new Path( start );
+		newPath.addLocation( start );
+		Region lastRegion = path.regions.get( 0 );
+		Vector endVector = end.toVector();
+		for ( Region region : path.regions ) {
+			Vector closest = VectorUtil.closestPoint( region.getRegion(), endVector );
+			if ( lastRegion.getRegion().minY != region.getRegion().minY ) {
+				newPath.addLocation( new Location( start.getWorld(), closest.getX(), lastRegion.getRegion().minY, closest.getZ() ) );
+			}
+			newPath.addLocation( new Location( start.getWorld(), closest.getX(), region.getRegion().minY, closest.getZ() ) );
+			lastRegion = region;
+		}
+		return newPath;
+	}
 }

@@ -1,20 +1,15 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.pathing;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class Edge {
-	Region r1;
-	Region r2;
-	AABB intersection;
-	Vector normal;
-	
-	Set< Vector > points = new HashSet< Vector >();
+	protected Region r1;
+	protected Region r2;
+	protected AABB intersection;
+	protected Vector normal;
 	
 	public Edge( Region region1, Region region2 ) {
 		this.r1 = region1;
@@ -22,10 +17,14 @@ public class Edge {
 		calculatePoints();
 	}
 	
+	public Edge( AABB intersection ) {
+		this.intersection = intersection;
+		normal = new Vector( intersection.maxX == intersection.minX ? 1 : 0, intersection.maxY == intersection.minY ? 1 : 0, intersection.maxZ == intersection.minZ ? 1 : 0 );
+	}
+	
 	protected void calculatePoints() {
 		AABB region1 = r1.getRegion();
 		AABB region2 = r2.getRegion();
-		points.clear();
 		if ( VectorUtil.touching( region1, region2 ) ) {
 			intersection = new AABB( Math.min( region1.maxX, region2.maxX ),
 					Math.min( region1.maxY, region2.maxY ),
@@ -33,16 +32,6 @@ public class Edge {
 					Math.max( region1.minX, region2.minX ),
 					Math.max( region1.minY, region2.minY ),
 					Math.max( region1.minZ, region2.minZ ) );
-			
-			points.add( new Vector( intersection.maxX, intersection.maxY, intersection.maxZ ) );
-			points.add( new Vector( intersection.maxX, intersection.maxY, intersection.minZ ) );
-			points.add( new Vector( intersection.maxX, intersection.minY, intersection.maxZ ) );
-			points.add( new Vector( intersection.maxX, intersection.minY, intersection.minZ ) );
-			points.add( new Vector( intersection.minX, intersection.maxY, intersection.maxZ ) );
-			points.add( new Vector( intersection.minX, intersection.maxY, intersection.minZ ) );
-			points.add( new Vector( intersection.minX, intersection.minY, intersection.maxZ ) );
-			points.add( new Vector( intersection.minX, intersection.minY, intersection.minZ ) );
-			
 			normal = new Vector( intersection.maxX == intersection.minX ? 1 : 0, intersection.maxY == intersection.minY ? 1 : 0, intersection.maxZ == intersection.minZ ? 1 : 0 );
 		}
 	}
@@ -65,11 +54,11 @@ public class Edge {
 		return false;
 	}
 	
-	public AABB getIntersection() {
-		return intersection;
+	public boolean canReach( int height ) {
+		return r2.getRegion().minY - r1.getRegion().minY <= height;
 	}
 	
-	public Set< Vector > getPoints() {
-		return points;
+	public AABB getIntersection() {
+		return intersection;
 	}
 }

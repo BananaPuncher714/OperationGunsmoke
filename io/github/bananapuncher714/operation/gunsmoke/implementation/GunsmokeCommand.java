@@ -6,7 +6,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -27,10 +29,13 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.NPCAction;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.ElevationLayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.EnclosingRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Pathfinder;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderElevation;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderElevationFast;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionGenerator;
@@ -57,7 +62,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	protected RegionMap regionMap;
 	
 	public GunsmokeCommand() {
-		Bukkit.getScheduler().runTaskTimer( GunsmokeUtil.getPlugin(), this::update, 0, 1 );
+		Bukkit.getScheduler().runTaskTimer( GunsmokeUtil.getPlugin(), this::update, 0, 5 );
 	}
 	
 	private void update() {
@@ -76,15 +81,23 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 			for ( Location loc : points ) {
 				loc.getWorld().spawnParticle( Particle.FLAME, loc, 0 );
 			}
-			for ( Player player : Bukkit.getOnlinePlayers() ) {
-				Location location = player.getLocation();
-				Region region = regionMap.getRegion( location );
-				if ( region != null && regionResult.contains( region ) ) {
-					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "In region", true ) );
-				} else {
-					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Not in region", true ) );
+		}
+		if ( regionMap != null ) {
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			Location location = player.getLocation();
+			Region region = regionMap.getRegion( location );
+			if ( region != null ) {
+				for ( AABB box : region.getCorners() ) {
+					Location one = new Location( location.getWorld(), box.maxX, box.maxY, box.maxZ );
+					Location two = new Location( location.getWorld(), box.minX, box.minY, box.minZ );
+					
+					two.getWorld().spawnParticle( Particle.FLAME, two.clone(), 0 );
 				}
+				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Solids " + region.getSolids().size() + " | Corners " + region.getCorners().size() , true ) );
+			} else {
+				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Not in region", true ) );
 			}
+		}
 		}
 		if ( end != null ) {
 			end.getWorld().spawnParticle( Particle.FLAME, end.clone(), 0 );
@@ -94,8 +107,8 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	private void drawLine( Location start, Location stop ) {
 		Vector to = stop.clone().subtract( start ).toVector();
 		for ( int i = 0; i < 10; i++ ) {
-//			start.getWorld().spawnParticle( Particle.REDSTONE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0, new DustOptions( Color.RED, 1 ) );
-			start.getWorld().spawnParticle( Particle.WATER_BUBBLE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0 );
+			start.getWorld().spawnParticle( Particle.REDSTONE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0, new DustOptions( Color.RED, 1 ) );
+//			start.getWorld().spawnParticle( Particle.WATER_BUBBLE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0 );
 		}
 	}
 	
@@ -112,6 +125,15 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 						npc.interact( NPCAction.STOP_SNEAKING );
 						npc.interact( NPCAction.START_SNEAKING );
 					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "gen" ) ) {
+					AABB[] lines = new AABB[ 20 ];
+					Random rand = ThreadLocalRandom.current();
+					for ( int i = 0; i < lines.length; i++ ) {
+						double min = rand.nextInt() % 7;
+						double max = Math.abs( rand.nextInt() % 10 ) + min - 4;
+						lines[ i ] = new AABB( i - lines.length + 10, 0, max, i - lines.length + 10, 0, min );
+					}
+					PathingPanel.draw( new AABB( -11, 0, 0, -11, 0, 0 ), lines );
 				} else if ( args[ 0 ].equalsIgnoreCase( "set" ) ) {
 					end = player.getLocation();
 				} else if ( args[ 0 ].equalsIgnoreCase( "path" ) ) {
@@ -139,6 +161,39 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					} else {
 						player.sendMessage( "Destination not set!" );
 					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "layerpath" ) ) {
+					if ( end != null ) {
+						if ( regionMap != null ) {
+							Location start = player.getLocation();
+							Pathfinder pathfinder = new PathfinderRegion( regionMap, start, end );
+							Bukkit.getScheduler().runTaskAsynchronously( GunsmokeUtil.getPlugin(), () -> {
+								PathRegion path = pathfinder.calculate( 5000 );
+								Bukkit.getScheduler().runTask( GunsmokeUtil.getPlugin(), () -> {
+									regionResult = path;
+									result = path.getPath();
+									if ( result != null ) {
+										player.sendMessage( "Number of points: " + result.getWaypoints().size() );
+										for ( Location location : result.getWaypoints() ) {
+											System.out.println( location );
+										}
+									}
+								} );
+							} );
+							player.sendMessage( "Calculating..." );
+						} else {
+							player.sendMessage( "Region map is null!" );
+						}
+					} else {
+						player.sendMessage( "Destination not set!" );
+					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "corners" ) ) {
+					if ( regionMap != null ) {
+						Location location = player.getLocation();
+						Region region = regionMap.getRegion( location );
+						if ( region != null ) {
+							RegionGenerator.getCornersFor( region );
+						}
+					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "scan" ) ) {
 					Location location = player.getLocation();
 					world = player.getWorld();
@@ -162,7 +217,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					}
 					AABB realPlayerBox = new AABB( player.getBoundingBox() );
 					AABB playerBox = new AABB( player.getBoundingBox().expand( -9.999999747378752E-6D ) ).shift( -location.getX(), 0, -location.getZ() );
-					PathingPanel.draw( playerBox, boxArr );
+//					PathingPanel.draw( playerBox, boxArr );
 
 					// Now that we have our boxes, let's create regions linking each other
 					System.out.println( "Getting neighbors..." ); 
@@ -180,10 +235,14 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 						
 						for ( AABB solid : solids ) {
 							if ( VectorUtil.touching( box, solid ) ) {
-								region.getWalls().add( solid );
+								region.getSolids().add( solid );
 							}
 						}
 					}
+					RegionGenerator.elevate( regionMap );
+					RegionGenerator.generateCorners( regionMap );
+//					RegionGenerator.trimCorners( regionMap );
+					System.out.println( "Layers detected: " + regionMap.getLayers().size() );
 					System.out.println( "Generating spaces..." );
 					// Now that we have our spaces, we want to get the corners or something
 					// There are eight possible corners that we need to generate

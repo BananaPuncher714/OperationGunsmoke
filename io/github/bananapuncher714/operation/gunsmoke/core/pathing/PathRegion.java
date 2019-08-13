@@ -18,17 +18,19 @@ public class PathRegion implements Comparable< PathRegion > {
 	}
 	
 	public void add( Region region ) {
-		regions.add( region );
-		regionChecklist.add( region );
+		if ( !regionChecklist.contains( region ) ) {
+			regions.add( region );
+			regionChecklist.add( region );
+		}
 	}
 	
 	public boolean contains( Region location ) {
 		return regionChecklist.contains( location );
 	}
 	
-	public void setOptimized( Path path ) {
+	public void setOptimized( Path path, double weight ) {
 		optimized = path;
-		weight = path.getDistance();
+		this.weight = weight;
 	}
 	
 	public Path getPath() {
@@ -41,6 +43,11 @@ public class PathRegion implements Comparable< PathRegion > {
 	
 	public Region lastRegion() {
 		return regions.get( regions.size() - 1 );
+	}
+	
+	public void add( PathRegion region ) {
+		regions.addAll( region.regions );
+		regionChecklist.addAll( region.regionChecklist );
 	}
 	
 	public PathRegion copyOf() {
@@ -56,6 +63,7 @@ public class PathRegion implements Comparable< PathRegion > {
 		for ( int i = regions.size() - 1; i >= 0; i-- ) {
 			path.regions.add( regions.get( i ) );
 		}
+		
 		return path;
 	}
 	

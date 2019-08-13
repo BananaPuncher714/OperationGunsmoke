@@ -10,7 +10,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 public class Region {
 	protected AABB region;
 	protected Map< Region, Edge > neighbors = new HashMap< Region, Edge >();
-	protected Set< AABB > walls = new HashSet< AABB >();
+	protected Set< AABB > solids = new HashSet< AABB >();
+	
+	protected Set< Corner > corners = new HashSet< Corner >();
 	
 	public Region( AABB bounds ) {
 		this.region = bounds;
@@ -29,7 +31,31 @@ public class Region {
 		return neighbors;
 	}
 	
-	public Set< AABB > getWalls() {
-		return walls;
+	public Set< Corner > getCorners() {
+		return corners;
+	}
+	
+	public Set< AABB > getSolids() {
+		return solids;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ( ( region == null ) ? 0 : region.hashCode() );
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Region other = ( Region ) obj;
+		return other.region == region;
 	}
 }

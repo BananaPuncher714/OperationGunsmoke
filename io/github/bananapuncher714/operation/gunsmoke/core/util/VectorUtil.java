@@ -171,6 +171,15 @@ public final class VectorUtil {
 		return false;
 	}
 	
+	public static AABB intersectionOf( AABB box, AABB other ) {
+		return new AABB( Math.min( box.maxX, other.maxX ),
+				Math.min( box.maxY, other.maxY ),
+				Math.min( box.maxZ, other.maxZ ),
+				Math.max( box.minX, other.minX ),
+				Math.max( box.minY, other.minY ),
+				Math.max( box.minZ, other.minZ ) );
+	}
+	
 	public static boolean overlaps( AABB box, AABB other ) {
 		if ( Math.abs( box.oriX - other.oriX ) < box.radX + other.radX ) {
 			if ( Math.abs( box.oriZ - other.oriZ ) < box.radZ + other.radZ ) {
@@ -214,6 +223,10 @@ public final class VectorUtil {
 		double y = Math.max( box.minY, Math.min( box.maxY, point.getY() ) );
 		double z = Math.max( box.minZ, Math.min( box.maxZ, point.getZ() ) );
 		return new Vector( x, y, z );
+	}
+	
+	public static boolean isCorner( AABB box, AABB point ) {
+		return Math.abs( box.oriX - point.oriX ) == point.radX + box.radX && Math.abs( box.oriZ - point.oriZ ) == point.radZ + box.radZ;
 	}
 	
 	public static double swept( AABB box, Vector movement, AABB check ) {
@@ -366,6 +379,21 @@ public final class VectorUtil {
 		}
 		double distance = ( plane.dot( planeLoc ) - plane.dot( origin ) ) / plane.dot( direction );
 		return origin.clone().add( direction.multiply( distance ) );
+	}
+	
+	public static double calculateDistance( Vector planeLoc, Vector plane, Vector origin, Vector direction ) {
+		direction = direction.clone().normalize();
+		if ( plane.dot( direction ) == 0 ) {
+			return -1;
+		}
+		double distance = ( plane.dot( planeLoc ) - plane.dot( origin ) ) / plane.dot( direction );
+		return distance;
+	}
+	
+	public static double distance( double x1, double y1, double x2, double y2 ) {
+		double xDiff = x1 - x2;
+		double yDiff = y1 - y2;
+		return Math.sqrt( xDiff * xDiff + yDiff * yDiff );
 	}
 	
 	/**
