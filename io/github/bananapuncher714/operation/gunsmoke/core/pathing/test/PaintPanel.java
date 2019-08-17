@@ -22,6 +22,12 @@ public abstract class PaintPanel extends JPanel {
 		}
 	}
 	
+	public void drawString( String string, double x, double y ) {
+		int ix = ( int ) ( x * scale ) + centerX;
+		int iy = ( int ) ( y * scale ) + centerY + 10;
+		g.drawString( string, ix, iy );
+	}
+	
 	public void drawLineThin( double x1, double y1, double x2, double y2 ) {
 		g.drawLine( ( int ) ( scale * x1 ) + centerX, ( int ) ( y1 * scale ) + centerY, ( int ) ( x2 * scale ) + centerX, ( int ) ( y2 * scale ) + centerY );
 	}

@@ -1,5 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.implementation;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,18 +30,18 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.NPCAction;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.ElevationLayer;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Corner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.EnclosingRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Pathfinder;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderElevation;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderElevationFast;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionGenerator;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionMap;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.node.NodeGenerator;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.PathingPanel;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.RegionLoader;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.MDChat;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
@@ -58,6 +59,8 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	protected World world;
 	protected List< AABB > spaces = null;
 	protected List< AABB > solids = null;
+	
+	protected List< Location > corners = null;
 	
 	protected RegionMap regionMap;
 	
@@ -83,21 +86,32 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 			}
 		}
 		if ( regionMap != null ) {
-		for ( Player player : Bukkit.getOnlinePlayers() ) {
-			Location location = player.getLocation();
-			Region region = regionMap.getRegion( location );
-			if ( region != null ) {
-				for ( AABB box : region.getCorners() ) {
-					Location one = new Location( location.getWorld(), box.maxX, box.maxY, box.maxZ );
-					Location two = new Location( location.getWorld(), box.minX, box.minY, box.minZ );
-					
-					two.getWorld().spawnParticle( Particle.FLAME, two.clone(), 0 );
+			for ( Player player : Bukkit.getOnlinePlayers() ) {
+				Location location = player.getLocation();
+				Set< Corner > corners = NodeGenerator.getVisibleCornersFor( regionMap, location.toVector() );
+				this.corners = new ArrayList< Location >();
+				for ( Corner corner : corners ) {
+					this.corners.add( new Location( location.getWorld(), corner.getCorner().oriX, corner.getCorner().minY, corner.getCorner().oriZ ) );
 				}
-				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Solids " + region.getSolids().size() + " | Corners " + region.getCorners().size() , true ) );
-			} else {
-				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Not in region", true ) );
+				Region region = regionMap.getRegion( location.toVector() );
+				if ( region != null ) {
+					for ( Corner corner : region.getCorners() ) {
+						AABB box = corner.getCorner();
+						Location one = new Location( location.getWorld(), box.maxX, box.maxY, box.maxZ );
+						Location two = new Location( location.getWorld(), box.minX, box.minY, box.minZ );
+
+						two.getWorld().spawnParticle( Particle.FLAME, two.clone(), 0 );
+					}
+					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Corners " + corners.size(), true ) );
+				} else {
+					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Not in region", true ) );
+				}
 			}
 		}
+		if ( corners != null ) {
+			for ( Location location : corners ) {
+				location.getWorld().spawnParticle( Particle.REDSTONE, location, 0, new DustOptions( Color.RED, 1 ) );
+			}
 		}
 		if ( end != null ) {
 			end.getWorld().spawnParticle( Particle.FLAME, end.clone(), 0 );
@@ -189,9 +203,20 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 				} else if ( args[ 0 ].equalsIgnoreCase( "corners" ) ) {
 					if ( regionMap != null ) {
 						Location location = player.getLocation();
-						Region region = regionMap.getRegion( location );
-						if ( region != null ) {
-							RegionGenerator.getCornersFor( region );
+						Set< Corner > corners = NodeGenerator.getVisibleCornersFor( regionMap, location.toVector() );
+						this.corners = new ArrayList< Location >();
+						for ( Corner corner : corners ) {
+							this.corners.add( new Location( location.getWorld(), corner.getCorner().oriX, corner.getCorner().minY, corner.getCorner().oriZ ) );
+						}
+						System.out.println( corners.size() );
+					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "save" ) ) {
+					if ( regionMap != null ) {
+						System.out.println( player.getLocation().toVector() );
+						File saveFolder = new File( GunsmokeUtil.getPlugin().getDataFolder() + "/regions" );
+						saveFolder.mkdirs();
+						for ( Region region : regionMap.getRegions() ) {
+							RegionLoader.toFile( region, saveFolder );
 						}
 					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "scan" ) ) {
@@ -239,10 +264,8 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 							}
 						}
 					}
-					RegionGenerator.elevate( regionMap );
 					RegionGenerator.generateCorners( regionMap );
 //					RegionGenerator.trimCorners( regionMap );
-					System.out.println( "Layers detected: " + regionMap.getLayers().size() );
 					System.out.println( "Generating spaces..." );
 					// Now that we have our spaces, we want to get the corners or something
 					// There are eight possible corners that we need to generate

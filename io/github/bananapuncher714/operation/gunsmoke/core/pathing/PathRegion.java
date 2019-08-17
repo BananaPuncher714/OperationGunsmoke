@@ -53,7 +53,7 @@ public class PathRegion implements Comparable< PathRegion > {
 	public PathRegion copyOf() {
 		PathRegion path = new PathRegion();
 		path.regionChecklist.addAll( regionChecklist );
-		regions.forEach( path.regions::add );
+		path.regions.addAll( regions );
 		return path;
 	}
 	

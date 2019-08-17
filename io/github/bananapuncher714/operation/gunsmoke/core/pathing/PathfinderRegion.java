@@ -23,8 +23,8 @@ public class PathfinderRegion implements Pathfinder {
 		this.map = map;
 		this.start = start.clone();
 		this.end = end.clone();
-		this.startRegion = map.getRegion( start );
-		this.endRegion = map.getRegion( end );
+		this.startRegion = map.getRegion( start.toVector() );
+		this.endRegion = map.getRegion( end.toVector() );
 	}
 
 	@Override

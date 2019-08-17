@@ -61,4 +61,8 @@ public class Edge {
 	public AABB getIntersection() {
 		return intersection;
 	}
+	
+	public Vector getNormal() {
+		return normal;
+	}
 }

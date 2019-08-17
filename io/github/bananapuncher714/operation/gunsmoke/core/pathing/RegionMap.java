@@ -7,13 +7,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class RegionMap {
 	Map< AABB, Region > regions = new HashMap< AABB, Region >();
-	Set< ElevationLayer > layers = new HashSet< ElevationLayer >();
 	Set< Corner > corners = new HashSet< Corner >();
 	
 	public Region getRegionFor( AABB box ) {
@@ -25,19 +25,10 @@ public class RegionMap {
 		return region;
 	}
 	
-	public Region getRegion( Location location ) {
+	public Region getRegion( Vector location ) {
 		for ( Region region : regions.values() ) {
-			if ( VectorUtil.contains( region.getRegion(), location.toVector() ) ) {
+			if ( VectorUtil.contains( region.getRegion(), location ) ) {
 				return region;
-			}
-		}
-		return null;
-	}
-	
-	public ElevationLayer getLayer( Region region ) {
-		for ( ElevationLayer layer : layers ) {
-			if ( layer.contains( region ) ) {
-				return layer;
 			}
 		}
 		return null;
@@ -45,10 +36,6 @@ public class RegionMap {
 	
 	public Collection< Region > getRegions() {
 		return regions.values();
-	}
-	
-	public Set< ElevationLayer > getLayers() {
-		return layers;
 	}
 	
 	public Set< Corner > getCorners() {
