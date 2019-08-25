@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;

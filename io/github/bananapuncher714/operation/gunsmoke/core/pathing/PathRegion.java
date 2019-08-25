@@ -46,8 +46,9 @@ public class PathRegion implements Comparable< PathRegion > {
 	}
 	
 	public void add( PathRegion region ) {
-		regions.addAll( region.regions );
-		regionChecklist.addAll( region.regionChecklist );
+		for ( Region r : region.getRegions() ) {
+			add( r );
+		}
 	}
 	
 	public PathRegion copyOf() {

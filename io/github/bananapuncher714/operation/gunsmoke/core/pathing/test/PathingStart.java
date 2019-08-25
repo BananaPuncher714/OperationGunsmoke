@@ -11,14 +11,19 @@ import java.util.Set;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.ComparableVec;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Corner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Edge;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathCorner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderDev;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionGenerator;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionMap;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.node.ComparableVec;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.node.NodeGenerator;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.node.PathEnd;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class PathingStart {
@@ -46,7 +51,10 @@ public class PathingStart {
 		System.out.println( "Done loading!" );
 		System.out.println( "Loaded " + map.getRegions().size() + " regions" );
 		
-		Vector playerPos = new Vector( -293.3230759813689, 55.0, -37.6398436185673 );
+		Vector playerPos = new Vector( -291.484, 61, -36.7 );
+		Region playerRegion = map.getRegion( playerPos );
+		Vector finish = new Vector( -294.5179450720437,56.375,-48.581931510232025 );
+		Region finishRegion = map.getRegion( finish );
 		
 		Vector self = new Vector( -0.5366845635742735,0.0,0.8437829574132742 );
 		System.out.println( self.dot( self ) );
@@ -54,13 +62,30 @@ public class PathingStart {
 		RegionPanel.draw( playerPos, new PathRegion( map.getRegion( playerPos ) ), new ComparableVec( new Vector( 1, 0, 0 ), new Vector( 1, 0, 0 ) ), null );
 		RegionPanel.pause();
 		
-		getVisibleCornersFor( map, playerPos );
+		PathfinderDev pathfinder = new PathfinderDev( map, playerPos, finish );
+//		PathRegion path = pathfinder.calculate( 10000 );
+		for ( PathCorner region : PathfinderDev.getPossibleCornerPaths( map, playerPos, new Corner( playerRegion, playerPos ), finish, new Corner( finishRegion, finish ) ) ) {
+			RegionPanel.draw( playerPos, region, null, null );
+			System.out.println( region.lastCorner().getVector() );
+			RegionPanel.pause();
+			
+//			RegionPanel.addPath( region );
+//			RegionPanel.addCorner( region.lastCorner().min() );
+		}
+		RegionPanel.draw( playerPos, new PathRegion( map.getRegion( playerPos ) ), new ComparableVec( new Vector( 1, 0, 0 ), new Vector( 1, 0, 0 ) ), null );
+
+//		System.out.println( path.getRegions().size() );
+//		System.out.println( path.getPath().getWaypoints().size() );
+//		RegionPanel.draw( playerPos, path, null, null );
+//		RegionPanel.pause();
+//		Path updated = PathfinderDev.optimize( map, playerPos, playerRegion, finish, finishRegion, path );
+//		path.setOptimized( updated, 0 );
+//		RegionPanel.draw( playerPos, path, null, null );
 	}
 	
-	public static Set< Corner > getVisibleCornersFor( RegionMap map, Vector start ) {
-		Set< Corner > visible = new HashSet< Corner >();
+	public static Set< PathEnd > getVisibleCornersFor( Region region, Vector start ) {
+		Set< PathEnd > visible = new HashSet< PathEnd >();
 		
-		Region region = map.getRegion( start );
 		if ( region == null  ) {
 			return visible;
 		}
@@ -72,12 +97,15 @@ public class PathingStart {
 		Map< PathRegion, Vector > starts = new HashMap< PathRegion, Vector >();
 		
 		// Store the last edges intersected
-		Map< PathRegion, Edge > lastEdges = new HashMap< PathRegion, Edge >();
+		Map< PathRegion, Set< Edge > > lastEdges = new HashMap< PathRegion, Set< Edge > >();
 		
 		PathRegion startPath = new PathRegion( region );
 		paths.add( startPath );
 		starts.put( startPath, start.clone().setY( 0 ) );
-		visible.addAll( region.getCorners() );
+		
+		for ( Corner corner : region.getCorners() ) {
+			visible.add( new PathEnd( startPath, corner ) );
+		}
 
 		int iterations = 0;
 		while ( !paths.isEmpty() ) {
@@ -86,7 +114,7 @@ public class PathingStart {
 			Region latest = path.lastRegion();
 			ComparableVec originalVec = vecMap.remove( path );
 			Vector startVector = starts.remove( path );
-			Edge lastEdge = lastEdges.remove( path );
+			Set< Edge > lastEdge = lastEdges.remove( path );
 			
 			for ( Region neighbor : latest.getNeighbors().keySet() ) {
 				if ( path.contains( neighbor ) ) {
@@ -112,26 +140,35 @@ public class PathingStart {
 				ComparableVec cv = originalVec == null ? null : new ComparableVec( originalVec.getMin(), originalVec.getMax() );
 				ComparableVec newVec = new ComparableVec( toMin, toMax );
 				int val = 0;
+				Set< Edge > edgeSet = new HashSet< Edge >();
 				if ( cv != null ) {
 					if ( lastEdge != null ) {
-						AABB prevBox = lastEdge.getIntersection();
-						AABB edgeIntersection = new AABB( Math.min( box.maxX, prevBox.maxX ),
-								0,
-								Math.min( box.maxZ, prevBox.maxZ ),
-								Math.max( box.minX, prevBox.minX ),
-								0,
-								Math.max( box.minZ, prevBox.minZ ) );
-						if ( edgeIntersection.lenX != 0 ^ edgeIntersection.lenZ != 0 ) {
-							Vector reverseNormal = edge.getNormal().clone().add( edge.getNormal() ).subtract( new Vector( 1, 1, 1 ) ).multiply( -1 );
-							double xDist = ( box.oriX - origin.getX() ) * edge.getNormal().getX() * 2;
-							double zDist = ( box.oriZ - origin.getZ() ) * edge.getNormal().getZ() * 2;
-							origin.add( new Vector( xDist, 0, zDist ) );
-							
-							toMax = new Vector( box.maxX, 0, box.maxZ ).subtract( origin ).setY( 0 ).normalize();
-							toMin = new Vector( box.minX, 0, box.minZ ).subtract( origin ).setY( 0 ).normalize();
-							
-							newVec = new ComparableVec( toMin, toMax );
-							cv = new ComparableVec( cv.getMin().multiply( reverseNormal ), cv.getMax().multiply( reverseNormal ) );
+						boolean reversed = false;
+						for ( Edge prevEdge : lastEdge ) {
+							AABB prevBox = prevEdge.getIntersection();
+							AABB edgeIntersection = new AABB( Math.min( box.maxX, prevBox.maxX ),
+									0,
+									Math.min( box.maxZ, prevBox.maxZ ),
+									Math.max( box.minX, prevBox.minX ),
+									0,
+									Math.max( box.minZ, prevBox.minZ ) );
+							if ( ( edgeIntersection.lenX > 0 ^ edgeIntersection.lenZ > 0 ) && ( edgeIntersection.lenX >= 0 && edgeIntersection.lenZ >= 0 ) ) {
+								Vector reverseNormal = edge.getNormal().clone().add( edge.getNormal() ).subtract( new Vector( 1, 1, 1 ) ).multiply( -1 );
+								double xDist = ( box.oriX - origin.getX() ) * edge.getNormal().getX() * 2;
+								double zDist = ( box.oriZ - origin.getZ() ) * edge.getNormal().getZ() * 2;
+								origin.add( new Vector( xDist, 0, zDist ) );
+								
+								toMax = new Vector( box.maxX, 0, box.maxZ ).subtract( origin ).setY( 0 ).normalize();
+								toMin = new Vector( box.minX, 0, box.minZ ).subtract( origin ).setY( 0 ).normalize();
+								
+								newVec = new ComparableVec( toMin, toMax );
+								cv = new ComparableVec( cv.getMin().multiply( reverseNormal ), cv.getMax().multiply( reverseNormal ) );
+								reversed = true;
+								break;
+							}
+						}
+						if ( !reversed ) {
+							edgeSet.addAll( lastEdge );
 						}
 					}
 					
@@ -142,6 +179,11 @@ public class PathingStart {
 					int cvMinRange = newVec.getTowards( cv.getMin() );
 
 					if ( ( maxRange != 0 && maxRange == minRange ) || ( cvMaxRange != 0 && cvMaxRange == cvMinRange ) ) {
+						Vector corner = new Vector( box.minX, 0, box.minZ );
+						if ( cv.getMid().dot( toMax ) > cv.getMid().dot( toMin ) ) {
+							corner = new Vector( box.maxX, 0, box.maxZ );
+						}
+						RegionPanel.addCorner( corner );
 						continue;
 					}
 					
@@ -168,6 +210,7 @@ public class PathingStart {
 						}
 					}
 				}
+				edgeSet.add( edge );
 				
 				// At this point we can be certain we can see the region
 				PathRegion newPath = path.copyOf();
@@ -175,26 +218,24 @@ public class PathingStart {
 				paths.add( newPath );
 				vecMap.put( newPath, newVec );
 				starts.put( newPath, origin );
-				lastEdges.put( newPath, edge );
+				lastEdges.put( newPath, edgeSet );
 				
-				if ( !NodeGenerator.intersects( edge, origin, newVec.getMax() ) || !NodeGenerator.intersects( edge, origin, newVec.getMin() ) ) {
+				RegionPanel.draw( origin, newPath, newVec, edge );
+				if ( NodeGenerator.intersects( edge, origin, newVec.getMax() ) == null || NodeGenerator.intersects( edge, origin, newVec.getMin() ) == null ) {
 					System.out.println( "ERROR " + val );
 				}
 				
-				RegionPanel.draw( origin, newPath, newVec, edge );
 				try {
-					Thread.sleep( 40 );
+					Thread.sleep( 2 );
 				} catch ( InterruptedException e ) {
 					e.printStackTrace();
 				}
 //				RegionPanel.pause();
 
 				for ( Corner corner : neighbor.getCorners() ) {
-					AABB point = corner.getCorner();
-					Vector cornerVec = new Vector( point.oriX, 0, point.oriZ );
-					Vector toCorner = cornerVec.subtract( origin ).setY( 0 ).normalize();
+					Vector toCorner = corner.getVector().subtract( origin ).setY( 0 ).normalize();
 					if ( newVec.getTowards( toCorner ) == 0  ) {
-						visible.add( corner );
+						visible.add( new PathEnd( newPath, corner ) );
 					}
 				}
 			}

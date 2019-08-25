@@ -17,6 +17,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEnt
 /**
  * Simple vector math
  * 
+ * Very useful link for some calculations
+ * http://www.iquilezles.org/www/articles/intersectors/intersectors.htm
+ * 
  * @author BananaPuncher714
  */
 public final class VectorUtil {
@@ -393,7 +396,7 @@ public final class VectorUtil {
 	public static double distance( double x1, double y1, double x2, double y2 ) {
 		double xDiff = x1 - x2;
 		double yDiff = y1 - y2;
-		return Math.sqrt( xDiff * xDiff + yDiff * yDiff );
+		return Math.sqrt( ( xDiff * xDiff ) + ( yDiff * yDiff ) );
 	}
 	
 	/**

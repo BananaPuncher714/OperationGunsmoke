@@ -33,13 +33,14 @@ import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Corner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.EnclosingRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathCorner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Pathfinder;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderDev;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathfinderRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionGenerator;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionMap;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.node.NodeGenerator;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.PathingPanel;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.RegionLoader;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
@@ -62,7 +63,11 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	
 	protected List< Location > corners = null;
 	
+	protected Set< Path > paths = new HashSet< Path >();
+	
 	protected RegionMap regionMap;
+	
+	protected PathfinderDev pathfinder;
 	
 	public GunsmokeCommand() {
 		Bukkit.getScheduler().runTaskTimer( GunsmokeUtil.getPlugin(), this::update, 0, 5 );
@@ -71,57 +76,60 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	private void update() {
 //		if ( regionMap != null && end != null ) {
 //			for ( Player player : Bukkit.getOnlinePlayers() ) {
-//				Pathfinder pathfinder = new PathfinderRegion( regionMap, player.getLocation(), end );
-//				result = pathfinder.calculate( 200 );
+//				Pathfinder pathfinder = new PathfinderDev( regionMap, player.getLocation().toVector(), end.toVector() );
+//				regionResult = pathfinder.calculate( 200 );
+//				result = regionResult.getPath();
 //			}
 //		}
 		
 		if ( result != null ) {
-			List< Location > points = result.getWaypoints();
+			List< Vector > points = result.getWaypoints();
 			for ( int i = 1; i < points.size(); i++ ) {
 				drawLine( points.get( i - 1 ), points.get( i ) );
 			}
-			for ( Location loc : points ) {
-				loc.getWorld().spawnParticle( Particle.FLAME, loc, 0 );
+			for ( Vector loc : points ) {
+				end.getWorld().spawnParticle( Particle.FLAME, new Location( end.getWorld(), 0, 0, 0 ).add( loc ), 0 );
+			}
+		}
+		for ( Path path : paths ) {
+			List< Vector > points = path.getWaypoints();
+			for ( int i = 1; i < points.size(); i++ ) {
+				drawLine( points.get( i - 1 ), points.get( i ) );
+			}
+			for ( Vector loc : points ) {
+				end.getWorld().spawnParticle( Particle.FLAME, new Location( end.getWorld(), 0, 0, 0 ).add( loc ), 0 );
 			}
 		}
 		if ( regionMap != null ) {
 			for ( Player player : Bukkit.getOnlinePlayers() ) {
 				Location location = player.getLocation();
-				Set< Corner > corners = NodeGenerator.getVisibleCornersFor( regionMap, location.toVector() );
-				this.corners = new ArrayList< Location >();
-				for ( Corner corner : corners ) {
-					this.corners.add( new Location( location.getWorld(), corner.getCorner().oriX, corner.getCorner().minY, corner.getCorner().oriZ ) );
-				}
 				Region region = regionMap.getRegion( location.toVector() );
-				if ( region != null ) {
-					for ( Corner corner : region.getCorners() ) {
-						AABB box = corner.getCorner();
-						Location one = new Location( location.getWorld(), box.maxX, box.maxY, box.maxZ );
-						Location two = new Location( location.getWorld(), box.minX, box.minY, box.minZ );
+				Corner corner = new Corner( region, location.toVector() );
+//				for ( Corner regionCorner : region.getCorners() ) {
+//					end.getWorld().spawnParticle( Particle.FLAME, new Location( end.getWorld(), 0, 0, 0 ).add( regionCorner.getVector() ), 0 );
+//				}
 
-						two.getWorld().spawnParticle( Particle.FLAME, two.clone(), 0 );
-					}
-					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Corners " + corners.size(), true ) );
-				} else {
-					player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Not in region", true ) );
+				Set< PathCorner > paths = PathfinderDev.getPossibleCornerPaths( regionMap, location.toVector(), corner, location.toVector(), corner );
+				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Size " + paths.size(), true ) );
+				for ( PathCorner path : paths ) {
+					location.getWorld().spawnParticle( Particle.FLAME, new Location( location.getWorld(), 0, 0, 0 ).add( path.lastCorner().getVector() ), 0 );
 				}
 			}
 		}
-		if ( corners != null ) {
-			for ( Location location : corners ) {
-				location.getWorld().spawnParticle( Particle.REDSTONE, location, 0, new DustOptions( Color.RED, 1 ) );
-			}
-		}
+//		if ( corners != null ) {
+//			for ( Location location : corners ) {
+//				location.getWorld().spawnParticle( Particle.REDSTONE, location, 0, new DustOptions( Color.RED, 1 ) );
+//			}
+//		}
 		if ( end != null ) {
 			end.getWorld().spawnParticle( Particle.FLAME, end.clone(), 0 );
 		}
 	}
 	
-	private void drawLine( Location start, Location stop ) {
-		Vector to = stop.clone().subtract( start ).toVector();
+	private void drawLine( Vector start, Vector stop ) {
+		Vector to = stop.clone().subtract( start );
 		for ( int i = 0; i < 10; i++ ) {
-			start.getWorld().spawnParticle( Particle.REDSTONE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0, new DustOptions( Color.RED, 1 ) );
+			end.getWorld().spawnParticle( Particle.REDSTONE, new Location( end.getWorld(), 0, 0, 0 ).add( start.clone().add( to.clone().multiply( i / 10.0 ) ) ), 0, new DustOptions( Color.RED, 1 ) );
 //			start.getWorld().spawnParticle( Particle.WATER_BUBBLE, start.clone().add( to.clone().multiply( i / 10.0 ) ), 0 );
 		}
 	}
@@ -154,7 +162,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					if ( end != null ) {
 						if ( regionMap != null ) {
 							Location start = player.getLocation();
-							Pathfinder pathfinder = new PathfinderRegion( regionMap, start, end );
+							pathfinder = new PathfinderDev( regionMap, start.toVector(), end.toVector() );
 							Bukkit.getScheduler().runTaskAsynchronously( GunsmokeUtil.getPlugin(), () -> {
 								PathRegion path = pathfinder.calculate( 5000 );
 								Bukkit.getScheduler().runTask( GunsmokeUtil.getPlugin(), () -> {
@@ -162,32 +170,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 									result = path.getPath();
 									if ( result != null ) {
 										player.sendMessage( "Number of points: " + result.getWaypoints().size() );
-										for ( Location location : result.getWaypoints() ) {
-											System.out.println( location );
-										}
-									}
-								} );
-							} );
-							player.sendMessage( "Calculating..." );
-						} else {
-							player.sendMessage( "Region map is null!" );
-						}
-					} else {
-						player.sendMessage( "Destination not set!" );
-					}
-				} else if ( args[ 0 ].equalsIgnoreCase( "layerpath" ) ) {
-					if ( end != null ) {
-						if ( regionMap != null ) {
-							Location start = player.getLocation();
-							Pathfinder pathfinder = new PathfinderRegion( regionMap, start, end );
-							Bukkit.getScheduler().runTaskAsynchronously( GunsmokeUtil.getPlugin(), () -> {
-								PathRegion path = pathfinder.calculate( 5000 );
-								Bukkit.getScheduler().runTask( GunsmokeUtil.getPlugin(), () -> {
-									regionResult = path;
-									result = path.getPath();
-									if ( result != null ) {
-										player.sendMessage( "Number of points: " + result.getWaypoints().size() );
-										for ( Location location : result.getWaypoints() ) {
+										for ( Vector location : result.getWaypoints() ) {
 											System.out.println( location );
 										}
 									}
@@ -202,13 +185,41 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "corners" ) ) {
 					if ( regionMap != null ) {
-						Location location = player.getLocation();
-						Set< Corner > corners = NodeGenerator.getVisibleCornersFor( regionMap, location.toVector() );
-						this.corners = new ArrayList< Location >();
-						for ( Corner corner : corners ) {
-							this.corners.add( new Location( location.getWorld(), corner.getCorner().oriX, corner.getCorner().minY, corner.getCorner().oriZ ) );
+						Location start = player.getLocation();
+						Region region = regionMap.getRegion( start.toVector() );
+						Corner corner = new Corner( region, start.toVector() );
+						Set< PathCorner > paths = PathfinderDev.getPossibleCornerPaths( regionMap, start.toVector(), corner, start.toVector(), corner );
+						this.paths.clear();
+						for ( PathCorner path : paths ) {
+							this.paths.add( path.getPath() );
 						}
-						System.out.println( corners.size() );
+					} else {
+						player.sendMessage( "Region map is null!" );
+					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "layerpath" ) ) {
+					if ( end != null ) {
+						if ( regionMap != null ) {
+							Location start = player.getLocation();
+							Pathfinder pathfinder = new PathfinderRegion( regionMap, start.toVector(), end.toVector() );
+							Bukkit.getScheduler().runTaskAsynchronously( GunsmokeUtil.getPlugin(), () -> {
+								PathRegion path = pathfinder.calculate( 5000 );
+								Bukkit.getScheduler().runTask( GunsmokeUtil.getPlugin(), () -> {
+									regionResult = path;
+									result = path.getPath();
+									if ( result != null ) {
+										player.sendMessage( "Number of points: " + result.getWaypoints().size() );
+										for ( Vector location : result.getWaypoints() ) {
+											System.out.println( location );
+										}
+									}
+								} );
+							} );
+							player.sendMessage( "Calculating..." );
+						} else {
+							player.sendMessage( "Region map is null!" );
+						}
+					} else {
+						player.sendMessage( "Destination not set!" );
 					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "save" ) ) {
 					if ( regionMap != null ) {

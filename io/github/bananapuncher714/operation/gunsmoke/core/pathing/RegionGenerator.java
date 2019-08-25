@@ -5,10 +5,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -258,7 +256,7 @@ public class RegionGenerator {
 			Set< AABB > cornerSet = new HashSet< AABB >( corners );
 			cornerSet.removeAll( remove );
 			for ( AABB corner : cornerSet ) {
-				region.getCorners().add( new Corner( region, corner ) );
+//				region.getCorners().add( new Corner( region, corner ) );
 			}
 			// The corners provided by this solution cover all the necessary corners, and a little more
 		}
@@ -305,11 +303,11 @@ public class RegionGenerator {
 		System.out.println( "New size " + cornerSet.size() );
 	}
 	
-	public static Path optimize( Location start, Location end, PathRegion path ) {
+	public static Path optimize( Vector start, Vector end, PathRegion path ) {
 		// Convert the start to a vector
-		Vector lastSolid = start.toVector();
+		Vector lastSolid = start.clone();
 		// Convert the end to a vector
-		Vector lastClosest = end.toVector();
+		Vector lastClosest = end.clone();
 		// Create a vector from the start to the end and normalize it
 		Vector solidToLastClosest = lastClosest.clone().subtract( lastSolid );
 		
@@ -344,7 +342,7 @@ public class RegionGenerator {
 		int closestEdge = -1;
 		while ( !direct ) {
 			// Re-set our last closest point
-			lastClosest = end.toVector();
+			lastClosest = end.clone();
 			// For each edge
 			for ( int i = edges.size() - 1; i > closestEdge; i-- ) {
 				Edge edge = edges.get( i );
@@ -370,7 +368,7 @@ public class RegionGenerator {
 					closestEdge = i;
 					lastSolid = closest;
 					// Right here, we need to change lastSolid to reflect the proper values that haven't changed
-					optimized.addLocation( new Location( start.getWorld(), closest.getX(), closest.getY(), closest.getZ() ) );
+					optimized.addLocation( new Vector( closest.getX(), closest.getY(), closest.getZ() ) );
 					if ( i == edges.size() - 1 ) {
 						direct = true;
 					}

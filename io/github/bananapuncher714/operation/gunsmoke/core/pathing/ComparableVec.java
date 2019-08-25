@@ -1,14 +1,14 @@
-package io.github.bananapuncher714.operation.gunsmoke.core.pathing.node;
+package io.github.bananapuncher714.operation.gunsmoke.core.pathing;
 
 import org.bukkit.util.Vector;
 
 // Made for 2d calculations only!!!
 // Min and max don't really have any meaning apart from being 2 bounds
 public class ComparableVec {
-	Vector min;
-	Vector max;
-	Vector mid;
-	double dot;
+	protected Vector min;
+	protected Vector max;
+	protected Vector mid;
+	private double dot;
 	
 	public ComparableVec( Vector min, Vector max ) {
 		this.min = min.clone().setY( 0 );

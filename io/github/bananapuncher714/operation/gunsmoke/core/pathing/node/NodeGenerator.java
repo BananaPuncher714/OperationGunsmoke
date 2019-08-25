@@ -2,21 +2,20 @@ package io.github.bananapuncher714.operation.gunsmoke.core.pathing.node;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.ComparableVec;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Corner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Edge;
+import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathCorner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionMap;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class NodeGenerator {
@@ -24,40 +23,37 @@ public class NodeGenerator {
 		return new Vector( Math.cos( Math.toRadians( deg ) ), 0, Math.sin( Math.toRadians( deg ) ) );
 	}
 	
-	public static Set< Corner > getVisibleCornersFor( RegionMap map, Vector start ) {
+	public static Set< PathCorner > getVisibleCornersFor( Corner start ) {
 		// A set of all visible corners
-		Set< Corner > visible = new HashSet< Corner >();
+		Set< PathCorner > visible = new HashSet< PathCorner >();
 		
 		// First ensure that we are in a region
-		Region region = map.getRegion( start );
+		Region region = start.getOwner();
 		if ( region == null  ) {
 			return visible;
 		}
 
 		// A queue of all paths that need to be extended
-		Queue< PathRegion > paths = new ArrayDeque< PathRegion >();
-		// A map of regions that contains the field of view that it can see
-		Map< PathRegion, ComparableVec > vecMap = new HashMap< PathRegion, ComparableVec >();
-		
-		// This map is in case if you wanted to loop back around
-		Map< PathRegion, Vector > starts = new HashMap< PathRegion, Vector >();
+		Queue< NodePath > paths = new ArrayDeque< NodePath >();
 
-		// Store the last edges intersected
-		Map< PathRegion, Edge > lastEdges = new HashMap< PathRegion, Edge >();
-		
 		// Create the first path
-		PathRegion startPath = new PathRegion( region );
-		paths.add( startPath );
-		starts.put( startPath, start.clone().setY( 0 ) );
+		PathRegion startPath = new PathCorner( start );
+		Vector startOrigin = start.getVector().setY( 0 );
+		NodePath startNodePath = new NodePath( null, startOrigin, startPath );
 		
-		visible.addAll( region.getCorners() );
+		paths.add( startNodePath );
+		
+		for ( Corner corner : region.getCorners() ) {
+			visible.add( new PathCorner( corner ) );
+		}
 
 		while ( !paths.isEmpty() ) {
-			PathRegion path = paths.poll();
+			NodePath nodePath = paths.poll();
+			PathRegion path = nodePath.getPath();
 			Region latest = path.lastRegion();
-			ComparableVec originalVec = vecMap.remove( path );
-			Vector startVector = starts.remove( path );
-			Edge lastEdge = lastEdges.remove( path );
+			ComparableVec nodeOriginVec = nodePath.getVec();
+			Vector nodeOriginPos = nodePath.getOrigin();
+			Set< Edge > nodeEdges = nodePath.getIntersections();			
 			
 			for ( Region neighbor : latest.getNeighbors().keySet() ) {
 				if ( path.contains( neighbor ) ) {
@@ -74,37 +70,49 @@ public class NodeGenerator {
 					continue;
 				}
 				
-				Vector origin = startVector.clone();
+				Vector origin = nodeOriginPos.clone();
 				
 				Vector toMax = new Vector( box.maxX, 0, box.maxZ ).subtract( origin ).setY( 0 ).normalize();
 				Vector toMin = new Vector( box.minX, 0, box.minZ ).subtract( origin ).setY( 0 ).normalize();
 				
 				// Check if this region is visible
-				ComparableVec cv = originalVec == null ? null : new ComparableVec( originalVec.getMin(), originalVec.getMax() );
+				// cv is our temporary comparable vec
+				ComparableVec cv = nodeOriginVec == null ? null : new ComparableVec( nodeOriginVec.getMin(), nodeOriginVec.getMax() );
 				ComparableVec newVec = new ComparableVec( toMin, toMax );
+				Set< Edge > edgeSet = new HashSet< Edge >();
 				if ( cv != null ) {
-					if ( lastEdge != null ) {
-						AABB prevBox = lastEdge.getIntersection();
-						AABB edgeIntersection = new AABB( Math.min( box.maxX, prevBox.maxX ),
-								0,
-								Math.min( box.maxZ, prevBox.maxZ ),
-								Math.max( box.minX, prevBox.minX ),
-								0,
-								Math.max( box.minZ, prevBox.minZ ) );
-						if ( edgeIntersection.lenX != 0 ^ edgeIntersection.lenZ != 0 ) {
-							Vector reverseNormal = edge.getNormal().clone().add( edge.getNormal() ).subtract( new Vector( 1, 1, 1 ) ).multiply( -1 );
-							double xDist = ( box.oriX - origin.getX() ) * edge.getNormal().getX() * 2;
-							double zDist = ( box.oriZ - origin.getZ() ) * edge.getNormal().getZ() * 2;
-							origin.add( new Vector( xDist, 0, zDist ) );
-							
-							toMax = new Vector( box.maxX, 0, box.maxZ ).subtract( origin ).setY( 0 ).normalize();
-							toMin = new Vector( box.minX, 0, box.minZ ).subtract( origin ).setY( 0 ).normalize();
-							
-							newVec = new ComparableVec( toMin, toMax );
-							cv = new ComparableVec( cv.getMin().multiply( reverseNormal ), cv.getMax().multiply( reverseNormal ) );
+					if ( nodeEdges != null ) {
+						boolean reversed = false;
+						for ( Edge prevEdge : nodeEdges ) {
+							AABB prevBox = prevEdge.getIntersection();
+							AABB edgeIntersection = new AABB( Math.min( box.maxX, prevBox.maxX ),
+									0,
+									Math.min( box.maxZ, prevBox.maxZ ),
+									Math.max( box.minX, prevBox.minX ),
+									0,
+									Math.max( box.minZ, prevBox.minZ ) );
+							if ( ( edgeIntersection.lenX > 0 ^ edgeIntersection.lenZ > 0 ) && ( edgeIntersection.lenX >= 0 && edgeIntersection.lenZ >= 0 ) ) {
+								Vector reverseNormal = edge.getNormal().clone().add( edge.getNormal() ).subtract( new Vector( 1, 1, 1 ) ).multiply( -1 );
+								double xDist = ( box.oriX - origin.getX() ) * edge.getNormal().getX() * 2;
+								double zDist = ( box.oriZ - origin.getZ() ) * edge.getNormal().getZ() * 2;
+								origin.add( new Vector( xDist, 0, zDist ) );
+								
+								toMax = new Vector( box.maxX, 0, box.maxZ ).subtract( origin ).setY( 0 ).normalize();
+								toMin = new Vector( box.minX, 0, box.minZ ).subtract( origin ).setY( 0 ).normalize();
+								
+								newVec = new ComparableVec( toMin, toMax );
+								cv = new ComparableVec( cv.getMin().multiply( reverseNormal ), cv.getMax().multiply( reverseNormal ) );
+								reversed = true;
+								break;
+							}
+						}
+						if ( !reversed ) {
+							edgeSet.addAll( nodeEdges );
 						}
 					}
+					// After here we have our new origin, newVec, and our set of edges
 					
+					// Now we just need to narrow the vectors down
 					Vector cvMax = cv.getMax();
 					Vector cvMin = cv.getMin();
 					int maxRange = cv.getTowards( toMax );
@@ -133,21 +141,22 @@ public class NodeGenerator {
 						}
 					}
 				}
+				edgeSet.add( edge );
 
 				// At this point we can be certain we can see the region
 				PathRegion newPath = path.copyOf();
 				newPath.add( neighbor );
-				paths.add( newPath );
-				vecMap.put( newPath, newVec );
-				starts.put( newPath, origin );
-				lastEdges.put( newPath, edge );
+				NodePath newNodePath = new NodePath( newVec, origin, newPath );
+				newNodePath.getIntersections().addAll( edgeSet );
+				paths.add( newNodePath );
 				
 				for ( Corner corner : neighbor.getCorners() ) {
-					AABB point = corner.getCorner();
-					Vector cornerVec = new Vector( point.oriX, 0, point.oriZ );
-					Vector toCorner = cornerVec.subtract( origin ).setY( 0 ).normalize();
+					Vector toCorner = corner.getVector().subtract( origin ).setY( 0 ).normalize();
 					if ( newVec.getTowards( toCorner ) == 0  ) {
-						visible.add( corner );
+						PathCorner newPathCorner = new PathCorner( start );
+						newPathCorner.add( path );
+						newPathCorner.add( corner );
+						visible.add( newPathCorner );
 					}
 				}
 			}
@@ -168,17 +177,20 @@ public class NodeGenerator {
 				edges.add( edge );
 			} else {
 				System.out.println( "An edge doesn't exist between 2 neighbors!" );
+				System.out.println( i + ":" + regions.size() );
 			}
 		}
 		return edges;
 	}
 	
-	public static boolean intersects( Edge edge, Vector origin, Vector ray ) {
+	public static Vector intersects( Edge edge, Vector origin, Vector ray ) {
 		Vector point = VectorUtil.calculateVector( new Vector( edge.getIntersection().maxX, 0, edge.getIntersection().maxZ ), edge.getNormal(), origin, ray );
 		if ( point != null ) {
-			return Math.abs( point.getX() - edge.getIntersection().oriX ) <= edge.getIntersection().radX &&
-					Math.abs( point.getZ() - edge.getIntersection().oriZ ) <= edge.getIntersection().radZ;
+			if ( Math.abs( point.getX() - edge.getIntersection().oriX ) <= edge.getIntersection().radX &&
+					Math.abs( point.getZ() - edge.getIntersection().oriZ ) <= edge.getIntersection().radZ ) {
+				return point;
+			}
 		}
-		return false;
+		return null;
 	}
 }

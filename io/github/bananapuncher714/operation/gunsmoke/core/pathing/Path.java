@@ -6,24 +6,31 @@ import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
+import com.google.common.collect.Lists;
+
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GeneralUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class Path {
-	protected List< Location > waypoints = new ArrayList< Location >();
-	protected Set< Location > checklist = new HashSet< Location >();
+	protected List< Vector > waypoints = new ArrayList< Vector >();
+	protected Set< Vector > checklist = new HashSet< Vector >();
 	protected List< Double > distanceList = new ArrayList< Double >();
 	protected double distance = -1;
 	
 	protected Path() {}
 	
-	public Path( Location start ) {
+	public Path( Vector start ) {
 		addLocation( start );
 	}
 	
-	public void addLocation( Location location ) {
+	public void addLocation( Vector location ) {
+		if ( checklist.contains( location ) ) {
+			return;
+		}
 		if ( waypoints.size() > 0 ) {
-			Location last = last();
+			Vector last = last();
 			double dist;
 			if ( location.getY() < last.getY() ) {
 				dist = VectorUtil.distance( location.getX(), location.getZ(), last.getX(), last.getZ() );
@@ -38,27 +45,49 @@ public class Path {
 		distance = -1;
 	}
 	
-	public List< Location > getWaypoints() {
-		return new ArrayList< Location >( waypoints );
+	public void add( Path path ) {
+		for ( Vector waypoint : path.waypoints ) {
+			addLocation( waypoint );
+		}
+	}
+	
+	public List< Vector > getWaypoints() {
+		return new ArrayList< Vector >( waypoints );
 	}
 
-	public Location last() {
+	public Vector last() {
 		return waypoints.get( waypoints.size() - 1 ).clone();
 	}
 	
-	public Location popLast() {
-		Location last = waypoints.remove( waypoints.size() - 1 );
+	public Vector popLast() {
+		Vector last = waypoints.remove( waypoints.size() - 1 );
 		checklist.remove( last );
 		distanceList.remove( distanceList.size() - 1 );
 		distance = -1;
 		return last;
 	}
 	
-	public boolean contains( Location location ) {
+	public boolean contains( Vector location ) {
 		return checklist.contains( location );
 	}
 	
 	public double getDistance() {
+		double sum = 0;
+		for ( int i = 0; i < waypoints.size() - 2; i++ ) {
+			Vector prev = waypoints.get( i );
+			Vector next = waypoints.get( i + 1 );
+			
+			if ( next.getY() < prev.getY() ) {
+				sum += VectorUtil.distance( prev.getX(), prev.getZ(), next.getX(), next.getZ() );
+			} else {
+				sum += prev.distance( next );
+			}
+		}
+		
+		return sum;
+	}
+	
+	public double getDistanceOld() {
 		if ( distance != -1 ) {
 			return distance;
 		}
@@ -76,6 +105,11 @@ public class Path {
 		path.waypoints.addAll( waypoints );
 		path.distanceList.addAll( distanceList );
 		return path;
+	}
+	
+	public void reverseSelf() {
+		GeneralUtil.reverseList( waypoints );
+		GeneralUtil.reverseList( distanceList );
 	}
 
 	@Override

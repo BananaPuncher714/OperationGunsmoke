@@ -6,25 +6,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class PathfinderRegion implements Pathfinder {
 	protected RegionMap map;
-	protected Location start;
-	protected Location end;
+	protected Vector start;
+	protected Vector end;
 	protected Region startRegion;
 	protected Region endRegion;
 	
 	
-	public PathfinderRegion( RegionMap map, Location start, Location end ) {
+	public PathfinderRegion( RegionMap map, Vector start, Vector end ) {
 		this.map = map;
 		this.start = start.clone();
 		this.end = end.clone();
-		this.startRegion = map.getRegion( start.toVector() );
-		this.endRegion = map.getRegion( end.toVector() );
+		this.startRegion = map.getRegion( start );
+		this.endRegion = map.getRegion( end );
 	}
 
 	@Override
@@ -115,9 +114,9 @@ public class PathfinderRegion implements Pathfinder {
 		return paths.pollFirst();
 	}
 	
-	protected Path optimize( Location start, Location end, PathRegion path ) {
-		Vector lastSolid = start.toVector();
-		Vector lastClosest = end.toVector();
+	public static Path optimize( Vector start, Vector end, PathRegion path ) {
+		Vector lastSolid = start.clone();
+		Vector lastClosest = end.clone();
 		Vector solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
 		
 		Path optimized = new Path( start );
@@ -132,7 +131,7 @@ public class PathfinderRegion implements Pathfinder {
 			if ( edge != null ) {
 				edges.add( edge );
 			} else {
-				System.out.println( "An edge doesn't exist between 2 neighbors!" );
+				System.out.println( "An edge doesn't exist between 2 neighbors! " + currentRegion );
 			}
 		}
 		
@@ -147,7 +146,7 @@ public class PathfinderRegion implements Pathfinder {
 		
 		int closestEdge = -1;
 		while ( !direct ) {
-			lastClosest = end.toVector();
+			lastClosest = end.clone();
 			for ( int i = edges.size() - 1; i > closestEdge; i-- ) {
 				// First construct a vector from the last solid to the last closest
 				solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
@@ -174,10 +173,10 @@ public class PathfinderRegion implements Pathfinder {
 					lastSolid = closest;
 					// Simple peasants can't fly
 					if ( h1 == h2 ) {
-						optimized.addLocation( new Location( start.getWorld(), closest.getX(), h1, closest.getZ() ) );
+						optimized.addLocation( new Vector( closest.getX(), h1, closest.getZ() ) );
 					} else {
-						optimized.addLocation( new Location( start.getWorld(), closest.getX(), h1, closest.getZ() ) );
-						optimized.addLocation( new Location( start.getWorld(), closest.getX(), h2, closest.getZ() ) );
+						optimized.addLocation( new Vector( closest.getX(), h1, closest.getZ() ) );
+						optimized.addLocation( new Vector( closest.getX(), h2, closest.getZ() ) );
 					}
 					if ( i == edges.size() - 1 ) {
 						direct = true;
@@ -187,7 +186,7 @@ public class PathfinderRegion implements Pathfinder {
 				lastClosest = closest;
 			}
 		}
-		optimized.addLocation( end );
+		optimized.addLocation( end.clone() );
 		return optimized;
 		
 		// So the way this optimization works is as follows:
@@ -206,17 +205,17 @@ public class PathfinderRegion implements Pathfinder {
 		// The path is now optimized
 	}
 	
-	protected Path fastOptimize( Location start, Location end, PathRegion path ) {
+	public static Path fastOptimize( Vector start, Vector end, PathRegion path ) {
 		Path newPath = new Path( start );
 		newPath.addLocation( start );
 		Region lastRegion = path.regions.get( 0 );
-		Vector endVector = end.toVector();
+		Vector endVector = end.clone();
 		for ( Region region : path.regions ) {
 			Vector closest = VectorUtil.closestPoint( region.getRegion(), endVector );
 			if ( lastRegion.getRegion().minY != region.getRegion().minY ) {
-				newPath.addLocation( new Location( start.getWorld(), closest.getX(), lastRegion.getRegion().minY, closest.getZ() ) );
+				newPath.addLocation( new Vector( closest.getX(), lastRegion.getRegion().minY, closest.getZ() ) );
 			}
-			newPath.addLocation( new Location( start.getWorld(), closest.getX(), region.getRegion().minY, closest.getZ() ) );
+			newPath.addLocation( new Vector( closest.getX(), region.getRegion().minY, closest.getZ() ) );
 			lastRegion = region;
 		}
 		return newPath;

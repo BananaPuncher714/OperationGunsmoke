@@ -8,21 +8,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import org.bukkit.Location;
 import org.bukkit.util.Vector;
-
-import com.google.common.collect.Lists;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Edge;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Region;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class PathingPanel extends PaintPanel implements WindowListener {
