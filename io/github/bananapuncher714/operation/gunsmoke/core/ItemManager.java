@@ -21,6 +21,7 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -381,6 +382,13 @@ public class ItemManager implements Listener {
 				}
 			}
 		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( EntityRegainHealthEvent event ) {
+		// TODO make this a custom event or something?
+		GunsmokeEntityWrapper wrapper = getEntityWrapper( event.getEntity() );
+		wrapper.regen( event.getAmount() );
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )

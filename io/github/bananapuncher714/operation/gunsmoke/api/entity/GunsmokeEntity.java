@@ -3,9 +3,11 @@ package io.github.bananapuncher714.operation.gunsmoke.api.entity;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityRegenEvent;
 
 public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
 	protected Location location;
@@ -20,6 +22,14 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	
 	public GunsmokeEntity( Location location ) {
 		this.location = location.clone();
+	}
+	
+	@Override
+	public EnumTickResult tick() {
+		if ( health <= 0 ) {
+			return EnumTickResult.CANCEL;
+		}
+		return EnumTickResult.CONTINUE;
 	}
 	
 	public Location getLocation() {
@@ -71,7 +81,12 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		this.maxHealth = maxHealth;
 	}
 	
+	// This is only going to go through if the event is not cancelled
 	public void damage( GunsmokeEntityDamageEvent event ) {
 		health = Math.max( 0, health - event.getDamage() );
+	}
+	
+	public void regen( GunsmokeEntityRegenEvent event ) {
+		this.health += Math.min( maxHealth, health + event.getAmount() );
 	}
 }

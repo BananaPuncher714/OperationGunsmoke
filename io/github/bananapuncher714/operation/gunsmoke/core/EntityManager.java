@@ -8,13 +8,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
+import io.github.bananapuncher714.operation.gunsmoke.api.RegenType;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.DamageRecord;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageByEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityRegenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
@@ -96,6 +99,10 @@ public class EntityManager {
 		
 		plugin.getTaskManager().callEventSync( event );
 		
+		if ( event.getDamage() <= 0 ) {
+			return false;
+		}
+		
 		if ( !event.isCancelled() ) {
 			entity.damage( event );
 			return true;
@@ -119,10 +126,39 @@ public class EntityManager {
 		
 		plugin.getTaskManager().callEventSync( event );
 		
+		if ( event.getDamage() <= 0 ) {
+			return false;
+		}
+		
 		if ( !event.isCancelled() ) {
 			entity.damage( event );
 			return true;
 		}
+		return false;
+	}
+	
+	public boolean regen( GunsmokeEntity entity, double amount, RegenType type ) {
+		return regen( entity, amount, type, RegainReason.CUSTOM );
+	}
+	
+	public boolean regen( GunsmokeEntity entity, double amount, RegenType type, RegainReason reason ) {
+		if ( amount <= 0 ) {
+			return false;
+		}
+		
+		GunsmokeEntityRegenEvent event = new GunsmokeEntityRegenEvent( entity, amount, type, reason );
+		
+		plugin.getTaskManager().callEventSync( event );
+		
+		if ( event.getAmount() <= 0 ) {
+			return false;
+		}
+		
+		if ( !event.isCancelled() ) {
+			entity.regen( event );
+			return true;
+		}
+		
 		return false;
 	}
 }
