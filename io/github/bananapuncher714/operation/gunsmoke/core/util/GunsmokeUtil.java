@@ -10,6 +10,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -17,6 +18,7 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.RegenType;
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
@@ -88,6 +90,14 @@ public class GunsmokeUtil {
 	
 	public static boolean damage( GunsmokeEntity entity, DamageType type, double damage, GunsmokeEntity damager ) {
 		return getPlugin().getEntityManager().damage( entity, damage, type, damager );
+	}
+	
+	public static boolean regen( GunsmokeEntity entity, RegenType type, double amount, RegainReason reason ) {
+		return getPlugin().getEntityManager().regen( entity, amount, type, reason );
+	}
+	
+	public static boolean regen( GunsmokeEntity entity, RegenType type, double amount ) {
+		return getPlugin().getEntityManager().regen( entity, amount, type );
 	}
 	
 	public static void setBlockStage( Location location, int stage ) {

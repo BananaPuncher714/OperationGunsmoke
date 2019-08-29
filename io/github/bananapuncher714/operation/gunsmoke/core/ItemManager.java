@@ -35,6 +35,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFactory;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.InteractableDamage;
+import io.github.bananapuncher714.operation.gunsmoke.api.RegenType;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
@@ -386,9 +387,8 @@ public class ItemManager implements Listener {
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( EntityRegainHealthEvent event ) {
-		// TODO make this a custom event or something?
-		GunsmokeEntityWrapper wrapper = getEntityWrapper( event.getEntity() );
-		wrapper.regen( event.getAmount() );
+		plugin.getEntityManager().regen( getEntityWrapper( event.getEntity() ), event.getAmount(), RegenType.VANILLA, event.getRegainReason() );
+		event.setCancelled( true );
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
