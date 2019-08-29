@@ -97,14 +97,7 @@ public class EntityManager {
 		plugin.getTaskManager().callEventSync( event );
 		
 		if ( !event.isCancelled() ) {
-			if ( entity instanceof GunsmokeEntityWrapper ) {
-				GunsmokeEntityWrapper wrapper = ( GunsmokeEntityWrapper ) entity;
-				if ( wrapper.getEntity() instanceof LivingEntity ) {
-					LivingEntity lEntity = ( LivingEntity ) wrapper.getEntity();
-					lEntity.setHealth( Math.max( 0, lEntity.getHealth() - event.getDamage() ) );
-					GunsmokeUtil.playHurtAnimationFor( lEntity );
-				}
-			}
+			entity.damage( event );
 			return true;
 		}
 		return false;
@@ -127,20 +120,7 @@ public class EntityManager {
 		plugin.getTaskManager().callEventSync( event );
 		
 		if ( !event.isCancelled() ) {
-			if ( entity instanceof GunsmokeEntityWrapper ) {
-				GunsmokeEntityWrapper wrapper = ( GunsmokeEntityWrapper ) entity;
-				if ( wrapper.getEntity() instanceof LivingEntity ) {
-					LivingEntity lEntity = ( LivingEntity ) wrapper.getEntity();
-					lEntity.setHealth( Math.max( 0, lEntity.getHealth() - event.getDamage() ) );
-					GunsmokeUtil.playHurtAnimationFor( lEntity );
-				}
-			}
-			if ( damager instanceof GunsmokeEntityWrapper ) {
-				GunsmokeEntityWrapper damagerWrapper = ( GunsmokeEntityWrapper ) entity;
-				if ( damagerWrapper.getEntity() instanceof Arrow ) {
-					damagerWrapper.getEntity().remove();
-				}
-			}
+			entity.damage( event );
 			return true;
 		}
 		return false;

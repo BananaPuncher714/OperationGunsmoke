@@ -5,12 +5,15 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 
 public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
 	protected Location location;
 	protected Vector velocity;
 	protected double speed;
 	protected boolean isInvincible = false;
+	protected double health;
+	protected double maxHealth;
 	
 	public GunsmokeEntity() {
 	}
@@ -50,5 +53,25 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 
 	public void setInvincible(boolean isInvincible) {
 		this.isInvincible = isInvincible;
+	}
+
+	public double getHealth() {
+		return health;
+	}
+
+	public void setHealth( double health ) {
+		this.health = health;
+	}
+
+	public double getMaxHealth() {
+		return maxHealth;
+	}
+
+	public void setMaxHealth( double maxHealth ) {
+		this.maxHealth = maxHealth;
+	}
+	
+	public void damage( GunsmokeEntityDamageEvent event ) {
+		health = Math.max( 0, health - event.getDamage() );
 	}
 }
