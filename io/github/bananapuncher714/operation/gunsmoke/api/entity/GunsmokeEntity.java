@@ -1,6 +1,9 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.entity;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
@@ -8,8 +11,10 @@ import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityRegenEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.file.GunsmokeDeserializable;
+import io.github.bananapuncher714.operation.gunsmoke.api.file.GunsmokeSerializable;
 
-public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
+public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable, GunsmokeSerializable, GunsmokeDeserializable {
 	protected Location location;
 	protected Vector velocity;
 	protected double speed;
@@ -88,5 +93,52 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	
 	public void regen( GunsmokeEntityRegenEvent event ) {
 		setHealth( Math.min( maxHealth, health + event.getAmount() ) );
+	}
+	
+	@Override
+	public void deseralize( ConfigurationSection section ) {
+		World world = Bukkit.getWorld( section.getString( "location.world" ) );
+		double x = section.getDouble( "location.x" );
+		double y = section.getDouble( "location.y" );
+		double z = section.getDouble( "location.z" );
+		double yaw = section.getDouble( "location.yaw" ) ;
+		double pitch = section.getDouble( "location.pitch" );
+		
+		double velX = section.getDouble( "velocity.x" );
+		double velY = section.getDouble( "velocity.y" );
+		double velZ = section.getDouble( "velocity.z" );
+		double speed = section.getDouble( "velocity.length" );
+		
+		double health = section.getDouble( "health" );
+		double maxHealth = section.getDouble( "max-health" );
+		
+		boolean invincible = section.getBoolean( "invincible" );
+		
+		location = new Location( world, x, y, z, ( float ) yaw, ( float ) pitch );
+		velocity = new Vector( velX, velY, velZ );
+		this.speed = speed;
+		this.isInvincible = invincible;
+		this.maxHealth = maxHealth;
+		this.health = health;
+	}
+	
+	@Override
+	public void serialize( ConfigurationSection section ) {
+		section.set( "location.world", location.getWorld().getName() );
+		section.set( "location.x", location.getX() );
+		section.set( "location.y", location.getY() );
+		section.set( "location.z", location.getZ() );
+		section.set( "location.yaw", location.getYaw() );
+		section.set( "location.pitch", location.getPitch() );
+		
+		section.set( "velocity.x", velocity.getX() );
+		section.set( "velocity.y", velocity.getY() );
+		section.set( "velocity.z", velocity.getZ() );
+		section.set( "velocity.speed", speed );
+		
+		section.set( "health", health );
+		section.set( "max-health", maxHealth );
+
+		section.set( "invincible", isInvincible );
 	}
 }
