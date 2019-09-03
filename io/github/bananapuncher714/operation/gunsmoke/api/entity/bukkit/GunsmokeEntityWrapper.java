@@ -54,7 +54,11 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity {
 
 	@Override
 	public EnumTickResult tick() {
-		return EnumTickResult.CONTINUE;
+		if ( !entity.isValid() ) {
+			// Save the entity if they're still alive and the chunk they're in has unloaded or something
+			
+		}
+		return super.tick();
 	}
 	
 	public EnumEventResult onEvent( EntityDamageEvent event ) {

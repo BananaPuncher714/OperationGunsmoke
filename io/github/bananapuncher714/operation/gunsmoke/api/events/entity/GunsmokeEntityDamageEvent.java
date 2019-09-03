@@ -55,5 +55,4 @@ public class GunsmokeEntityDamageEvent extends GunsmokeEntityEvent implements Ca
 	public HandlerList getHandlers() {
 		return handlers;
 	}
-
 }

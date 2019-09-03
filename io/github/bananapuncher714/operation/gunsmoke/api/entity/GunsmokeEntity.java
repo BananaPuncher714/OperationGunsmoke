@@ -83,10 +83,10 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 	
 	// This is only going to go through if the event is not cancelled
 	public void damage( GunsmokeEntityDamageEvent event ) {
-		health = Math.max( 0, health - event.getDamage() );
+		setHealth( Math.max( 0, health - event.getDamage() ) );
 	}
 	
 	public void regen( GunsmokeEntityRegenEvent event ) {
-		this.health += Math.min( maxHealth, health + event.getAmount() );
+		setHealth( Math.min( maxHealth, health + event.getAmount() ) );
 	}
 }

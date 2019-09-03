@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
@@ -31,6 +32,7 @@ public class Gunsmoke extends JavaPlugin {
 	protected MovementManager movementManager;
 	protected ZoomManager zoomManager;
 	protected NPCManager npcManager;
+	protected BukkitEntityTracker bukkitEntityTracker;
 	
 	@Override
 	public void onEnable() {
@@ -46,6 +48,7 @@ public class Gunsmoke extends JavaPlugin {
 		movementManager = new MovementManager( this );
 		zoomManager = new ZoomManager( this );
 		npcManager = new NPCManager( this );
+		bukkitEntityTracker = new BukkitEntityTracker( this );
 		
 		NGui.init( this );
 		
@@ -75,7 +78,8 @@ public class Gunsmoke extends JavaPlugin {
 //			GunsmokePlayer entity = entityManager.getEntity( player.getUniqueId() );
 //			entity.update();
 
-			protocol.getHandler().setTint( player, 1 - player.getHealth() / player.getHealthScale() );
+			GunsmokeEntity playerEntity = itemManager.getEntityWrapper( player );
+			protocol.getHandler().setTint( player, 1 - playerEntity.getHealth() / playerEntity.getMaxHealth() );
 			
 			NMSUtils.setNoFly( player );
 			

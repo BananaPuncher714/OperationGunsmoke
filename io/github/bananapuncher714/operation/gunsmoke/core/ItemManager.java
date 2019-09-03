@@ -39,8 +39,13 @@ import io.github.bananapuncher714.operation.gunsmoke.api.RegenType;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperHumanEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDeathEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDespawnEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityLoadEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityUnloadEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
@@ -555,27 +560,33 @@ public class ItemManager implements Listener {
 		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
 	}
 	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeEntityDeathEvent event ) {
+		// TODO do something with this, maybe make a separate gunsmoke entity unregister event?
+		GunsmokeEntity entity = event.getRepresentable();
+		if ( !( entity instanceof GunsmokeEntityWrapperHumanEntity ) ) {
+			remove( event.getRepresentable().getUUID() );
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeEntityUnloadEvent event ) {
+		// TODO set entity in a dormant state until they become loaded again
+		// TODO make some sort of serializable state
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( GunsmokeEntityDespawnEvent event ) {
+		GunsmokeEntity entity = event.getRepresentable();
+		if ( entity instanceof GunsmokeEntityWrapperHumanEntity ) {
+			// If it's a player then it means they quit
+			// TODO serialize player
+		} else {
+			remove( event.getRepresentable().getUUID() );
+		}
+	}
+	
 	/*
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent() {
 		

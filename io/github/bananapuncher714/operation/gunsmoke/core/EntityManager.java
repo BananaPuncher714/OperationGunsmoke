@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason;
 
@@ -14,12 +12,10 @@ import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.RegenType;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.DamageRecord;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageByEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityRegenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class EntityManager {
 	protected static final Map< DamageCause, Integer > DEFAULT_INVINCIBILITY;
