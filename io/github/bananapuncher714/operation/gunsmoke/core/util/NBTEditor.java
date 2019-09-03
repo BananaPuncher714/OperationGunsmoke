@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,13 +26,15 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 /**
- * Sets/Gets NBT tags from ItemStacks 
- * Supports 1.8-1.14
+ * Sets/Gets NBT tags from ItemStacks, modified for Operation Gunsmoke to work with 1.14.4
+ * Adds NBTCompound setting versus 7.6
+ * 
+ * Supports 1.14
  * 
  * Github: https://github.com/BananaPuncher714/NBTEditor
  * Spigot: https://www.spigotmc.org/threads/single-class-nbt-editor-for-items-skulls-mobs-and-tile-entities-1-8-1-13.269621/
  * 
- * @version 7.6
+ * @version 7.6.1
  * @author BananaPuncher714
  */
 public final class NBTEditor {
@@ -92,6 +95,7 @@ public final class NBTEditor {
 			methodCache.put( "get", getNMSClass( "NBTTagCompound" ).getMethod( "get", String.class ) );
 			methodCache.put( "set", getNMSClass( "NBTTagCompound" ).getMethod( "set", String.class, getNMSClass( "NBTBase" ) ) );
 			methodCache.put( "hasKey", getNMSClass( "NBTTagCompound" ).getMethod( "hasKey", String.class ) );
+			methodCache.put( "getKeys", getNMSClass( "NBTTagCompound" ).getMethod( "getKeys" ) );
 			methodCache.put( "setIndex", getNMSClass( "NBTTagList" ).getMethod( "a", int.class, getNMSClass( "NBTBase" ) ) );
 			methodCache.put( "size", getNMSClass( "NBTTagList" ).getMethod( "size" ) );
 			if ( VERSION.contains( "1_14" ) ) {
@@ -378,11 +382,11 @@ public final class NBTEditor {
 				tag = getMethod( "getTag" ).invoke( stack );
 			} else {
 				tag = getNMSClass( "NBTTagCompound" ).newInstance();
-				Object count = getConstructor( getNBTTag( Integer.class ) ).newInstance( item.getAmount() );
-				getMethod( "set" ).invoke( tag, "Count", count );
-				Object id = getConstructor( getNBTTag( String.class ) ).newInstance( item.getType().name().toLowerCase() );
-				getMethod( "set" ).invoke( tag, "id", id );
 			}
+			Object count = getConstructor( getNBTTag( Byte.class ) ).newInstance( ( byte ) item.getAmount() );
+			getMethod( "set" ).invoke( tag, "Count", count );
+			Object id = getConstructor( getNBTTag( String.class ) ).newInstance( item.getType().name().toLowerCase() );
+			getMethod( "set" ).invoke( tag, "id", id );
 
 			return getNBTTag( tag, keys );
 		} catch ( Exception exception ) {
@@ -601,7 +605,7 @@ public final class NBTEditor {
 	 * @return
 	 * An NBTCompound
 	 */
-	public final static Object getBlockNBTTag( Block block, Object... keys ) {
+	public final static NBTCompound getBlockNBTTag( Block block, Object... keys ) {
 		try {
 			if ( block == null || !getNMSClass( "CraftBlockState" ).isInstance( block.getState() ) ) {
 				return null;
@@ -936,7 +940,9 @@ public final class NBTEditor {
 	private static void setTag( Object tag, Object value, Object... keys ) throws Exception {
 		Object notCompound;
 		if ( value != null ) {
-			if ( getNMSClass( "NBTTagList" ).isInstance( value ) || getNMSClass( "NBTTagCompound" ).isInstance( value ) ) {
+			if ( value instanceof NBTCompound ) {
+				notCompound = ( ( NBTCompound ) value ).tag;
+			} else if ( getNMSClass( "NBTTagList" ).isInstance( value ) || getNMSClass( "NBTTagCompound" ).isInstance( value ) ) {
 				notCompound = value;
 			} else {
 				notCompound = getConstructor( getNBTTag( value.getClass() ) ).newInstance( value );
@@ -945,54 +951,63 @@ public final class NBTEditor {
 			notCompound = null;
 		}
 
-		Object compound = tag;
-		for ( int index = 0; index < keys.length; index++ ) {
-			Object key = keys[ index ];
-			if ( index + 1 == keys.length ) {
-				if ( key == null ) {
-					if ( VERSION.contains( "1_14" ) ) {
-						( ( List< Object > ) NBTListData.get( compound ) ).add( notCompound );
-					} else {
-						getMethod( "add" ).invoke( compound, notCompound );
-					}
-				} else if ( key instanceof Integer ) {
-					if ( notCompound == null ) {
-						getMethod( "listRemove" ).invoke( compound, ( int ) key );
-					} else {
-						getMethod( "setIndex" ).invoke( compound, ( int ) key, notCompound );
-					}
-				} else {
-					if ( notCompound == null ) {
-						getMethod( "remove" ).invoke( compound, ( String ) key );
-					} else {
-						getMethod( "set" ).invoke( compound, ( String ) key, notCompound );
-					}
+		if ( keys.length == 0 ) {
+			if ( getNMSClass( "NBTTagCompound" ).isInstance( notCompound ) ) {
+				Set< String > stringKeys = ( Set< String > ) getMethod( "getKeys" ).invoke( notCompound );
+				for ( String key : stringKeys ) {
+					getMethod( "set" ).invoke( tag, key, getMethod( "get" ).invoke( notCompound, key ) );
 				}
-				break;
 			}
-			Object oldCompound = compound;
-			if ( key instanceof Integer ) {
-				compound = ( ( List< ? > ) NBTListData.get( compound ) ).get( ( int ) key );
-			} else if ( key != null ) {
-				compound = getMethod( "get" ).invoke( compound, ( String ) key );
-			}
-			if ( compound == null || key == null ) {
-				if ( keys[ index + 1 ] == null || keys[ index + 1 ] instanceof Integer ) {
-					compound = getNMSClass( "NBTTagList" ).newInstance();
-				} else {
-					compound = getNMSClass( "NBTTagCompound" ).newInstance();
-				}
-				if ( oldCompound.getClass().getSimpleName().equals( "NBTTagList" ) ) {
-					if ( VERSION.contains( "1_14" ) ) {
-						( ( List< Object > ) NBTListData.get( oldCompound ) ).add( notCompound );
+		} else {
+			Object compound = tag;
+			for ( int index = 0; index < keys.length; index++ ) {
+				Object key = keys[ index ];
+				if ( index + 1 == keys.length ) {
+					if ( key == null ) {
+						if ( VERSION.contains( "1_14" ) ) {
+							( ( List< Object > ) NBTListData.get( compound ) ).add( notCompound );
+						} else {
+							getMethod( "add" ).invoke( compound, notCompound );
+						}
+					} else if ( key instanceof Integer ) {
+						if ( notCompound == null ) {
+							getMethod( "listRemove" ).invoke( compound, ( int ) key );
+						} else {
+							getMethod( "setIndex" ).invoke( compound, ( int ) key, notCompound );
+						}
 					} else {
-						getMethod( "add" ).invoke( oldCompound, notCompound );
+						if ( notCompound == null ) {
+							getMethod( "remove" ).invoke( compound, ( String ) key );
+						} else {
+							getMethod( "set" ).invoke( compound, ( String ) key, notCompound );
+						}
 					}
-				} else {
-					if ( notCompound == null ) {
-						getMethod( "remove" ).invoke( oldCompound, ( String ) key );
+					break;
+				}
+				Object oldCompound = compound;
+				if ( key instanceof Integer ) {
+					compound = ( ( List< ? > ) NBTListData.get( compound ) ).get( ( int ) key );
+				} else if ( key != null ) {
+					compound = getMethod( "get" ).invoke( compound, ( String ) key );
+				}
+				if ( compound == null || key == null ) {
+					if ( keys[ index + 1 ] == null || keys[ index + 1 ] instanceof Integer ) {
+						compound = getNMSClass( "NBTTagList" ).newInstance();
 					} else {
-						getMethod( "set" ).invoke( oldCompound, ( String ) key, compound );
+						compound = getNMSClass( "NBTTagCompound" ).newInstance();
+					}
+					if ( oldCompound.getClass().getSimpleName().equals( "NBTTagList" ) ) {
+						if ( VERSION.contains( "1_14" ) ) {
+							( ( List< Object > ) NBTListData.get( oldCompound ) ).add( notCompound );
+						} else {
+							getMethod( "add" ).invoke( oldCompound, notCompound );
+						}
+					} else {
+						if ( notCompound == null ) {
+							getMethod( "remove" ).invoke( oldCompound, ( String ) key );
+						} else {
+							getMethod( "set" ).invoke( oldCompound, ( String ) key, compound );
+						}
 					}
 				}
 			}

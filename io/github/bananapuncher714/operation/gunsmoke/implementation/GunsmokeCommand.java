@@ -23,6 +23,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 import org.bukkit.util.Vector;
 
@@ -43,8 +45,11 @@ import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionGenerato
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.RegionMap;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.PathingPanel;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.RegionLoader;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.MDChat;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.NBTEditor.NBTCompound;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmor;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmorOptions;
@@ -158,6 +163,16 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					PathingPanel.draw( new AABB( -11, 0, 0, -11, 0, 0 ), lines );
 				} else if ( args[ 0 ].equalsIgnoreCase( "set" ) ) {
 					end = player.getLocation();
+				} else if ( args[ 0 ].equalsIgnoreCase( "nbt" ) ) {
+					ItemStack item = BukkitUtil.getEquipment( player, EquipmentSlot.HAND );
+					if ( item != null ) {
+						NBTCompound compound = NBTEditor.getItemNBTTag( item );
+						System.out.println( compound );
+						player.sendMessage( "Cloning!" );
+						ItemStack cloned = NBTEditor.getItemFromTag( compound );
+						System.out.println( NBTEditor.getItemNBTTag( cloned ) );
+						player.getInventory().addItem( cloned );
+					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "path" ) ) {
 					if ( end != null ) {
 						if ( regionMap != null ) {
