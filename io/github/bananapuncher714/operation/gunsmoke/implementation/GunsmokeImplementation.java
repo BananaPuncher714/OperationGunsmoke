@@ -3,17 +3,22 @@ package io.github.bananapuncher714.operation.gunsmoke.implementation;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.FileUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.MDChat;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmorOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.ConfigBulletOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
+import net.md_5.bungee.api.ChatMessageType;
 
 public class GunsmokeImplementation {
 	private static GunsmokeImplementation INSTANCE;
@@ -29,6 +34,8 @@ public class GunsmokeImplementation {
 	protected Map< String, ConfigExplosion > explosions = new HashMap< String, ConfigExplosion >();
 	protected Map< String, ConfigWeaponOptions > guns = new HashMap< String, ConfigWeaponOptions >();
 	protected Map< String, ConfigArmorOptions > armor = new HashMap< String, ConfigArmorOptions >();
+	
+	protected Map< UUID, Location > playerLocs = new HashMap< UUID, Location >();
 	
 	public GunsmokeImplementation( Gunsmoke plugin ) {
 		INSTANCE = this;
@@ -46,6 +53,26 @@ public class GunsmokeImplementation {
 		plugin.getCommand( "gunsmoke" ).setTabCompleter( command );
 		
 		init();
+		
+		Bukkit.getScheduler().runTaskTimer( plugin, this::run, 0, 1 );
+	}
+	
+	private void run() {
+		for ( Player player : Bukkit.getOnlinePlayers() ) {
+			Location location = playerLocs.get( player.getUniqueId() );
+
+			if ( location != null ) {
+//				Location current = player.getLocation();
+//				double distance = current.distance( location );
+//				Location cloned = current.clone();
+//				cloned.setY( location.getY() );
+//				double flatDist = location.distance( cloned );
+//
+//				player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( "Distance " + distance + " | Flat distance " + flatDist + " | Veclocity " + player.getVelocity().length(), true ) );
+			}
+			
+			playerLocs.put( player.getUniqueId(), player.getLocation() );
+		}
 	}
 	
 	private void init() {

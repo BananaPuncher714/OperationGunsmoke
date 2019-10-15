@@ -1,8 +1,13 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit;
 
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper {
@@ -38,6 +43,23 @@ public class GunsmokeEntityWrapperLivingEntity extends GunsmokeEntityWrapper {
 			clientHp = 1;
 		}
 		entity.setHealth( clientHp );
+	}
+	
+	@Override
+	public void remove() {
+		for ( EquipmentSlot slot : EquipmentSlot.values() ) {
+			ItemStack item = BukkitUtil.getEquipment( entity, slot );
+			
+			GunsmokeRepresentable repItem = GunsmokeUtil.getPlugin().getItemManager().getRepresentable( item );
+			
+			if ( repItem instanceof GunsmokeItem ) {
+				GunsmokeItem gunItem = ( GunsmokeItem ) repItem;
+				
+				gunItem.onUnequip();
+			}
+		}
+		
+		super.remove();
 	}
 
 	

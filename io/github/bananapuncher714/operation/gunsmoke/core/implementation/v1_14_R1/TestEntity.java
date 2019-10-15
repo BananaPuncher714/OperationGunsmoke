@@ -32,6 +32,8 @@ public class TestEntity extends EntityPlayer implements GunsmokeNPC {
 		super( MinecraftServer.getServer(), ( WorldServer ) world, new GameProfile( UUID.randomUUID(), "scr" ), new PlayerInteractManager( ( WorldServer ) world ) );
 		org.bukkit.World bWorld = this.getBukkitEntity().getWorld();
 		
+		// Maybe register this class to be tracked with the PlayerChunkMap?
+		
 		new DummyPlayerConnection( MinecraftServer.getServer(), this );
 		MinecraftServer.getServer().getPlayerList().a( playerConnection.networkManager, this );
 		

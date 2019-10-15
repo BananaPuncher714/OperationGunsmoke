@@ -44,7 +44,6 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeE
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDeathEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDespawnEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityLoadEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityUnloadEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
@@ -68,14 +67,11 @@ public class ItemManager implements Listener {
 	public ItemManager( Gunsmoke plugin ) {
 		this.plugin = plugin;
 		
-		// Tick timer for Tickables
-		Bukkit.getScheduler().runTaskTimer( plugin, this::update, 0, 1 );
-		
 		// This is to capture events to pass them onto whatever things are registered
 		Bukkit.getPluginManager().registerEvents( this, plugin );
 	}
 	
-	private void update() {
+	protected void tick() {
 		for ( Iterator< Entry< UUID, GunsmokeRepresentable > > iterator = items.entrySet().iterator(); iterator.hasNext(); ) {
 			Entry< UUID, GunsmokeRepresentable > entry = iterator.next();
 			GunsmokeRepresentable item = entry.getValue();
@@ -94,7 +90,13 @@ public class ItemManager implements Listener {
 	}
 	
 	public GunsmokeRepresentable get( UUID uuid ) {
-		return items.get( uuid );
+		if ( items.containsKey( uuid ) ) {
+			return items.get( uuid );
+		} else if ( plugin.getCache().contains( uuid ) ) {
+			return plugin.getCache().load( uuid );
+		} else {
+			return null;
+		}
 	}
 	
 	public void remove( UUID uuid ) {
@@ -102,17 +104,23 @@ public class ItemManager implements Listener {
 		if ( item != null ) {
 			item.remove();
 		}
+		plugin.getEntityManager().remove( uuid );
 	}
 	
 	public GunsmokeEntityWrapper getEntityWrapper( Entity entity ) {
 		UUID uuid = entity.getUniqueId();
-		if ( items.containsKey( uuid ) ) {
-			GunsmokeRepresentable representable = items.get( uuid );
-			if ( representable instanceof GunsmokeEntityWrapper ) {
-				return ( GunsmokeEntityWrapper ) representable;
-			}
+		GunsmokeRepresentable representable = get( uuid );
+		if ( representable == null ) {
+			representable = GunsmokeEntityWrapperFactory.wrap( entity );
+			register( representable );
 		}
-		return GunsmokeEntityWrapperFactory.wrap( entity );
+		
+		if ( representable instanceof GunsmokeEntityWrapper ) {
+			return ( GunsmokeEntityWrapper ) representable;
+		} else {
+			plugin.getLogger().severe( "UUID Collision detected! " + representable );
+			return null;
+		}
 	}
 	
 	public GunsmokeRepresentable getRepresentable( LivingEntity entity, EquipmentSlot slot ) {
@@ -565,33 +573,41 @@ public class ItemManager implements Listener {
 		// TODO do something with this, maybe make a separate gunsmoke entity unregister event?
 		GunsmokeEntity entity = event.getRepresentable();
 		if ( !( entity instanceof GunsmokeEntityWrapperHumanEntity ) ) {
-			remove( event.getRepresentable().getUUID() );
+			remove( entity.getUUID() );
+			plugin.getCache().remove( entity.getUUID() );
 		}
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( GunsmokeEntityUnloadEvent event ) {
-		// TODO set entity in a dormant state until they become loaded again
-		// TODO make some sort of serializable state
+		GunsmokeEntity entity = event.getRepresentable();
+		
+		plugin.getCache().save( event.getRepresentable() );
+		// Don't keep an entity loaded if it doesn't have to be
+		items.remove( event.getRepresentable().getUUID() );
+		
+		if ( entity instanceof GunsmokeEntityWrapper ) {
+			( ( GunsmokeEntityWrapper ) entity ).unload();
+		}
+		plugin.getEntityManager().remove( entity.getUUID() );
 	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( GunsmokeEntityDespawnEvent event ) {
 		GunsmokeEntity entity = event.getRepresentable();
 		if ( entity instanceof GunsmokeEntityWrapperHumanEntity ) {
-			// If it's a player then it means they quit
-			// TODO serialize player
+			plugin.getCache().save( entity );
 		} else {
-			remove( event.getRepresentable().getUUID() );
+			if ( entity instanceof GunsmokeEntityWrapper ) {
+				( ( GunsmokeEntityWrapper ) entity ).despawn();
+			}
+			remove( entity.getUUID() );
+			plugin.getCache().remove( entity.getUUID() );
 		}
+		plugin.getEntityManager().remove( entity.getUUID() );
 	}
 	
 	/*
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent() {
-		
-	}
-	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent() {
 		

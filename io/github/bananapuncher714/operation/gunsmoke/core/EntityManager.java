@@ -66,6 +66,10 @@ public class EntityManager {
 		return entity;
 	}
 	
+	public void remove( UUID uuid ) {
+		entities.remove( uuid );
+	}
+	
 	public DamageRecord getDamageRecord( UUID uuid ) {
 		DamageRecord record = records.get( uuid );
 		if ( record == null ) {

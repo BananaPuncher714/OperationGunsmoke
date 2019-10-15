@@ -11,10 +11,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityRegenEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.file.GunsmokeDeserializable;
-import io.github.bananapuncher714.operation.gunsmoke.api.file.GunsmokeSerializable;
 
-public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable, GunsmokeSerializable, GunsmokeDeserializable {
+public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
 	protected Location location;
 	protected Vector velocity;
 	protected double speed;
@@ -95,7 +93,6 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		setHealth( Math.min( maxHealth, health + event.getAmount() ) );
 	}
 	
-	@Override
 	public void deseralize( ConfigurationSection section ) {
 		World world = Bukkit.getWorld( section.getString( "location.world" ) );
 		double x = section.getDouble( "location.x" );
@@ -121,8 +118,7 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		this.maxHealth = maxHealth;
 		this.health = health;
 	}
-	
-	@Override
+
 	public void serialize( ConfigurationSection section ) {
 		section.set( "location.world", location.getWorld().getName() );
 		section.set( "location.x", location.getX() );

@@ -436,6 +436,93 @@ public class PathfinderDev implements Pathfinder {
 		return optimized;
 	}
 	
+	public static Path optimize3d( RegionMap map, Vector start, Region startRegion, Vector end, Region endRegion, PathRegion path ) {
+		Vector lastSolid = start.clone();
+		Vector lastClosest = end.clone();
+		Vector solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
+		
+		Path optimized = new Path( start );
+		
+		List< Region > regions = path.getRegions();
+		List< Edge > edges = new ArrayList< Edge >();
+		boolean startEdges = false;
+		for ( int i = 0; i < regions.size() - 1; i++ ) {
+			Region currentRegion = regions.get( i );
+			Region nextRegion = regions.get( i + 1 );
+			
+			if ( !startEdges && currentRegion != startRegion ) {
+				continue;
+			}
+			startEdges = true;
+			
+			if ( currentRegion == endRegion ) {
+				break;
+			}
+			
+			Edge edge = currentRegion.getNeighbors().get( nextRegion );
+			if ( edge != null ) {
+				edges.add( edge );
+			} else {
+				System.out.println( "An edge doesn't exist between 2 neighbors! " + currentRegion );
+			}
+		}
+		
+		
+		// First check if we can directly go from start to stop
+		boolean direct = true;
+		for ( Edge edge : edges ) {
+			if ( !edge.intersects( lastSolid, solidToLastClosest ) ) {
+				direct = false;
+				break;
+			}
+		}
+		
+		int closestEdge = -1;
+		while ( !direct ) {
+			lastClosest = end.clone();
+			for ( int i = edges.size() - 1; i > closestEdge; i-- ) {
+				// First construct a vector from the last solid to the last closest
+				solidToLastClosest = lastClosest.clone().subtract( lastSolid ).normalize();
+				Edge edge = edges.get( i );
+				// Get the edge and the closest point
+				Vector closest = edge.getClosestPoint( lastSolid, solidToLastClosest );
+				// Construct a new one that goes directly to the solid
+				Vector solidToClosest = closest.clone().subtract( lastSolid ).normalize();
+				boolean valid = true;
+				for ( int j = i - 1; j > closestEdge; j-- ) {
+					Edge nextEdge = edges.get( j );
+					// This check is just for the fact that minecraft players have to jump
+					if ( nextEdge.r1.region.minY != nextEdge.r2.region.minY || !nextEdge.intersects( lastSolid, solidToClosest ) ) {
+						valid = false;
+						break;
+					}
+				}
+				if ( valid ) {
+					double h1 = edge.r1.region.minY;
+					double h2 = edge.r2.region.minY;
+					closest.setY( h2 );
+					
+					closestEdge = i;
+					lastSolid = closest;
+					// Simple peasants can't fly
+					if ( h1 == h2 ) {
+						optimized.addLocation( new Vector( closest.getX(), h1, closest.getZ() ) );
+					} else {
+						optimized.addLocation( new Vector( closest.getX(), h1, closest.getZ() ) );
+						optimized.addLocation( new Vector( closest.getX(), h2, closest.getZ() ) );
+					}
+					if ( i == edges.size() - 1 ) {
+						direct = true;
+					}
+					break;
+				}
+				lastClosest = closest;
+			}
+		}
+		optimized.addLocation( end.clone() );
+		return optimized;
+	}
+	
 	public static Path fastOptimize( RegionMap map, Vector start, Region startRegion, Vector end, Region endRegion, PathRegion path ) {
 		Vector lastSolid = start.clone();
 		Vector lastClosest = end.clone();

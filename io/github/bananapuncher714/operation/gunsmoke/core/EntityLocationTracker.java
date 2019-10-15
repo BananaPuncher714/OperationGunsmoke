@@ -13,7 +13,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 
-public class EntityTracker {
+public class EntityLocationTracker {
 	private static final int TICK_THRESHOLD = 20 * 3;
 	private static final int DEFAULT_DELAY = 7; // 6 Seems to be accurate
 	
@@ -22,7 +22,7 @@ public class EntityTracker {
 	protected Map< UUID, List< Location > > entityPositions = new HashMap< UUID, List< Location > >();
 	protected Map< UUID, Integer > delays = new HashMap< UUID, Integer >();
 	
-	public EntityTracker( Gunsmoke plugin ) {
+	public EntityLocationTracker( Gunsmoke plugin ) {
 		this.plugin = plugin;
 		
 		Bukkit.getScheduler().runTaskTimer( plugin, this::update, 0, 1 );

@@ -14,6 +14,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeE
 import io.github.bananapuncher714.operation.gunsmoke.api.events.block.GunsmokeBlockBreakEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.block.GunsmokeBlockCreateEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmor;

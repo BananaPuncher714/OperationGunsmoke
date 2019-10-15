@@ -5,11 +5,13 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class GunsmokeEntityWrapper extends GunsmokeEntity {
 	protected Entity entity;
@@ -47,6 +49,12 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity {
 		return entity.getUniqueId();
 	}
 
+	public void despawn() {
+	}
+	
+	public void unload() {
+	}
+	
 	@Override
 	public void remove() {
 		entity.remove();
@@ -54,10 +62,7 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity {
 
 	@Override
 	public EnumTickResult tick() {
-		if ( !entity.isValid() ) {
-			// Save the entity if they're still alive and the chunk they're in has unloaded or something
-			
-		}
+
 		return super.tick();
 	}
 	

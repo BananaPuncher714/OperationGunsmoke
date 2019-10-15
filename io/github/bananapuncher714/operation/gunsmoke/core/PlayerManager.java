@@ -36,11 +36,10 @@ public class PlayerManager {
 	
 	protected PlayerManager( Gunsmoke plugin ) {
 		this.plugin = plugin;
-		Bukkit.getScheduler().scheduleSyncRepeatingTask( plugin, this::updateHolding, 0, 1 );
 	}
 	
 	// Determines if the player's held item has changed and calls the appropriate event for it
-	private void updateHolding() {
+	protected void tick() {
 		// Detect right clicking and call appropriate events
 		for ( Iterator< Entry< UUID, Long > > it = holdingRC.entrySet().iterator(); it.hasNext(); ) {
 			Entry< UUID, Long > entry = it.next();

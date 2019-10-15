@@ -23,6 +23,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDeathEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDespawnEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
@@ -47,6 +49,9 @@ public class PlayerListener implements Listener {
 			Bukkit.getScheduler().runTaskLater( plugin, () -> {
 				plugin.getNPCManager().remove( event.getEntity().getUniqueId() );
 			}, 40 );
+		} else {
+			GunsmokeEntityDeathEvent deathEvent = new GunsmokeEntityDeathEvent( plugin.getItemManager().getEntityWrapper( event.getEntity() ) );
+			deathEvent.callEvent();
 		}
 	}
 	
@@ -78,6 +83,8 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	private void onPlayerQuitEvent( PlayerQuitEvent event ) {
 		plugin.getPlayerManager().remove( event.getPlayer() );
+		GunsmokeEntityDespawnEvent despawnEvent = new GunsmokeEntityDespawnEvent( plugin.getItemManager().getEntityWrapper( event.getPlayer() ) );
+		despawnEvent.callEvent();
 	}
 
 	// This is because bukkit has an abyssmal player left click detection system for adventure mode people

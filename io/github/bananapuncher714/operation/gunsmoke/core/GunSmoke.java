@@ -1,5 +1,7 @@
 package io.github.bananapuncher714.operation.gunsmoke.core;
 
+import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -10,6 +12,8 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
+import io.github.bananapuncher714.operation.gunsmoke.api.file.GunsmokeCache;
+import io.github.bananapuncher714.operation.gunsmoke.api.file.GunsmokeCacheDisk;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
@@ -22,10 +26,12 @@ import io.github.bananapuncher714.operation.gunsmoke.ngui.NGui;
 import io.github.bananapuncher714.operation.gunsmoke.tinyprotocol.TinyProtocolGunsmoke;
 
 public class Gunsmoke extends JavaPlugin {
+	private File CACHE_DIR;
+	
 	protected TinyProtocolGunsmoke protocol;
 	protected ItemManager itemManager;
 	protected EntityManager entityManager;
-	protected EntityTracker entityTracker;
+	protected EntityLocationTracker entityTracker;
 	protected BlockManager blockManager;
 	protected PlayerManager playerManager;
 	protected TaskManager taskManager;
@@ -34,14 +40,20 @@ public class Gunsmoke extends JavaPlugin {
 	protected NPCManager npcManager;
 	protected BukkitEntityTracker bukkitEntityTracker;
 	
+	protected GunsmokeCache cache;
+	
 	@Override
 	public void onEnable() {
+		CACHE_DIR = new File( getDataFolder() + "/cache/" );
+		
 		PacketHandler handler = ReflectionUtil.getNewPacketHandlerInstance();
 		protocol = new TinyProtocolGunsmoke( this, handler );
 		
+		cache = new GunsmokeCacheDisk( CACHE_DIR );
+		
 		itemManager = new ItemManager( this );
 		entityManager = new EntityManager( this );
-		entityTracker = new EntityTracker( this );
+		entityTracker = new EntityLocationTracker( this );
 		blockManager = new BlockManager( this );
 		playerManager = new PlayerManager( this );
 		taskManager = new TaskManager( this );
@@ -71,9 +83,14 @@ public class Gunsmoke extends JavaPlugin {
 	}
 	
 	/**
-	 * Temporary too
+	 * Temporary too...?
 	 */
 	private void run() {
+		
+		itemManager.tick();
+		playerManager.tick();
+		protocol.getHandler().tick();
+		
 		for ( Player player : Bukkit.getOnlinePlayers() ) {
 //			GunsmokePlayer entity = entityManager.getEntity( player.getUniqueId() );
 //			entity.update();
@@ -104,8 +121,8 @@ public class Gunsmoke extends JavaPlugin {
 				npc.look( player.getEyeLocation() );
 			}
 			
-//			player.setRemainingAir( 285 );
-//	 		protocol.getHandler().setAir( player, 285 );
+			player.setRemainingAir( 285 );
+	 		protocol.getHandler().setAir( player, 285 );
 //			entity.update();
 		}
 	}
@@ -122,7 +139,7 @@ public class Gunsmoke extends JavaPlugin {
 		return entityManager;
 	}
 	
-	public EntityTracker getEntityTracker() {
+	public EntityLocationTracker getEntityTracker() {
 		return entityTracker;
 	}
 	
@@ -148,5 +165,9 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public NPCManager getNPCManager() {
 		return npcManager;
+	}
+	
+	public GunsmokeCache getCache() {
+		return cache;
 	}
 }

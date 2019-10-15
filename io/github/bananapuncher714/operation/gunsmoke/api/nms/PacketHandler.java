@@ -13,6 +13,7 @@ import org.bukkit.util.Vector;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
+import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public interface PacketHandler {
@@ -26,6 +27,8 @@ public interface PacketHandler {
 	void setGunsmoke( Gunsmoke plugin );
 	Object onPacketInterceptOut( Player player, Object packet );
 	Object onPacketInterceptIn( Player player, Object packet );
+	
+	void tick();
 	
 	void update( LivingEntity entity, boolean main );
 	void update( LivingEntity entity, boolean main, boolean updateSelf );
@@ -56,6 +59,8 @@ public interface PacketHandler {
 	
 	void display( Player player );
 	AABB[] getBoxesFor( Location location );
+	
+	GunsmokeEntityTracker getEntityTrackerFor( Entity entity );
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );
 //	void updateBow( LivingEntity entity, Player viewer );

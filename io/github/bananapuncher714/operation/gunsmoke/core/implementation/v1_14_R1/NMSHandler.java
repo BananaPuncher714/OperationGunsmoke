@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,6 +46,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
+import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
@@ -93,6 +95,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFla
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAction;
+import net.minecraft.server.v1_14_R1.PlayerChunkMap;
+import net.minecraft.server.v1_14_R1.PlayerChunkMap.EntityTracker;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
 import net.minecraft.server.v1_14_R1.Vec3D;
@@ -119,6 +123,8 @@ public class NMSHandler implements PacketHandler {
 	private static Field TELEPORT_AWAIT;
 	
 	private static Field[] WORLDBORDERPACKET_FIELDS;
+	
+	private static Field ENTITYTRACKER_ENTITY;
 	
 	private static Method VOXEL_SHAPE_CONTAINS;
 	
@@ -160,6 +166,9 @@ public class NMSHandler implements PacketHandler {
 			
 			VOXEL_SHAPE_CONTAINS = VoxelShape.class.getDeclaredMethod( "b", double.class, double.class, double.class );
 			VOXEL_SHAPE_CONTAINS.setAccessible( true );
+			
+			ENTITYTRACKER_ENTITY = EntityTracker.class.getDeclaredField( "tracker" );
+			ENTITYTRACKER_ENTITY.setAccessible( true );
 			
 			WORLDBORDERPACKET_FIELDS = new Field[ 9 ];
 			WORLDBORDERPACKET_FIELDS[ 0 ] = PacketPlayOutWorldBorder.class.getDeclaredField( "a" );
@@ -224,6 +233,10 @@ public class NMSHandler implements PacketHandler {
 		this.plugin = plugin;
 	}
 
+	public void tick() {
+		replaceEntityTrackers();
+	}
+	
 	/**
 	 * Intercept outgoing packets; Edit them if they are the EntityMetadata packet
 	 * or the EntityEquipment packet
@@ -778,7 +791,26 @@ public class NMSHandler implements PacketHandler {
 	    return results;
 	}
 	
-	public void blockCollisionTest() {
+	@Override
+	public GunsmokeEntityTracker getEntityTrackerFor( org.bukkit.entity.Entity bukkitEntity ) {
+		Entity entity = ( ( CraftEntity ) bukkitEntity ).getHandle();
+		
+		PlayerChunkMap tracker = ( ( WorldServer ) entity.getWorld() ).getChunkProvider().playerChunkMap;
+		
+		EntityTracker entry = tracker.trackedEntities.get( entity.getId() );
+		
+		CustomEntityTracker customTracker;
+		if ( !( entry instanceof CustomEntityTracker ) ) {
+			customTracker = new CustomEntityTracker( tracker, entity, entity.getEntityType().getChunkRange(), entity.getEntityType().getUpdateInterval(), entity.getEntityType().isDeltaTracking() );
+			
+			customTracker.trackedPlayers.addAll( entry.trackedPlayers );
+			
+			tracker.trackedEntities.put( entity.getId(), customTracker );
+		} else {
+			customTracker = ( CustomEntityTracker ) entry;
+		}
+		
+		return customTracker;
 	}
 	
 	@Override
@@ -878,6 +910,31 @@ public class NMSHandler implements PacketHandler {
 		return boundingBoxes;
 	}
 	
+	private void replaceEntityTrackers() {
+		for ( World world : Bukkit.getWorlds() ) {
+			PlayerChunkMap tracker = ( ( WorldServer ) ( ( CraftWorld ) world ).getHandle() ).getChunkProvider().playerChunkMap;
+			
+			Set< EntityTracker > previous = new HashSet< EntityTracker >( tracker.trackedEntities.values() );
+			for ( EntityTracker tracked : previous ) {
+				if ( !( tracked instanceof CustomEntityTracker ) ) {
+					Entity entity;
+					
+					try {
+						entity = ( Entity ) ENTITYTRACKER_ENTITY.get( tracked );
+					} catch ( Exception exception ) {
+						exception.printStackTrace();
+						continue;
+					}
+					CustomEntityTracker customTracker = new CustomEntityTracker( tracker, entity, entity.getEntityType().getChunkRange(), entity.getEntityType().getUpdateInterval(), entity.getEntityType().isDeltaTracking() );
+					
+					customTracker.trackedPlayers.addAll( tracked.trackedPlayers );
+					
+					tracker.trackedEntities.put( entity.getId(), customTracker );
+				}
+			}
+		}
+	}
+	
 	// @Override
 	// public void sendMessage( Player player, String message, Display display ) {
 	// PacketPlayOutChat packet = new PacketPlayOutChat( new ChatComponentText(
@@ -957,7 +1014,7 @@ public class NMSHandler implements PacketHandler {
 		return new CollisionResultBlock( interception, face, block );
 	}
 	
-	protected static void broadcastPacket( World world, Packet packet ) {
+	protected static void broadcastPacket( World world, Packet< ? > packet ) {
 		for ( Player player : world.getPlayers() ) {
 			GunsmokeUtil.getPlugin().getProtocol().sendPacket( player, packet );
 		}

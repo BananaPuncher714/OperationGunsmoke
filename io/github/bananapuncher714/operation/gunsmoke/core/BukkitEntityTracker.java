@@ -5,16 +5,15 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDeathEvent;
-import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDespawnEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityLoadEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityUnloadEvent;
 
@@ -37,20 +36,10 @@ public class BukkitEntityTracker implements Listener {
 		for ( Iterator< Entity > iterator = trackedEntities.iterator(); iterator.hasNext(); ) {
 			Entity entity = iterator.next();
 			if ( !newEntities.contains( entity ) ) {
-				Location location = entity.getLocation();
-				if ( entity.getWorld().isChunkLoaded( location.getBlockX() >> 4, location.getBlockZ() >> 4 ) ) {
-					// Despawned
-					if ( entity.isDead() ) {
-						GunsmokeEntityDeathEvent event = new GunsmokeEntityDeathEvent( plugin.getItemManager().getEntityWrapper( entity ) );
-						event.callEvent();
-					} else {
-						GunsmokeEntityDespawnEvent event = new GunsmokeEntityDespawnEvent( plugin.getItemManager().getEntityWrapper( entity ) );
-						event.callEvent();
-					}
-				} else {
-					GunsmokeEntityUnloadEvent event = new GunsmokeEntityUnloadEvent( plugin.getItemManager().getEntityWrapper( entity ) );
-					event.callEvent();
-				}
+				// The entities that we are tracking are vanilla entities. A wrapper for one type is going to be the same as another
+				GunsmokeEntityUnloadEvent event = new GunsmokeEntityUnloadEvent( plugin.getItemManager().getEntityWrapper( entity ) );
+				event.callEvent();
+				
 				iterator.remove();
 			}
 		}
@@ -67,5 +56,12 @@ public class BukkitEntityTracker implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( EntitySpawnEvent event ) {
 		trackedEntities.add( event.getEntity() );
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( EntityDeathEvent event ) {
+		trackedEntities.remove( event.getEntity() );
+		GunsmokeEntityDeathEvent deathEvent = new GunsmokeEntityDeathEvent( plugin.getItemManager().getEntityWrapper( event.getEntity() ) );
+		deathEvent.callEvent();
 	}
 }
