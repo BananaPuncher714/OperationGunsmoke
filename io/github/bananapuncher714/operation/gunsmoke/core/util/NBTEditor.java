@@ -1099,7 +1099,7 @@ public final class NBTEditor {
 		protected NBTCompound( @Nonnull Object tag ) {
 			this.tag = tag;
 		}
-
+		
 		@Override
 		public String toString() {
 			return tag.toString();

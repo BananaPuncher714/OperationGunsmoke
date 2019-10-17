@@ -11,9 +11,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
+import io.github.bananapuncher714.operation.gunsmoke.api.tracking.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
-import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 
 public interface PacketHandler {
@@ -61,6 +61,10 @@ public interface PacketHandler {
 	AABB[] getBoxesFor( Location location );
 	
 	GunsmokeEntityTracker getEntityTrackerFor( Entity entity );
+	
+	NBTCompound getPlayerCompound( Player player );
+	void setPlayerCompound( Player player, NBTCompound compound );
+	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );
 //	void updateBow( LivingEntity entity, Player viewer );

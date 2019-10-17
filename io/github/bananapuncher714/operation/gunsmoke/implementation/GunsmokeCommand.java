@@ -18,10 +18,12 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -32,6 +34,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.NPCAction;
 import io.github.bananapuncher714.operation.gunsmoke.api.item.GunsmokeItem;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEntity;
+import io.github.bananapuncher714.operation.gunsmoke.core.PlayerSaveData;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Corner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.EnclosingRegion;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
@@ -67,6 +71,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	protected List< AABB > solids = null;
 	
 	protected List< Location > corners = null;
+	protected List< Location > points = null;
 	
 	protected Set< Path > paths = new HashSet< Path >();
 	
@@ -74,11 +79,23 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	
 	protected PathfinderDev pathfinder;
 	
+	protected Block block;
+	protected Entity entity;
+	
+	protected PlayerSaveData savePoint;
+	
 	public GunsmokeCommand() {
 		Bukkit.getScheduler().runTaskTimer( GunsmokeUtil.getPlugin(), this::update, 0, 5 );
 	}
 	
 	private void update() {
+		if ( points != null ) {
+			for ( Location loc : points ) {
+				loc.getWorld().spawnParticle( Particle.FLAME, new Location( loc.getWorld(), 0, 0, 0 ).add( loc ), 0 );
+			}
+		}
+		
+		
 //		if ( regionMap != null && end != null ) {
 //			for ( Player player : Bukkit.getOnlinePlayers() ) {
 //				Pathfinder pathfinder = new PathfinderDev( regionMap, player.getLocation().toVector(), end.toVector() );
@@ -163,6 +180,101 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					PathingPanel.draw( new AABB( -11, 0, 0, -11, 0, 0 ), lines );
 				} else if ( args[ 0 ].equalsIgnoreCase( "set" ) ) {
 					end = player.getLocation();
+				} else if ( args[ 0 ].equalsIgnoreCase( "intersect" ) ) {
+					Location location = player.getEyeLocation();
+					Collection< Entity > nearbyEntities = location.getWorld().getNearbyEntities( location, 100, 100, 100 );
+					
+					Entity closest = null;
+					double distance = Double.MAX_VALUE;
+					for ( Entity entity : nearbyEntities ) {
+						if ( entity == player ) {
+							continue;
+						}
+						Location originalPos = GunsmokeUtil.getPlugin().getEntityTracker().getLocationOf( entity.getUniqueId() );
+						if ( originalPos == null ) {
+							continue;
+						}
+						
+						CollisionResultEntity intersection = VectorUtil.rayIntersect( entity, location, location.getDirection() );
+						if ( intersection != null ) {
+							if ( intersection.getLocation().distanceSquared( location ) > 100_00 ) {
+								continue;
+							}
+							Vector toEntity = intersection.getLocation().clone().subtract( location ).toVector();
+							if ( location.getDirection().dot( toEntity ) <= 0 ) {
+								continue;
+							}
+							
+							// We know we hit something
+							if ( location.distanceSquared( intersection.getLocation() ) < distance ) {
+								closest = entity;
+								distance = location.distanceSquared( intersection.getLocation() );
+							}
+						}
+					}
+					
+					if ( closest == null ) {
+						player.sendMessage( "Not looking at a mob!" );
+						return false;
+					}
+
+					entity = closest;
+				} else if ( args[ 0 ].equalsIgnoreCase( "block" ) ) {
+					block = GunsmokeUtil.getPlugin().getProtocol().getHandler().rayTrace( player.getEyeLocation(), player.getLocation().getDirection(), 100 ).get( 0 ).getBlock();
+				} else if ( args[ 0 ].equalsIgnoreCase( "runcmd" ) ) {
+					for ( Player pl : Bukkit.getOnlinePlayers() ) {
+						if ( !GunsmokeUtil.getPlugin().getProtocol().getHandler().isRealPlayer( pl ) ) {
+							pl.chat( "/gunsmoke loaddata" );
+							break;
+						}
+					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "calculate" ) ) {
+					if ( block == null || entity == null ) {
+						player.sendMessage( "Missing one!" );
+						return false;
+					}
+					Location pLoc = player.getEyeLocation();
+					
+					AABB entityBox = new AABB( entity.getBoundingBox() );
+					AABB[] boxes = GunsmokeUtil.getPlugin().getProtocol().getHandler().getBoxesFor( block.getLocation() );
+					
+					points = new ArrayList< Location >();
+					
+					Vector point = new Vector( entityBox.minX, entityBox.minY, entityBox.minZ );
+					
+					double dist = point.getX() - pLoc.getX();
+					
+					for ( Vector loc : getLocations( entityBox ) ) {
+						double diff = loc.getX() - pLoc.getX();
+						double rat = diff / dist;
+						double y = ( loc.getY() - pLoc.getY() ) / rat;
+						double z = ( loc.getZ() - pLoc.getZ() ) / rat;
+						
+						Location newLoc = pLoc.clone().add( new Vector( dist, y, z ) );
+						
+						points.add( newLoc );
+					}
+					
+					for ( AABB box : boxes ) {
+						for ( Vector loc : getLocations( box ) ) {
+							loc.add( block.getLocation().toVector() );
+							double diff = loc.getX() - pLoc.getX();
+							double rat = diff / dist;
+							double y = ( loc.getY() - pLoc.getY() ) / rat;
+							double z = ( loc.getZ() - pLoc.getZ() ) / rat;
+							
+							Location newLoc = pLoc.clone().add( new Vector( dist, y, z ) );
+							
+							points.add( newLoc );
+						}
+					}
+					
+				} else if ( args[ 0 ].equalsIgnoreCase( "savedata" ) ) {
+					savePoint = new PlayerSaveData( player );
+				} else if ( args[ 0 ].equalsIgnoreCase( "loaddata" ) ) {
+					if ( savePoint != null ) {
+						savePoint.apply( player );
+					}
 				} else if ( args[ 0 ].equalsIgnoreCase( "nbt" ) ) {
 					ItemStack item = BukkitUtil.getEquipment( player, EquipmentSlot.HAND );
 					if ( item != null ) {
@@ -404,5 +516,19 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 		StringUtil.copyPartialMatches( args[ args.length - 1 ], suggestions, completions);
 		Collections.sort( completions );
 		return completions;
+	}
+	
+	private Vector[] getLocations( AABB box ) {
+		Vector[] points = new Vector[ 8 ];
+		points[ 0 ] = new Vector( box.minX, box.minY, box.minZ );
+		points[ 1 ] = new Vector( box.minX, box.minY, box.maxZ );
+		points[ 2 ] = new Vector( box.minX, box.maxY, box.minZ );
+		points[ 3 ] = new Vector( box.minX, box.maxY, box.maxZ );
+		points[ 4 ] = new Vector( box.maxX, box.minY, box.minZ );
+		points[ 5 ] = new Vector( box.maxX, box.minY, box.maxZ );
+		points[ 6 ] = new Vector( box.maxX, box.maxY, box.minZ );
+		points[ 7 ] = new Vector( box.maxX, box.maxY, box.maxZ );
+		
+		return points;
 	}
 }

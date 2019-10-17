@@ -8,8 +8,9 @@ import java.util.Set;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeEntityTracker;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
+import io.github.bananapuncher714.operation.gunsmoke.api.tracking.GunsmokeEntityTracker;
+import io.github.bananapuncher714.operation.gunsmoke.api.tracking.VisibilityController;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityPlayer;
@@ -34,6 +35,7 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 	private int trackingRange;
 	private boolean deltaTracking;
 	private EntityTrackerEntry trackerEntry;
+	private VisibilityController controller;
 	
 	public CustomEntityTracker( PlayerChunkMap playerChunkMap, Entity entity, int chunkRange, int trackingRange, boolean deltaTracking ) {
 		playerChunkMap.super( entity, chunkRange, trackingRange, deltaTracking );
@@ -50,7 +52,7 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 	}
 
 	@Override
-	public GunsmokeEntity getEntity() {
+	public GunsmokeEntityWrapper getEntity() {
 		return GunsmokeUtil.getEntity( entity.getBukkitEntity() );
 	}
 
@@ -97,12 +99,8 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 		// trackerEntry.a is remove
 		// trackerEntry.b is add
 		// Don't forget to remove the entity's id from the player's remove queue if the entity is visible
-		
-		Player bukkitPlayer = player.getBukkitEntity();
-		org.bukkit.entity.Entity bukkitEntity = entity.getBukkitEntity();
-		
-		if ( bukkitEntity != bukkitPlayer && bukkitPlayer.getWorld() == bukkitEntity.getWorld() ) {
-			if ( bukkitPlayer.getLocation().distanceSquared( bukkitEntity.getLocation() ) <= 100 ) {
+		if ( controller != null ) {
+			if ( controller.isVisible( player.getBukkitEntity(), this ) ) {
 				player.removeQueue.remove( Integer.valueOf( entity.getId() ) );
 				if ( trackedPlayers.add( player ) ) {
 					trackerEntry.b( player );
@@ -113,9 +111,7 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 				}
 			}
 		} else {
-			if ( this.trackedPlayers.remove( player ) ) {
-				trackerEntry.a( player );
-			}
+			super.updatePlayer( player );
 		}
 	}
 	
@@ -136,4 +132,13 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 		clear( ( ( CraftPlayer ) player ).getHandle() );
 	}
 
+	@Override
+	public void setVisibilityController( VisibilityController controller ) {
+		this.controller = controller;
+	}
+	
+	@Override
+	public VisibilityController getVisiblityController() {
+		return controller;
+	}
 }

@@ -84,6 +84,10 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		this.maxHealth = maxHealth;
 	}
 	
+	public boolean isValid() {
+		return health > 0;
+	}
+	
 	// This is only going to go through if the event is not cancelled
 	public void damage( GunsmokeEntityDamageEvent event ) {
 		setHealth( Math.max( 0, health - event.getDamage() ) );

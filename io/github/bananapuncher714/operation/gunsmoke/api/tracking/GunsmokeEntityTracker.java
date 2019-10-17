@@ -1,14 +1,14 @@
-package io.github.bananapuncher714.operation.gunsmoke.api.world;
+package io.github.bananapuncher714.operation.gunsmoke.api.tracking;
 
 import java.util.List;
 import java.util.Set;
 
 import org.bukkit.entity.Player;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 
 public interface GunsmokeEntityTracker {
-	GunsmokeEntity getEntity();
+	GunsmokeEntityWrapper getEntity();
 	int getTrackingDistance();
 	int getChunkRange();
 	boolean isDeltaTracking();
@@ -19,4 +19,7 @@ public interface GunsmokeEntityTracker {
 	void update( Player player );
 	void update();
 	void untrack( Player player );
+	
+	void setVisibilityController( VisibilityController controller );
+	VisibilityController getVisiblityController();
 }

@@ -183,6 +183,8 @@ public class ItemManager implements Listener {
 						}
 						
 						return;
+					} else {
+						otherGItem.dualWield( gItem );
 					}
 				}
 			}

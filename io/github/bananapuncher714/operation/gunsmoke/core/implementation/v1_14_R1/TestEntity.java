@@ -29,7 +29,7 @@ import net.minecraft.server.v1_14_R1.WorldServer;
 
 public class TestEntity extends EntityPlayer implements GunsmokeNPC {
 	protected TestEntity( EntityTypes< ? extends EntityPlayer > entitytypes, World world ) {
-		super( MinecraftServer.getServer(), ( WorldServer ) world, new GameProfile( UUID.randomUUID(), "scr" ), new PlayerInteractManager( ( WorldServer ) world ) );
+		super( MinecraftServer.getServer(), ( WorldServer ) world, NMSUtils.convert( new GameProfile( UUID.randomUUID(), "scr" ), "scr" ), new PlayerInteractManager( ( WorldServer ) world ) );
 		org.bukkit.World bWorld = this.getBukkitEntity().getWorld();
 		
 		// Maybe register this class to be tracked with the PlayerChunkMap?
@@ -42,7 +42,8 @@ public class TestEntity extends EntityPlayer implements GunsmokeNPC {
 //		PacketPlayOutPlayerInfo removePlayer = new PacketPlayOutPlayerInfo( EnumPlayerInfoAction.REMOVE_PLAYER, this );
 //		
 //		NMSHandler.broadcastPacket( bWorld, addPlayer );
-		NMSHandler.broadcastPacket( bWorld, spawnPlayer );
+		// TODO spawn the player in properly somehow?
+//		NMSHandler.broadcastPacket( bWorld, spawnPlayer );
 //		Bukkit.getScheduler().scheduleSyncDelayedTask( GunsmokeUtil.getPlugin(), new Runnable() {
 //			@Override
 //			public void run() {

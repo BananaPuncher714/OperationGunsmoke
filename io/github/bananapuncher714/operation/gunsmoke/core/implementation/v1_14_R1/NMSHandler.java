@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,12 +40,13 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.Advanceme
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.nms.NBTCompound;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayerHand;
+import io.github.bananapuncher714.operation.gunsmoke.api.tracking.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
-import io.github.bananapuncher714.operation.gunsmoke.api.world.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
@@ -74,6 +74,7 @@ import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
+import net.minecraft.server.v1_14_R1.NBTTagCompound;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements.Status;
@@ -95,7 +96,6 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutPosition.EnumPlayerTeleportFla
 import net.minecraft.server.v1_14_R1.PacketPlayOutUpdateAttributes;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder;
 import net.minecraft.server.v1_14_R1.PacketPlayOutWorldBorder.EnumWorldBorderAction;
-import net.minecraft.server.v1_14_R1.PlayerChunkMap;
 import net.minecraft.server.v1_14_R1.PlayerChunkMap.EntityTracker;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 import net.minecraft.server.v1_14_R1.RayTrace;
@@ -212,7 +212,8 @@ public class NMSHandler implements PacketHandler {
 	}
 	
 	private Gunsmoke plugin;
-
+	private NMSTracker entityTracker;
+	
 	public NMSHandler() {
 		NMSUtils.register( "gunbot", EntityTypes.ZOMBIE, NMSUtils.create( new EntityTypes.b< EntityZombie >() {
 			@Override
@@ -227,6 +228,8 @@ public class NMSHandler implements PacketHandler {
 				return new TestEntity( arg0, arg1 );
 			}
 		}, EnumCreatureType.MISC, .6, 1.8 ) );
+		
+		entityTracker = new NMSTracker();
 	}
 	
 	public void setGunsmoke( Gunsmoke plugin ) {
@@ -234,7 +237,7 @@ public class NMSHandler implements PacketHandler {
 	}
 
 	public void tick() {
-		replaceEntityTrackers();
+		entityTracker.tick();
 	}
 	
 	/**
@@ -522,7 +525,7 @@ public class NMSHandler implements PacketHandler {
 		}
 	}
 	
-	private Packet< ? > handleFlyingPacket(Player player, PacketPlayInFlying packet) {
+	private Packet< ? > handleFlyingPacket( Player player, PacketPlayInFlying packet ) {
 		if ( player.isOnGround() && !packet.b() && packet.b( player.getLocation().getY() ) - player.getLocation().getY() > 0 ) {
 			PlayerJumpEvent event = new PlayerJumpEvent( player );
 			plugin.getTaskManager().callEventSync( event );
@@ -793,24 +796,7 @@ public class NMSHandler implements PacketHandler {
 	
 	@Override
 	public GunsmokeEntityTracker getEntityTrackerFor( org.bukkit.entity.Entity bukkitEntity ) {
-		Entity entity = ( ( CraftEntity ) bukkitEntity ).getHandle();
-		
-		PlayerChunkMap tracker = ( ( WorldServer ) entity.getWorld() ).getChunkProvider().playerChunkMap;
-		
-		EntityTracker entry = tracker.trackedEntities.get( entity.getId() );
-		
-		CustomEntityTracker customTracker;
-		if ( !( entry instanceof CustomEntityTracker ) ) {
-			customTracker = new CustomEntityTracker( tracker, entity, entity.getEntityType().getChunkRange(), entity.getEntityType().getUpdateInterval(), entity.getEntityType().isDeltaTracking() );
-			
-			customTracker.trackedPlayers.addAll( entry.trackedPlayers );
-			
-			tracker.trackedEntities.put( entity.getId(), customTracker );
-		} else {
-			customTracker = ( CustomEntityTracker ) entry;
-		}
-		
-		return customTracker;
+		return entityTracker.getEntityTrackerFor( bukkitEntity );
 	}
 	
 	@Override
@@ -910,29 +896,21 @@ public class NMSHandler implements PacketHandler {
 		return boundingBoxes;
 	}
 	
-	private void replaceEntityTrackers() {
-		for ( World world : Bukkit.getWorlds() ) {
-			PlayerChunkMap tracker = ( ( WorldServer ) ( ( CraftWorld ) world ).getHandle() ).getChunkProvider().playerChunkMap;
-			
-			Set< EntityTracker > previous = new HashSet< EntityTracker >( tracker.trackedEntities.values() );
-			for ( EntityTracker tracked : previous ) {
-				if ( !( tracked instanceof CustomEntityTracker ) ) {
-					Entity entity;
-					
-					try {
-						entity = ( Entity ) ENTITYTRACKER_ENTITY.get( tracked );
-					} catch ( Exception exception ) {
-						exception.printStackTrace();
-						continue;
-					}
-					CustomEntityTracker customTracker = new CustomEntityTracker( tracker, entity, entity.getEntityType().getChunkRange(), entity.getEntityType().getUpdateInterval(), entity.getEntityType().isDeltaTracking() );
-					
-					customTracker.trackedPlayers.addAll( tracked.trackedPlayers );
-					
-					tracker.trackedEntities.put( entity.getId(), customTracker );
-				}
-			}
+	@Override
+	public NBTCompound getPlayerCompound( Player player ) {
+		EntityPlayer human = ( ( CraftPlayer ) player ).getHandle();
+		return new NBTCompoundNMS( human.save( new NBTTagCompound() ) );
+	}
+	
+	@Override
+	public void setPlayerCompound( Player player, NBTCompound compound ) {
+		EntityPlayer human = ( ( CraftPlayer ) player ).getHandle();
+		if ( compound instanceof NBTCompoundNMS ) {
+			human.f( ( ( NBTCompoundNMS ) compound ).compound );
+		} else {
+			throw new IllegalArgumentException( compound + " is not of the right NMS version!" );
 		}
+		
 	}
 	
 	// @Override
@@ -941,69 +919,6 @@ public class NMSHandler implements PacketHandler {
 	// message ), ChatMessageType.a( display.location ) );
 	// ( ( CraftPlayer ) player ).getHandle().playerConnection.sendPacket( packet );
 	//
-	// }
-	//
-	// /**
-	// * Teleport a player relative to their current location; Negative pitch
-	// indicates a movement upwards.
-	// */
-	// @Override
-	// public void teleportRelative( String player, Vector location, double yaw,
-	// double pitch ) {
-	// Set< EnumPlayerTeleportFlags > set = new HashSet< EnumPlayerTeleportFlags
-	// >();
-	// for ( EnumPlayerTeleportFlags flag : EnumPlayerTeleportFlags.values() ) {
-	// set.add( flag );
-	// }
-	// int id = 42;
-	// if ( location == null ) {
-	// location = new Vector( 0, 0, 0 );
-	// }
-	// PacketPlayOutPosition packet = new PacketPlayOutPosition( location.getX(),
-	// location.getY(), location.getZ(), ( float ) yaw, ( float ) pitch, set, id );
-	// OrdnanceUtil.sendPacket( player, packet );
-	// }
-	//
-	// @Override
-	// public void playParticle( Player player, boolean everyoneElse, Particle
-	// particle, boolean farView, Location location, float dx, float dy, float dz,
-	// float speed, int count, int... params ) {
-	// EnumParticle eParticle = FailSafe.getEnum( EnumParticle.class,
-	// particle.name().toUpperCase() );
-	// PacketPlayOutWorldParticles packet = new PacketPlayOutWorldParticles(
-	// eParticle, farView, ( float ) location.getX(), ( float ) location.getY(), (
-	// float ) location.getZ(), dx, dy, dz, speed, count, params );
-	// if ( player == null || everyoneElse ) {
-	// for ( Player rel : location.getWorld().getPlayers() ) {
-	// if ( rel != player || !everyoneElse ) {
-	// ( ( CraftPlayer ) rel ).getHandle().playerConnection.sendPacket( packet );
-	// }
-	// }
-	// } else {
-	// ( ( CraftPlayer ) player ).getHandle().playerConnection.sendPacket( packet );
-	// }
-	// }
-	//
-	// @Override
-	// public void playBlockCrack( Location location, int level ) {
-	// PacketPlayOutBlockBreakAnimation packet = new
-	// PacketPlayOutBlockBreakAnimation( location.hashCode(), new BlockPosition(
-	// location.getBlockX(), location.getBlockY(), location.getBlockZ() ), level );
-	// for ( Player player : location.getWorld().getPlayers() ) {
-	// ( ( CraftPlayer ) player ).getHandle().playerConnection.sendPacket( packet );
-	// }
-	// }
-	//
-	// @Override
-	// public void setFOV( Player player, float value ) {
-	// EntityPlayer entityPlayer = ( ( CraftPlayer ) player ).getHandle();
-	//
-	// PacketPlayOutAbilities packet = new PacketPlayOutAbilities(
-	// entityPlayer.abilities );
-	//
-	// packet.b( value );
-	//
-	// entityPlayer.playerConnection.sendPacket( packet );
 	// }
 
 	private CollisionResultBlock getResultFrom( net.minecraft.server.v1_14_R1.World world, MovingObjectPositionBlock position ) {
@@ -1014,19 +929,18 @@ public class NMSHandler implements PacketHandler {
 		return new CollisionResultBlock( interception, face, block );
 	}
 	
-	protected static void broadcastPacket( World world, Packet< ? > packet ) {
+	protected void broadcastPacket( World world, Packet< ? > packet ) {
 		for ( Player player : world.getPlayers() ) {
 			GunsmokeUtil.getPlugin().getProtocol().sendPacket( player, packet );
 		}
 	}
 	
-	protected static void broadcastPacket( org.bukkit.entity.Entity origin, Packet<?> packet, boolean updateSelf ) {
-		World world = origin.getWorld();
-		// TODO Get an entity tracker entry sometime or something similar
-		for ( Player player : world.getPlayers() ) {
-			if ( updateSelf || origin != player ) {
-				GunsmokeUtil.getPlugin().getProtocol().sendPacket( player, packet );
-			}
+	protected void broadcastPacket( org.bukkit.entity.Entity origin, Packet< ? > packet, boolean updateSelf ) {
+		CustomEntityTracker tracker = entityTracker.getEntityTrackerFor( origin );
+		if ( updateSelf ) {
+			tracker.broadcastIncludingSelf( packet );
+		} else {
+			tracker.broadcast( packet );
 		}
 	}
 }

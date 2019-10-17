@@ -5,13 +5,11 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 
 public class GunsmokeEntityWrapper extends GunsmokeEntity {
 	protected Entity entity;
@@ -57,13 +55,17 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity {
 	
 	@Override
 	public void remove() {
-		entity.remove();
 	}
 
 	@Override
 	public EnumTickResult tick() {
 
 		return super.tick();
+	}
+	
+	@Override
+	public boolean isValid() {
+		return entity.isValid();
 	}
 	
 	public EnumEventResult onEvent( EntityDamageEvent event ) {
