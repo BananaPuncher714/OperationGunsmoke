@@ -11,6 +11,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityRegenEvent;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Tickable {
 	protected Location location;
@@ -123,6 +124,12 @@ public abstract class GunsmokeEntity extends GunsmokeRepresentable implements Ti
 		this.health = health;
 	}
 
+	public void sendMessage( BaseComponent message ) {
+	}
+	
+	public void sendMessage( String message ) {
+	}
+	
 	public void serialize( ConfigurationSection section ) {
 		section.set( "location.world", location.getWorld().getName() );
 		section.set( "location.x", location.getX() );

@@ -294,7 +294,7 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					
 					ace.getSettings().setRedSpawn( spawn );
 					
-				} else if ( args[ 0 ].equalsIgnoreCase( "join" ) ) {
+				} else if ( args[ 0 ].equalsIgnoreCase( "join"  ) ) {
 					implementation.getMinigameManager().join( "test", GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ) );
 				} else if ( args[ 0 ].equalsIgnoreCase( "leave" ) ) {
 					implementation.getMinigameManager().leave( GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ) );

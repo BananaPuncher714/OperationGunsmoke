@@ -1,15 +1,19 @@
 package io.github.bananapuncher714.operation.gunsmoke.minigame.ace;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.scoreboard.Team.Option;
+import org.bukkit.scoreboard.Team.OptionStatus;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
@@ -21,6 +25,9 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeE
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerPressRespawnButtonEvent;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.minigame.base.Minigame;
 
 public class Ace extends Minigame implements Listener {
@@ -34,7 +41,14 @@ public class Ace extends Minigame implements Listener {
 		this.settings = settings;
 		
 		red = scoreboard.registerNewTeam( "Red" );
+		red.setCanSeeFriendlyInvisibles( true );
+		red.setOption( Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM );
+		red.setColor( ChatColor.RED );
+		
 		blue = scoreboard.registerNewTeam( "Blue" );
+		blue.setCanSeeFriendlyInvisibles( true );
+		blue.setOption( Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM );
+		blue.setColor( ChatColor.BLUE );
 	}
 	
 	public AceSettings getSettings() {
@@ -55,6 +69,8 @@ public class Ace extends Minigame implements Listener {
 	public void leave( GunsmokeEntity gEntity ) {
 		super.leave( gEntity );
 		red.removeEntry( gEntity.getUUID().toString() );
+		
+		removeGunsmokeProperty( gEntity );
 	}
 	
 	@Override
@@ -84,6 +100,7 @@ public class Ace extends Minigame implements Listener {
 				if ( item != null ) {
 					plugin.getItemManager().remove( item.getUUID() );
 					items[ i ] = null;
+					System.out.println( "detected " + item );
 				}
 			}
 			player.getInventory().setContents( items );
@@ -112,10 +129,27 @@ public class Ace extends Minigame implements Listener {
 		} else {
 			entity.setLocation( settings.getRedSpawn().getLocation() );
 		}
+		
+		giveGunsmokeProperty( entity );
 	}
 	
-	protected void giveGunsmokeProperty( GunsmokeEntity entity ) {
-		
+	protected void giveGunsmokeProperty( GunsmokeEntity gEntity ) {
+		if ( gEntity instanceof GunsmokeEntityWrapperPlayer ) {
+			GunsmokeEntityWrapperPlayer gPlayer = ( GunsmokeEntityWrapperPlayer ) gEntity;
+			Player player = gPlayer.getEntity();
+			
+			// Give the player a gun
+			ConfigWeaponOptions options = GunsmokeImplementation.getInstance().getGun( "remington870" );
+			ConfigGun gun = new ConfigGun( options );
+			
+			plugin.getItemManager().register( gun );
+			player.getInventory().addItem( gun.getItem() );
+		} else if ( gEntity instanceof GunsmokeEntityWrapperLivingEntity ) {
+			GunsmokeEntityWrapperLivingEntity gLEntity = ( GunsmokeEntityWrapperLivingEntity ) gEntity;
+			LivingEntity entity = gLEntity.getEntity();
+			
+			// Give them items...
+		}
 	}
 	
 	@EventHandler
@@ -129,6 +163,8 @@ public class Ace extends Minigame implements Listener {
 			// We don't want the player really dying, so we're going to cancel their death and "kill" them ourselves
 			
 			// There are no real custom entities that can act as players, so for now (20191018) we're going to see if they're a player.
+			
+			removeGunsmokeProperty( gEntity );
 			
 			if ( gEntity instanceof GunsmokeEntityWrapperPlayer ) {
 				// Watch out for those fake players...
@@ -162,5 +198,14 @@ public class Ace extends Minigame implements Listener {
 		}
 		
 		spawn( plugin.getItemManager().getEntityWrapper( event.getEntity() ) );
+	}
+	
+	@EventHandler
+	private void onDropItemEvent( PlayerDropItemEvent event ) {
+		if ( !isParticipating( plugin.getItemManager().getEntityWrapper( event.getPlayer() ) ) ) {
+			return;
+		}
+		
+		event.setCancelled( true );
 	}
 }

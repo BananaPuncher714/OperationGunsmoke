@@ -5,6 +5,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
+
 public class GunsmokeEntityWrapperPlayer extends GunsmokeEntityWrapperLivingEntity {
 	protected Player entity;
 	
@@ -22,12 +25,14 @@ public class GunsmokeEntityWrapperPlayer extends GunsmokeEntityWrapperLivingEnti
 	public void remove() {
 	}
 	
-	public boolean isTracking( Entity entity ) {
-		return false;
+	@Override
+	public void sendMessage( BaseComponent message ) {
+		entity.spigot().sendMessage( message );
 	}
 	
-	public void setTracking( Entity entity, boolean track ) {
-		
+	@Override
+	public void sendMessage( String message ) {
+		entity.sendMessage( message );
 	}
 	
 	@Override

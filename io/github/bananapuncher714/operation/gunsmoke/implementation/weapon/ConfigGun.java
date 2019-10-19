@@ -63,11 +63,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		bullets = options.getClipSize();
 		
 		ItemStack item = new ItemStack( Material.BOW );
-		ItemMeta meta = item.getItemMeta();
-		if ( meta instanceof Damageable ) {
-			( ( Damageable ) meta ).setDamage( options.getModel() );
-		}
-		item.setItemMeta( meta );
+		item = BukkitUtil.setCustomModelData( item, options.getModel() );
 		
 		display = new ItemStackMultiState( new ItemStackGunsmoke( item ) );
 	}
@@ -288,7 +284,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	
 	@Override
 	public void onUnequip() {
-		holder.sendMessage( "Unequpped" );
+		holder.sendMessage( "Unequipped" );
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeHolder.getMainHand() : gunsmokeHolder.getOffHand() ).setItem( null );
 		gunsmokeHolder.setHandState( State.DEFAULT, slot == EquipmentSlot.HAND );
 		
@@ -311,10 +307,9 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		ItemMeta meta = item.getItemMeta();
 		meta.setUnbreakable( true );
 		meta.setDisplayName( options.getName() );
-		
-		( ( Damageable ) meta ).setDamage( ( isScoped || isScoping ) ? options.getModel() + 1 : options.getModel() );
-		
 		item.setItemMeta( meta );
+		
+		item = BukkitUtil.setCustomModelData( item, ( isScoped || isScoping ) ? options.getModel() + 1 : options.getModel() );
 		
 		int cooldown = ( isSwitching ? options.getSwitchDelay() : ( isScoping ? options.getScopeDelay() : 0 ) );
 		

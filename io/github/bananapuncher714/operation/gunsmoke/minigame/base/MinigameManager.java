@@ -5,12 +5,17 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import io.github.bananapuncher714.operation.gunsmoke.api.tracking.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.PlayerSaveData;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class MinigameManager {
 	protected Gunsmoke plugin;
@@ -27,6 +32,12 @@ public class MinigameManager {
 		listener = new MinigameListener( this );
 		Bukkit.getPluginManager().registerEvents( listener, plugin );
 		Bukkit.getScheduler().runTaskTimer( plugin, this::update, 0, 1 );
+		
+		for ( World world : Bukkit.getWorlds() ) {
+			for ( Entity entity : world.getEntities() ) {
+				loadTracker( plugin.getItemManager().getEntityWrapper( entity ) );
+			}
+		}
 	}
 	
 	private void update() {
@@ -80,6 +91,15 @@ public class MinigameManager {
 		return getGame( participants.get( entity.getUUID() ) );
 	}
 	
+	public Minigame belongsTo( GunsmokeEntity entity ) {
+		for ( Minigame game : minigameCache.values() ) {
+			if ( game.isParticipating( entity ) || game.isRegistered( entity ) ) {
+				return game;
+			}
+		}
+		return null;
+	}
+	
 	public void join( String minigame, GunsmokeEntity entity ) {
 		leave( entity );
 		Minigame game = getGame( minigame );
@@ -109,5 +129,19 @@ public class MinigameManager {
 	
 	protected void quit( Player player ) {
 		leave( plugin.getItemManager().getEntityWrapper( player ) );
+	}
+	
+	protected void loadTracker( GunsmokeEntity gEntity ) {
+		if ( gEntity instanceof GunsmokeEntityWrapper ) {
+			Entity entity = ( ( GunsmokeEntityWrapper ) gEntity ).getEntity();
+			
+			GunsmokeEntityTracker tracker = GunsmokeUtil.getPlugin().getProtocol().getHandler().getEntityTrackerFor( entity );
+			
+			tracker.setVisibilityController( new MinigameVisibilityController( this ) );
+		}
+	}
+	
+	public Gunsmoke getPlugin() {
+		return plugin;
 	}
 }

@@ -53,6 +53,13 @@ public abstract class GunsmokeItem extends GunsmokeRepresentable {
 		return true;
 	}
 	
+	@Override
+	public void remove() {
+		if ( isEquipped ) {
+			onUnequip();
+		}
+	}
+	
 	public void updateItem() {
 		if ( holder != null ) {
 			BukkitUtil.setEquipment( holder, getItem(), slot );

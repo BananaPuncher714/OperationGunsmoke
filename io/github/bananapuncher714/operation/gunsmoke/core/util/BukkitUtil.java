@@ -91,4 +91,8 @@ public class BukkitUtil {
 	public static Vector toVector( BlockFace face ) {
 		return new Vector( face.getModX(), face.getModY(), face.getModZ() );
 	}
+	
+	public static ItemStack setCustomModelData( ItemStack item, int val ) {
+		return NBTEditor.set( item, val, "CustomModelData" );
+	}
 }

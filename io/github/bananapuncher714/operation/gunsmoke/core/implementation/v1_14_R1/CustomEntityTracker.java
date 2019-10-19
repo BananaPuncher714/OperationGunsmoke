@@ -100,6 +100,10 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 		// trackerEntry.a is remove
 		// trackerEntry.b is add
 		// Don't forget to remove the entity's id from the player's remove queue if the entity is visible
+		if ( player == entity ) {
+			return;
+		}
+		
 		if ( controller != null ) {
 			BooleanResult result = controller.isVisible( player.getBukkitEntity(), this );
 			if ( result.isTrue() ) {
