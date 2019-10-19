@@ -144,6 +144,7 @@ public class Ace extends Minigame implements Listener {
 					
 					player.setGameMode( GameMode.SPECTATOR );
 					
+					event.setCancelled( true );
 				} else {
 					// Deal with the fake NPCs here
 				}

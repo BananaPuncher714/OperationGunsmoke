@@ -26,6 +26,14 @@ public class MinigameManager {
 		
 		listener = new MinigameListener( this );
 		Bukkit.getPluginManager().registerEvents( listener, plugin );
+		Bukkit.getScheduler().runTaskTimer( plugin, this::update, 0, 1 );
+	}
+	
+	private void update() {
+		for ( Minigame minigame : minigameCache.values() ) {
+			// TODO make the minigame tick return value mean something
+			minigame.tick();
+		}
 	}
 	
 	public void addMinigame( String id, Minigame minigame ) {
@@ -83,6 +91,7 @@ public class MinigameManager {
 			}
 			
 			game.join( entity );
+			participants.put( entity.getUUID(), minigame );
 		}
 	}
 	
@@ -91,8 +100,10 @@ public class MinigameManager {
 		if ( prev != null ) {
 			getGame( prev ).leave( entity );
 			Player player = ( ( GunsmokeEntityWrapperPlayer ) entity ).getEntity();
-			PlayerSaveData data = saveData.get( player.getUniqueId() );
-			data.apply( player );
+			PlayerSaveData data = saveData.remove( player.getUniqueId() );
+			if ( data != null ) {
+				data.apply( player );
+			}
 		}
 	}
 	

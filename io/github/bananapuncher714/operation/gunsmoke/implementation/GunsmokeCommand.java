@@ -65,6 +65,8 @@ import io.github.bananapuncher714.operation.gunsmoke.minigame.ace.AceSettings;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class GunsmokeCommand implements CommandExecutor, TabCompleter {
+	protected GunsmokeImplementation implementation;
+	
 	protected Location end;
 	protected Path result = null;
 	protected PathRegion regionResult = null;
@@ -89,7 +91,9 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	
 	protected Ace ace;
 	
-	public GunsmokeCommand() {
+	public GunsmokeCommand( GunsmokeImplementation impl ) {
+		this.implementation = impl;
+		
 		Bukkit.getScheduler().runTaskTimer( GunsmokeUtil.getPlugin(), this::update, 0, 5 );
 	}
 	
@@ -280,9 +284,10 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					if ( savePoint != null ) {
 						savePoint.apply( player );
 					}
-				} else if ( args[ 0 ].equalsIgnoreCase( "set" ) ) {
+				} else if ( args[ 0 ].equalsIgnoreCase( "spawn" ) ) {
 					if ( ace == null ) {
 						ace = new Ace( GunsmokeUtil.getPlugin(), new AceSettings() );
+						implementation.getMinigameManager().addMinigame( "test", ace );
 					}
 					
 					PlayerSaveData spawn = new PlayerSaveData( player );
@@ -290,8 +295,9 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					ace.getSettings().setRedSpawn( spawn );
 					
 				} else if ( args[ 0 ].equalsIgnoreCase( "join" ) ) {
-					
+					implementation.getMinigameManager().join( "test", GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ) );
 				} else if ( args[ 0 ].equalsIgnoreCase( "leave" ) ) {
+					implementation.getMinigameManager().leave( GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ) );
 				} else if ( args[ 0 ].equalsIgnoreCase( "kill" ) ) {
 					player.setHealth( 0 );
 					player.setHealth( 20 );

@@ -8,6 +8,7 @@ import java.util.Set;
 import org.bukkit.craftbukkit.v1_14_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.BooleanResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.tracking.GunsmokeEntityTracker;
 import io.github.bananapuncher714.operation.gunsmoke.api.tracking.VisibilityController;
@@ -100,11 +101,14 @@ public class CustomEntityTracker extends EntityTracker implements GunsmokeEntity
 		// trackerEntry.b is add
 		// Don't forget to remove the entity's id from the player's remove queue if the entity is visible
 		if ( controller != null ) {
-			if ( controller.isVisible( player.getBukkitEntity(), this ) ) {
+			BooleanResult result = controller.isVisible( player.getBukkitEntity(), this );
+			if ( result.isTrue() ) {
 				player.removeQueue.remove( Integer.valueOf( entity.getId() ) );
 				if ( trackedPlayers.add( player ) ) {
 					trackerEntry.b( player );
 				}
+			} else if ( result.isUnset() ) {
+				super.updatePlayer( player );
 			} else {
 				if ( this.trackedPlayers.remove( player ) ) {
 					trackerEntry.a( player );

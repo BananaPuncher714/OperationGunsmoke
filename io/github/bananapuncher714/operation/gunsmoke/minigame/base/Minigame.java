@@ -50,6 +50,7 @@ public abstract class Minigame implements Tickable {
 			GunsmokeEntityWrapperPlayer gEntity = ( GunsmokeEntityWrapperPlayer ) entity;
 			gEntity.getEntity().setScoreboard( scoreboard );
 		}
+		participants.add( entity.getUUID() );
 		return true;
 	}
 	
@@ -58,6 +59,7 @@ public abstract class Minigame implements Tickable {
 			GunsmokeEntityWrapperPlayer gEntity = ( GunsmokeEntityWrapperPlayer ) entity;
 			gEntity.getEntity().setScoreboard( Bukkit.getScoreboardManager().getMainScoreboard() );
 		}
+		participants.remove( entity.getUUID() );
 	}
 	public abstract void start();
 	public abstract void stop();

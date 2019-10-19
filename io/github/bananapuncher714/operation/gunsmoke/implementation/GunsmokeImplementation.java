@@ -51,13 +51,15 @@ public class GunsmokeImplementation {
 		WEAPON_FOLDER = new File( plugin.getDataFolder() + "/" + "weapons/" );
 		ARMOR_FOLDER = new File( plugin.getDataFolder() + "/" + "armor/" );
 		
-		GunsmokeCommand command = new GunsmokeCommand();
+		GunsmokeCommand command = new GunsmokeCommand( this );
 		plugin.getCommand( "gunsmoke" ).setExecutor( command );
 		plugin.getCommand( "gunsmoke" ).setTabCompleter( command );
 		
 		init();
 		
 		Bukkit.getScheduler().runTaskTimer( plugin, this::run, 0, 1 );
+		
+		minigameManager = new MinigameManager( plugin );
 	}
 	
 	private void run() {
@@ -148,6 +150,10 @@ public class GunsmokeImplementation {
 	
 	public ConfigArmorOptions getArmor( String id ) {
 		return armor.get( id );
+	}
+	
+	public MinigameManager getMinigameManager() {
+		return minigameManager;
 	}
 	
 	public static GunsmokeImplementation getInstance() {
