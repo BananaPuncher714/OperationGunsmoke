@@ -3,17 +3,18 @@ package io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
+import org.bukkit.entity.Player;
 
-public class GunsmokeEntityWrapperHumanEntity extends GunsmokeEntityWrapperLivingEntity {
-	protected HumanEntity entity;
+public class GunsmokeEntityWrapperPlayer extends GunsmokeEntityWrapperLivingEntity {
+	protected Player entity;
 	
-	public GunsmokeEntityWrapperHumanEntity( HumanEntity entity) {
+	public GunsmokeEntityWrapperPlayer( Player entity) {
 		super( entity );
 		this.entity = entity;
 	}
 
 	@Override
-	public HumanEntity getEntity() {
+	public Player getEntity() {
 		return entity;
 	}
 	

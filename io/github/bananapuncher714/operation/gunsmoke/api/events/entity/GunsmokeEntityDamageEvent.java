@@ -7,6 +7,10 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import io.github.bananapuncher714.operation.gunsmoke.api.DamageType;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 
+/**
+ * Gets called whenever an entity takes damage after calculations regarding their armor and stuff have been taken into account. 
+ * Should be used for monitoring stuff like entity death or when a player's health drops below a certain level, unless it is a vanilla damage cause.
+ */
 public class GunsmokeEntityDamageEvent extends GunsmokeEntityEvent implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
 	protected boolean cancelled = false;

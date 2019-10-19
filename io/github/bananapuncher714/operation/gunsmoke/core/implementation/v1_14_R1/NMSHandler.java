@@ -39,6 +39,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.AdvancementOpenEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerJumpEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerPressRespawnButtonEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.NBTCompound;
 import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
@@ -81,6 +82,8 @@ import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements.Status;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockDig.EnumPlayerDigType;
 import net.minecraft.server.v1_14_R1.PacketPlayInBlockPlace;
+import net.minecraft.server.v1_14_R1.PacketPlayInClientCommand;
+import net.minecraft.server.v1_14_R1.PacketPlayInClientCommand.EnumClientCommand;
 import net.minecraft.server.v1_14_R1.PacketPlayInFlying;
 import net.minecraft.server.v1_14_R1.PacketPlayInTeleportAccept;
 import net.minecraft.server.v1_14_R1.PacketPlayOutAbilities;
@@ -89,6 +92,7 @@ import net.minecraft.server.v1_14_R1.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityEquipment;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityMetadata;
 import net.minecraft.server.v1_14_R1.PacketPlayOutEntityStatus;
+import net.minecraft.server.v1_14_R1.PacketPlayOutGameStateChange;
 import net.minecraft.server.v1_14_R1.PacketPlayOutLightUpdate;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMapChunk;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPosition;
@@ -272,7 +276,14 @@ public class NMSHandler implements PacketHandler {
 			return handleAdvancementPacket( reciever, ( PacketPlayInAdvancements ) packet );
 		} else if ( packet instanceof PacketPlayInTeleportAccept ) {
 			return handleTeleportAcceptPacket( reciever, ( PacketPlayInTeleportAccept ) packet );
+		} else if ( packet instanceof PacketPlayInClientCommand ) {
+			return handleRespawnRequest( reciever, ( PacketPlayInClientCommand ) packet );
 		}
+		return packet;
+	}
+	
+	private Packet< ? > handleRespawnRequest( Player player, PacketPlayInClientCommand packet ) {
+		new PlayerPressRespawnButtonEvent( player ).callEvent();
 		return packet;
 	}
 	
@@ -841,7 +852,7 @@ public class NMSHandler implements PacketHandler {
 			exception.printStackTrace();
 		}
 	}
-
+	
 	@Override
 	public boolean isRealPlayer( Player player ) {
 		return ( ( CraftPlayer ) player ).getHandle().getClass().equals( EntityPlayer.class );

@@ -45,6 +45,7 @@ public interface PacketHandler {
 	
 	void damageBlock( Location location, int stage );
 	
+	// TODO remove
 	void darkness( Player player );
 	
 	int getServerTick();

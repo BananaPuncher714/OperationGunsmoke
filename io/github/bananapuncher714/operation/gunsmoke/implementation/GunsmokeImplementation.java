@@ -18,6 +18,7 @@ import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.Config
 import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.ConfigBulletOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
+import io.github.bananapuncher714.operation.gunsmoke.minigame.base.MinigameManager;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class GunsmokeImplementation {
@@ -36,6 +37,8 @@ public class GunsmokeImplementation {
 	protected Map< String, ConfigArmorOptions > armor = new HashMap< String, ConfigArmorOptions >();
 	
 	protected Map< UUID, Location > playerLocs = new HashMap< UUID, Location >();
+	
+	protected MinigameManager minigameManager;
 	
 	public GunsmokeImplementation( Gunsmoke plugin ) {
 		INSTANCE = this;

@@ -14,6 +14,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Particle.DustOptions;
@@ -59,6 +60,8 @@ import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.Config
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmorOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
+import io.github.bananapuncher714.operation.gunsmoke.minigame.ace.Ace;
+import io.github.bananapuncher714.operation.gunsmoke.minigame.ace.AceSettings;
 import net.md_5.bungee.api.ChatMessageType;
 
 public class GunsmokeCommand implements CommandExecutor, TabCompleter {
@@ -83,6 +86,8 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	protected Entity entity;
 	
 	protected PlayerSaveData savePoint;
+	
+	protected Ace ace;
 	
 	public GunsmokeCommand() {
 		Bukkit.getScheduler().runTaskTimer( GunsmokeUtil.getPlugin(), this::update, 0, 5 );
@@ -275,6 +280,22 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					if ( savePoint != null ) {
 						savePoint.apply( player );
 					}
+				} else if ( args[ 0 ].equalsIgnoreCase( "set" ) ) {
+					if ( ace == null ) {
+						ace = new Ace( GunsmokeUtil.getPlugin(), new AceSettings() );
+					}
+					
+					PlayerSaveData spawn = new PlayerSaveData( player );
+					
+					ace.getSettings().setRedSpawn( spawn );
+					
+				} else if ( args[ 0 ].equalsIgnoreCase( "join" ) ) {
+					
+				} else if ( args[ 0 ].equalsIgnoreCase( "leave" ) ) {
+				} else if ( args[ 0 ].equalsIgnoreCase( "kill" ) ) {
+					player.setHealth( 0 );
+					player.setHealth( 20 );
+					player.setGameMode( GameMode.SPECTATOR );
 				} else if ( args[ 0 ].equalsIgnoreCase( "nbt" ) ) {
 					ItemStack item = BukkitUtil.getEquipment( player, EquipmentSlot.HAND );
 					if ( item != null ) {

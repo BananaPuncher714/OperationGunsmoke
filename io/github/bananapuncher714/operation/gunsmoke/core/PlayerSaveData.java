@@ -11,11 +11,13 @@ public class PlayerSaveData {
 	protected NBTCompound tags;
 	protected GameMode gamemode;
 	protected Location location;
+	protected int slot;
 	
 	public PlayerSaveData( Player player ) {
 		tags = GunsmokeUtil.getPlugin().getProtocol().getHandler().getPlayerCompound( player );
 		gamemode = player.getGameMode();
 		location = player.getLocation();
+		slot = player.getInventory().getHeldItemSlot();
 	}
 	
 	public Location getLocation() {
@@ -33,6 +35,7 @@ public class PlayerSaveData {
 		player.teleport( location );
 		player.setGameMode( GameMode.SPECTATOR );
 		player.setGameMode( gamemode );
+		player.getInventory().setHeldItemSlot( slot );
 		
 		GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ).setHealth( player.getHealth() );
 	}

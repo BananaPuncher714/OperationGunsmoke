@@ -18,7 +18,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFa
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperHumanEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
@@ -180,8 +180,8 @@ public class ConfigBullet extends GunsmokeProjectile {
 				}
 				if ( damage > 0 ) {
 					GunsmokeUtil.damage( entity, options.getType(), damage, this );
-					if ( shooter instanceof GunsmokeEntityWrapperHumanEntity ) {
-						HumanEntity human = ( ( GunsmokeEntityWrapperHumanEntity ) shooter ).getEntity();
+					if ( shooter instanceof GunsmokeEntityWrapperPlayer ) {
+						HumanEntity human = ( ( GunsmokeEntityWrapperPlayer ) shooter ).getEntity();
 						if ( human instanceof Player ) {
 							Player player = ( Player ) human;
 							if ( VectorUtil.isHeadshot( entTarget.getIntersection() ) ) {

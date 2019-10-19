@@ -39,7 +39,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.RegenType;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperHumanEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDeathEvent;
@@ -574,7 +574,7 @@ public class ItemManager implements Listener {
 	private void onEvent( GunsmokeEntityDeathEvent event ) {
 		// TODO do something with this, maybe make a separate gunsmoke entity unregister event?
 		GunsmokeEntity entity = event.getRepresentable();
-		if ( !( entity instanceof GunsmokeEntityWrapperHumanEntity ) ) {
+		if ( !( entity instanceof GunsmokeEntityWrapperPlayer ) ) {
 			remove( entity.getUUID() );
 			plugin.getCache().remove( entity.getUUID() );
 		}
@@ -597,7 +597,7 @@ public class ItemManager implements Listener {
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( GunsmokeEntityDespawnEvent event ) {
 		GunsmokeEntity entity = event.getRepresentable();
-		if ( entity instanceof GunsmokeEntityWrapperHumanEntity ) {
+		if ( entity instanceof GunsmokeEntityWrapperPlayer ) {
 			plugin.getCache().save( entity );
 		} else {
 			if ( entity instanceof GunsmokeEntityWrapper ) {
