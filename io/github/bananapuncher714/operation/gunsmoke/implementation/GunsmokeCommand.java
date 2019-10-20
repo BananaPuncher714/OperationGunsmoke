@@ -298,6 +298,14 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 					implementation.getMinigameManager().join( "test", GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ) );
 				} else if ( args[ 0 ].equalsIgnoreCase( "leave" ) ) {
 					implementation.getMinigameManager().leave( GunsmokeUtil.getPlugin().getItemManager().getEntityWrapper( player ) );
+				} else if ( args[ 0 ].equalsIgnoreCase( "spawntest" ) ) {
+					GunsmokeNPC npc = GunsmokeUtil.getPlugin().getProtocol().getHandler().spawnNPC( player.getWorld(), "scr", "scr" );
+					Bukkit.getScheduler().runTaskLater( GunsmokeUtil.getPlugin(), new Runnable() {
+						@Override
+						public void run() {
+							npc.getPlayer().teleport( player.getLocation() );
+						}
+					}, 1 );
 				} else if ( args[ 0 ].equalsIgnoreCase( "kill" ) ) {
 					player.setHealth( 0 );
 					player.setHealth( 20 );

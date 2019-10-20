@@ -3,6 +3,7 @@ package io.github.bananapuncher714.operation.gunsmoke.api.nms;
 import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
@@ -57,6 +58,7 @@ public interface PacketHandler {
 	
 	boolean isRealPlayer( Player player );
 	GunsmokeNPC getNPC( Player player );
+	GunsmokeNPC spawnNPC( World bukkitWorld, String name, String skin );
 	
 	void display( Player player );
 	AABB[] getBoxesFor( Location location );

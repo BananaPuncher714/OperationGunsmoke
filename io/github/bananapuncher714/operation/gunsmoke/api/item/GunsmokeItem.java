@@ -2,11 +2,13 @@ package io.github.bananapuncher714.operation.gunsmoke.api.item;
 
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerProneEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.player.GunsmokePlayer;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
@@ -69,6 +71,10 @@ public abstract class GunsmokeItem extends GunsmokeRepresentable {
 	}
 	
 	public abstract ItemStack getItem();
+	
+	public void onPlayerProneEvent( PlayerProneEvent event ) {
+		Bukkit.getScheduler().runTaskLater( GunsmokeUtil.getPlugin(), this::updateItem, 1 );
+	}
 	
 	protected static ItemStack markAsGunsmokeItem( ItemStack item, UUID uuid ) {
 		return NBTEditor.set( item, uuid.toString(), CUSTOM );

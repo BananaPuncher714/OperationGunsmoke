@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.BiFunction;
 
@@ -32,6 +33,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
+
+import com.mojang.authlib.GameProfile;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackGunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.api.display.ItemStackMultiState.State;
@@ -229,7 +232,7 @@ public class NMSHandler implements PacketHandler {
 		NMSUtils.register( "test", EntityTypes.PLAYER, NMSUtils.create( new EntityTypes.b< EntityPlayer >() {
 			@Override
 			public EntityPlayer create( EntityTypes< EntityPlayer > arg0, net.minecraft.server.v1_14_R1.World arg1 ) {
-				return new TestEntity( arg0, arg1 );
+				return new TestEntity( arg0, arg1, "scr" );
 			}
 		}, EnumCreatureType.MISC, .6, 1.8 ) );
 		
@@ -440,17 +443,17 @@ public class NMSHandler implements PacketHandler {
 		
 		// We want to remove index 6 if the living entity is prone, aka cancel sneak/swim/sprint
 		// Then, we want to add number 6
-			for ( int index = 0; index < items.size(); index++ ) {
-				if ( items.get( index ).a().a() == 6 ) {
-					items.remove( index );
-					break;
-				}
+		for ( int index = 0; index < items.size(); index++ ) {
+			if ( items.get( index ).a().a() == 6 ) {
+				items.remove( index );
+				break;
 			}
-			if ( entity.isProne() ) {
-				items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), EntityPose.SWIMMING ) );
-			} else {
-				items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), ( ( CraftLivingEntity ) livingEntity ).getHandle().getDataWatcher().get( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ) ) ) );
-			}
+		}
+		if ( entity.isProne() ) {
+			items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), EntityPose.SWIMMING ) );
+		} else {
+			items.add( new Item< EntityPose >( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ), ( ( CraftLivingEntity ) livingEntity ).getHandle().getDataWatcher().get( new DataWatcherObject< EntityPose >( 6, DataWatcherRegistry.s ) ) ) );
+		}
 		
 		return items.size() > 0;
 	}
@@ -865,6 +868,19 @@ public class NMSHandler implements PacketHandler {
 			return ( GunsmokeNPC ) ep;
 		}
 		return null;
+	}
+	
+	@Override
+	public GunsmokeNPC spawnNPC( World bukkitWorld, String name, String skin ) {
+		WorldServer world = ( ( CraftWorld ) bukkitWorld ).getHandle();
+		
+		GameProfile profile = NMSUtils.convert( new GameProfile( UUID.randomUUID(), name ), skin );
+		
+		TestEntity npc = new TestEntity( world, profile );
+		
+		world.addEntity( npc );
+		
+		return npc;
 	}
 	
 	@Override

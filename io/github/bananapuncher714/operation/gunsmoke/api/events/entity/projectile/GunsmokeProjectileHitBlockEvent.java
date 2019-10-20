@@ -1,40 +1,22 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile;
 
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
+import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 
-public class GunsmokeProjectileHitBlockEvent extends GunsmokeProjectileEvent implements Cancellable {
+public class GunsmokeProjectileHitBlockEvent extends GunsmokeProjectileHitEvent {
 	private static final HandlerList handlers = new HandlerList();
-	protected boolean cancelled = false;
-	protected Block hitBlock;
-	protected Location intersection;
+	protected CollisionResultBlock hitBlock;
 	
-	public GunsmokeProjectileHitBlockEvent( GunsmokeProjectile entity, Block hitBlock, Location hitLocation ) {
-		super( entity );
-		this.hitBlock = hitBlock;
-		intersection = hitLocation;
+	public GunsmokeProjectileHitBlockEvent( GunsmokeProjectile entity, CollisionResultBlock result ) {
+		super( entity, result );
+		hitBlock = result;
 	}
 	
-	public Block getHitBlock() {
+	@Override
+	public CollisionResultBlock getCollisionResult() {
 		return hitBlock;
-	}
-	
-	public Location getHitLocation() {
-		return intersection;
-	}
-	
-	@Override
-	public boolean isCancelled() {
-		return cancelled;
-	}
-
-	@Override
-	public void setCancelled( boolean arg0 ) {
-		cancelled = arg0;
 	}
 	
 	public static HandlerList getHandlerList() {

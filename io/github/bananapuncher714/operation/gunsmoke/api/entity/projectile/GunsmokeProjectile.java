@@ -16,6 +16,9 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitBlockEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitEntityEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResult.CollisionType;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultEntity;
@@ -117,13 +120,28 @@ public abstract class GunsmokeProjectile extends GunsmokeEntity {
 			// Event calling should be handled by the implementation
 			Location newLoc = location.clone().add( getVelocity() );
 			for ( ProjectileTarget target : hitTargets ) {
+				setLocation( target.getIntersection().getLocation() );
+				
+				GunsmokeProjectileHitEvent event = null;
+				if ( target.getIntersection() instanceof CollisionResultBlock ) {
+					event = new GunsmokeProjectileHitBlockEvent( this, ( CollisionResultBlock ) target.getIntersection() );
+				} else if ( target.getIntersection() instanceof CollisionResultEntity ) {
+					event = new GunsmokeProjectileHitEntityEvent( this, ( CollisionResultEntity ) target.getIntersection() );
+				}
+				if ( event != null ) {
+					event.callEvent();
+					if ( event.isCancelled() ) {
+						continue;
+					}
+				}
+				
 				if ( hit( target ) == EnumTickResult.CANCEL ) {
-					newLoc = target.getIntersection().getLocation();
+					newLoc = getLocation();
 					break;
 				}
 			}
 			
-			location = newLoc;
+			setLocation( newLoc );
 		}
 		// Erase this projectile from existence if it falls beyond the void
 		return ( location.getY() > -64 ) ? EnumTickResult.CONTINUE : EnumTickResult.CANCEL;

@@ -50,6 +50,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.events.player.DropItemE
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.HoldRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.LeftClickEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerProneEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerUpdateItemEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.ReleaseRightClickEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.RightClickEntityEvent;
@@ -226,6 +227,28 @@ public class ItemManager implements Listener {
 
 			if ( mainInteractable.isEquipped() ) {
 				mainInteractable.onClick( event );
+			}
+		}
+	}
+	
+	@EventHandler( priority = EventPriority.HIGHEST )
+	private void onEvent( PlayerProneEvent event ) {
+		HumanEntity player = event.getEntity();
+		GunsmokeRepresentable mainRepresentable = getRepresentable( player, EquipmentSlot.HAND );
+		if ( mainRepresentable instanceof GunsmokeItem ) {
+			GunsmokeItem mainInteractable = ( GunsmokeItem ) mainRepresentable;
+
+			if ( mainInteractable.isEquipped() ) {
+				mainInteractable.onPlayerProneEvent( event );
+			}
+		}
+		
+		GunsmokeRepresentable offRepresentable = getRepresentable( player, EquipmentSlot.OFF_HAND );
+		if ( offRepresentable instanceof GunsmokeItem ) {
+			GunsmokeItem offInteractable = ( GunsmokeItem ) offRepresentable;
+
+			if ( offInteractable.isEquipped() ) {
+				offInteractable.onPlayerProneEvent( event );
 			}
 		}
 	}

@@ -15,11 +15,13 @@ import com.mojang.authlib.GameProfile;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.GunsmokeNPC;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.npc.NPCAction;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
+import net.minecraft.server.v1_14_R1.EntityHuman;
 import net.minecraft.server.v1_14_R1.EntityPlayer;
 import net.minecraft.server.v1_14_R1.EntityTypes;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInEntityAction;
+import net.minecraft.server.v1_14_R1.PacketPlayInSettings;
 import net.minecraft.server.v1_14_R1.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;
@@ -28,8 +30,17 @@ import net.minecraft.server.v1_14_R1.World;
 import net.minecraft.server.v1_14_R1.WorldServer;
 
 public class TestEntity extends EntityPlayer implements GunsmokeNPC {
-	protected TestEntity( EntityTypes< ? extends EntityPlayer > entitytypes, World world ) {
-		super( MinecraftServer.getServer(), ( WorldServer ) world, NMSUtils.convert( new GameProfile( UUID.randomUUID(), "scr" ), "scr" ), new PlayerInteractManager( ( WorldServer ) world ) );
+	protected TestEntity( World world, GameProfile profile ) {
+		super( MinecraftServer.getServer(), ( WorldServer ) world, profile, new PlayerInteractManager( ( WorldServer ) world ) );
+		
+		new DummyPlayerConnection( MinecraftServer.getServer(), this );
+		MinecraftServer.getServer().getPlayerList().a( playerConnection.networkManager, this );
+		
+		GunsmokeUtil.getPlugin().getNPCManager().register( this );
+	}
+	
+	protected TestEntity( EntityTypes< ? extends EntityHuman > entitytypes, World world, String name ) {
+		super( MinecraftServer.getServer(), ( WorldServer ) world, NMSUtils.convert( new GameProfile( UUID.randomUUID(), name ), name ), new PlayerInteractManager( ( WorldServer ) world ) );
 		org.bukkit.World bWorld = this.getBukkitEntity().getWorld();
 		
 		// Maybe register this class to be tracked with the PlayerChunkMap?

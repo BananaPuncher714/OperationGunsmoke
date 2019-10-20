@@ -57,6 +57,10 @@ public class ConfigBullet extends GunsmokeProjectile {
 		
 		setVelocity( location.getDirection().multiply( options.getSpeed() ) );
 	}
+	
+	public GunsmokeEntity getShooter() {
+		return shooter;
+	}
 
 	@Override
 	public EnumTickResult tick() {

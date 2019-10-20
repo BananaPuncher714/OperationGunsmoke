@@ -15,13 +15,17 @@ import com.mojang.authlib.properties.Property;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.SessionUtil;
 import net.minecraft.server.v1_14_R1.Entity;
 import net.minecraft.server.v1_14_R1.EntityTypes;
+import net.minecraft.server.v1_14_R1.EnumChatVisibility;
 import net.minecraft.server.v1_14_R1.EnumCreatureType;
 import net.minecraft.server.v1_14_R1.EnumItemSlot;
+import net.minecraft.server.v1_14_R1.EnumMainHand;
 import net.minecraft.server.v1_14_R1.IRegistry;
 import net.minecraft.server.v1_14_R1.MinecraftKey;
+import net.minecraft.server.v1_14_R1.PacketPlayInSettings;
 import net.minecraft.server.v1_14_R1.PlayerConnection;
 
 public class NMSUtils {
+	
 	protected final static CraftEntity getEntityFromId( World world, int id ) {
 		net.minecraft.server.v1_14_R1.World nmsWorld = ( ( CraftWorld ) world ).getHandle();
 		net.minecraft.server.v1_14_R1.Entity nmsEntity = nmsWorld.getEntity( id );

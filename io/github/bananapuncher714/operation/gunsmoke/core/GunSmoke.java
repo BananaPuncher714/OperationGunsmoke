@@ -87,8 +87,8 @@ public class Gunsmoke extends JavaPlugin {
 	 */
 	private void run() {
 		
-		itemManager.tick();
 		playerManager.tick();
+		itemManager.tick();
 		protocol.getHandler().tick();
 		
 		for ( Player player : Bukkit.getOnlinePlayers() ) {

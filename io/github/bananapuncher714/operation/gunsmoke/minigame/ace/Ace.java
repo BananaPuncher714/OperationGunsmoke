@@ -21,11 +21,14 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerPressRespawnButtonEvent;
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.GunsmokeImplementation;
+import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.ConfigBullet;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigGun;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.minigame.base.Minigame;
@@ -44,11 +47,13 @@ public class Ace extends Minigame implements Listener {
 		red.setCanSeeFriendlyInvisibles( true );
 		red.setOption( Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM );
 		red.setColor( ChatColor.RED );
+		red.setAllowFriendlyFire( false );
 		
 		blue = scoreboard.registerNewTeam( "Blue" );
 		blue.setCanSeeFriendlyInvisibles( true );
 		blue.setOption( Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM );
 		blue.setColor( ChatColor.BLUE );
+		blue.setAllowFriendlyFire( false );
 	}
 	
 	public AceSettings getSettings() {
@@ -100,7 +105,6 @@ public class Ace extends Minigame implements Listener {
 				if ( item != null ) {
 					plugin.getItemManager().remove( item.getUUID() );
 					items[ i ] = null;
-					System.out.println( "detected " + item );
 				}
 			}
 			player.getInventory().setContents( items );
@@ -207,5 +211,26 @@ public class Ace extends Minigame implements Listener {
 		}
 		
 		event.setCancelled( true );
+	}
+	
+	@EventHandler
+	private void onProjectileHitEntityEvent( GunsmokeProjectileHitEntityEvent event ) {
+		GunsmokeProjectile projectile = event.getRepresentable();
+		GunsmokeEntity entity = event.getCollisionResult().getEntity();
+		
+		if ( !isParticipating( entity ) ) {
+			return;
+		}
+		
+		if ( projectile instanceof ConfigBullet ) {
+			ConfigBullet bullet = ( ConfigBullet ) projectile;
+			
+			GunsmokeEntity shooter = bullet.getShooter();
+			
+			if ( entity != shooter && !( red.hasEntry( entity.getUUID().toString() ) ^ red.hasEntry( shooter.getUUID().toString() ) ) ) {
+				event.setCancelled( true );
+			}
+		}
+				
 	}
 }

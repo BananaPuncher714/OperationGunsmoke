@@ -309,7 +309,12 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		meta.setDisplayName( options.getName() );
 		item.setItemMeta( meta );
 		
-		item = BukkitUtil.setCustomModelData( item, ( isScoped || isScoping ) ? options.getModel() + 1 : options.getModel() );
+		int model = ( isScoped || isScoping ) ? options.getModel() + 1 : options.getModel();
+		if ( gunsmokeHolder != null && gunsmokeHolder.isProne() ) {
+			model += 2;
+		}
+		
+		item = BukkitUtil.setCustomModelData( item, model );
 		
 		int cooldown = ( isSwitching ? options.getSwitchDelay() : ( isScoping ? options.getScopeDelay() : 0 ) );
 		
