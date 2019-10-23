@@ -41,7 +41,7 @@ public class ConfigWeaponOptions {
 	protected int model;
 
 	public ConfigWeaponOptions( FileConfiguration config ) {
-		name = config.getString( "name", "Test gun" );
+		name = config.getString( "name", "Test gun" ).replace( '&', '\u00A7' );
 		model = config.getInt( "model", 0 );
 		
 		bullet = GunsmokeImplementation.getInstance().getBullet( config.getString( "bullet" ) );

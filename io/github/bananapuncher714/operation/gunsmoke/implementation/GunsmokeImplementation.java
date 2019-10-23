@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -18,6 +19,9 @@ import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.Config
 import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.ConfigBulletOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
+import io.github.bananapuncher714.operation.gunsmoke.minigame.ace.MinigameFactoryAce;
+import io.github.bananapuncher714.operation.gunsmoke.minigame.base.Minigame;
+import io.github.bananapuncher714.operation.gunsmoke.minigame.base.MinigameFactory;
 import io.github.bananapuncher714.operation.gunsmoke.minigame.base.MinigameManager;
 import net.md_5.bungee.api.ChatMessageType;
 
@@ -60,6 +64,14 @@ public class GunsmokeImplementation {
 		Bukkit.getScheduler().runTaskTimer( plugin, this::run, 0, 1 );
 		
 		minigameManager = new MinigameManager( plugin );
+		
+		minigameManager.registerMinigameFactory( "ace", new MinigameFactoryAce( plugin ) );
+		
+		Bukkit.getScheduler().runTaskLater( plugin, minigameManager::enableManager, 20 * 5 );
+	}
+	
+	public void disable() {
+		minigameManager.disableManager();
 	}
 	
 	private void run() {
@@ -81,10 +93,12 @@ public class GunsmokeImplementation {
 	}
 	
 	private void init() {
-		FileUtil.saveToFile( plugin.getResource( "data/bullets/example_bullet.yml" ), new File( BULLET_FOLDER + "/" + "example_bullet.yml" ), false );
-		FileUtil.saveToFile( plugin.getResource( "data/explosions/example_explosion.yml" ), new File( EXPLOSION_FOLDER + "/" + "example_explosion.yml" ), false );
-		FileUtil.saveToFile( plugin.getResource( "data/guns/example_gun.yml" ), new File( WEAPON_FOLDER + "/" + "example_gun.yml" ), false );
-		FileUtil.saveToFile( plugin.getResource( "data/armor/example_armor.yml" ), new File( ARMOR_FOLDER + "/" + "example_armor.yml" ), false );
+		if ( plugin.isFirstEnable() ) {
+			FileUtil.saveToFile( plugin.getResource( "data/bullets/example_bullet.yml" ), new File( BULLET_FOLDER + "/" + "example_bullet.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/explosions/example_explosion.yml" ), new File( EXPLOSION_FOLDER + "/" + "example_explosion.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/guns/example_gun.yml" ), new File( WEAPON_FOLDER + "/" + "example_gun.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/armor/example_armor.yml" ), new File( ARMOR_FOLDER + "/" + "example_armor.yml" ), false );
+		}
 		
 		loadExplosions();
 		loadBullets();

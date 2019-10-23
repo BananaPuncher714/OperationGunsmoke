@@ -1,0 +1,33 @@
+name: "&7Laser pistol"
+model: 103000
+
+bullet: "laser"
+automatic: false
+shoot-delay: 120
+recoil-yaw: 1
+recoil-pitch: 4
+spread-start: 0
+spread-end: 2
+spread-shots: 0
+spread-recover-time: 200
+
+shots: 1
+bullet-spread: 0
+
+use-ammo: true
+clip-size: 12
+reload-delay: 1000
+reload-amount: 12
+
+scope: true
+zoom-level: "_7"
+scoped-recoil-yaw: 0
+scoped-recoil-pitch: 1
+scoped-spread-start: 0
+scoped-spread-end: 0
+scoped-spread-shots: 0
+scoped-spread-recover-time: 500
+scope-delay: 400
+scope-speed: 2
+
+switch-delay: 900

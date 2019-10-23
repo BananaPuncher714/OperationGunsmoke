@@ -12,3 +12,7 @@ authors:
 commands:
   gunsmoke:
     aliases: []
+  minigame:
+    aliases: []
+  arena:
+    aliases: []

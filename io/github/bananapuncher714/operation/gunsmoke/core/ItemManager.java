@@ -583,10 +583,11 @@ public class ItemManager implements Listener {
 		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
 	}
 	
-	@EventHandler( priority = EventPriority.HIGHEST )
-	private void onEvent( BlockPhysicsEvent event ) {
-		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
-	}
+	// Not sure why I though this was a good idea...
+//	@EventHandler( priority = EventPriority.HIGHEST )
+//	private void onEvent( BlockPhysicsEvent event ) {
+//		plugin.getBlockManager().unregisterBlock( event.getBlock().getLocation() );
+//	}
 	
 	@EventHandler( priority = EventPriority.HIGHEST )
 	private void onEvent( BlockFromToEvent event ) {

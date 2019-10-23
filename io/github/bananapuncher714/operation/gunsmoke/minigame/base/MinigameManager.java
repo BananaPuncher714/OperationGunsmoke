@@ -1,5 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.minigame.base;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -9,6 +10,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
@@ -19,15 +21,23 @@ import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 
 public class MinigameManager {
 	protected Gunsmoke plugin;
+	protected File baseDir;
 	protected MinigameListener listener;
 	
 	protected Map< String, Minigame > minigameCache = new HashMap< String, Minigame >();
+	protected Map< String, MinigameFactory > factories = new HashMap< String, MinigameFactory >();
 	
 	protected Map< UUID, String > participants = new HashMap< UUID, String >();
 	protected Map< UUID, PlayerSaveData > saveData = new HashMap< UUID, PlayerSaveData >();
 	
+	protected MinigameCommand minigameCommand;
+	protected ArenaCommand arenaCommand;
+	
+	protected MinigameLoader loader;
+	
 	public MinigameManager( Gunsmoke plugin ) {
 		this.plugin = plugin;
+		baseDir = new File( plugin.getFileManager().getBaseFile() + "/minigame/" );
 		
 		listener = new MinigameListener( this );
 		Bukkit.getPluginManager().registerEvents( listener, plugin );
@@ -38,6 +48,37 @@ public class MinigameManager {
 				loadTracker( plugin.getItemManager().getEntityWrapper( entity ) );
 			}
 		}
+		
+		// Register the commands for /minigame and /arena
+		minigameCommand = new MinigameCommand( this );
+		arenaCommand = new ArenaCommand( this );
+		
+		plugin.getCommand( "minigame" ).setExecutor( minigameCommand );
+		plugin.getCommand( "arena" ).setExecutor( arenaCommand );
+		
+		loader = new MinigameLoader( this, new File( baseDir + "/" + "saves" ) );
+	}
+	
+	public void enableManager() {
+		loader.loadMinigames();
+	}
+	
+	public void disableManager() {
+		// Make all players force quit
+		for ( UUID uuid : participants.keySet() ) {
+			GunsmokeRepresentable representable = plugin.getItemManager().get( uuid );
+			if ( representable instanceof GunsmokeEntity ) {
+				leave( ( GunsmokeEntity ) representable );
+			}
+		}
+		
+		// Stop any currently active minigames
+		for ( Minigame minigame : minigameCache.values() ) {
+			minigame.finalStop();
+		}
+		
+		// Save them all
+		loader.saveMinigames();
 	}
 	
 	private void update() {
@@ -47,19 +88,33 @@ public class MinigameManager {
 		}
 	}
 	
+	public void registerMinigameFactory( String id, MinigameFactory factory ) {
+		System.out.println( "Got factory for " + id );
+		factories.put( id, factory );
+	}
+	
+	public MinigameFactory getFactory( String id ) {
+		return factories.get( id );
+	}
+	
+	protected Map< String, MinigameFactory > getFactories() {
+		return factories;
+	}
+	
 	public void addMinigame( String id, Minigame minigame ) {
 		Minigame old = minigameCache.put( id, minigame );
 		if ( old != null ) {
 			old.stop();
 		}
 		minigameCache.put( id, minigame );
-		minigame.finalStart();
+		minigame.finalStart( new File( baseDir + "/" + id ) );
 	}
 	
 	public Minigame removeMinigame( String minigame ) {
 		Minigame game = minigameCache.remove( minigame );
 		if ( game != null ) {
 			game.finalStop();
+			loader.delete( minigame );
 		}
 		return game;
 	}
@@ -67,7 +122,7 @@ public class MinigameManager {
 	public void start( String minigame ) {
 		Minigame game = minigameCache.get( minigame );
 		if ( game != null ) {
-			game.finalStart();
+			game.finalStart( new File( baseDir + "/" + minigame ) );
 		}
 	}
 	

@@ -1,0 +1,36 @@
+# Base features
+power: 25
+gravity: .001
+speed: 17
+range: 750
+headshot-multiplier: 2.2
+max-life: 3000
+# This is a number
+hit-entity-reduction: 2
+piercing: true
+damage-entity: true
+
+damage-type: PHYSICAL
+
+# This is a percent
+block-hit-reduction: .7
+damageable-blocks:
+- "OAK_PLANKS"
+- "GLASS"
+ignore-blocks:
+- "OAK_FENCE"
+ignore-grass-blocks: true
+
+# Debuffs and stuff
+fire: 0
+effects: []
+explode: false
+explosion: "example_explosion"
+
+# Bounce?
+bounce: true
+velocity-reduction: .85
+bounceable-blocks:
+- "IRON_BLOCK"
+- "OAK_SLAB"
+- "OAK_STAIRS"

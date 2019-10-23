@@ -1,0 +1,32 @@
+# Base features
+power: 3
+gravity: 0
+speed: 9
+range: 100
+headshot-multiplier: 1
+max-life: 3000;
+# This is a number
+hit-entity-reduction: 0
+piercing: true
+damage-entity: true
+
+damage-type: PHYSICAL
+
+# This is a percent
+block-hit-reduction: 1
+damageable-blocks: []
+ignore-blocks:
+- "GLASS"
+ignore-grass-blocks: true
+
+# Debuffs and stuff
+fire: 10
+effects: []
+explode: false
+explosion: "example_explosion"
+
+# Bounce?
+bounce: true
+velocity-reduction: 0
+bounceable-blocks:
+- "RED_STAINED_GLASS"

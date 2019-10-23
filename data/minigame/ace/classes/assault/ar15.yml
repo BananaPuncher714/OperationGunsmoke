@@ -1,0 +1,33 @@
+name: "&7AR-15"
+model: 103000
+
+bullet: "mm45"
+automatic: false
+shoot-delay: 360
+recoil-yaw: 4
+recoil-pitch: 10
+spread-start: 4
+spread-end: 7
+spread-shots: 10
+spread-recover-time: 500
+
+shots: 1
+bullet-spread: 0
+
+use-ammo: true
+clip-size: 30
+reload-delay: 360
+reload-amount: 1
+
+scope: true
+zoom-level: "_10"
+scoped-recoil-yaw: 2
+scoped-recoil-pitch: 7
+scoped-spread-start: 0
+scoped-spread-end: 3
+scoped-spread-shots: 0
+scoped-spread-recover-time: 300
+scope-delay: 200
+scope-speed: 3
+
+switch-delay: 1100

@@ -1,0 +1,33 @@
+name: "&7M249"
+model: 106000
+
+bullet: "mm45"
+automatic: true
+shoot-delay: 70
+recoil-yaw: 3
+recoil-pitch: 5
+spread-start: 3
+spread-end: 20
+spread-shots: 10
+spread-recover-time: 500
+
+shots: 1
+bullet-spread: 0
+
+use-ammo: true
+clip-size: 100000
+reload-delay: 7500
+reload-amount: 100000
+
+scope: true
+zoom-level: "_9"
+scoped-recoil-yaw: 2
+scoped-recoil-pitch: 4
+scoped-spread-start: 0
+scoped-spread-end: 7
+scoped-spread-shots: 7
+scoped-spread-recover-time: 500
+scope-delay: 400
+scope-speed: 3
+
+switch-delay: 2300

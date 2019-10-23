@@ -1,5 +1,7 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.nms;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 import org.bukkit.Location;
@@ -67,6 +69,8 @@ public interface PacketHandler {
 	
 	NBTCompound getPlayerCompound( Player player );
 	void setPlayerCompound( Player player, NBTCompound compound );
+	void saveNBTCompound( NBTCompound compound, OutputStream stream );
+	NBTCompound loadNBTCompound( InputStream stream );
 	
 //	void update( LivingEntity entity );
 //	void updateBow( LivingEntity entity );

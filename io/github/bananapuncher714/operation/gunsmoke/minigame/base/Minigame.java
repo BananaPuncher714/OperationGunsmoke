@@ -1,10 +1,13 @@
 package io.github.bananapuncher714.operation.gunsmoke.minigame.base;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.scoreboard.Scoreboard;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
@@ -19,12 +22,15 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeE
  * They can be in any location or world, and the participants can be anyone.
  */
 public abstract class Minigame implements Tickable {
+	protected File baseDir;
+	
 	protected Set< UUID > participants = new HashSet< UUID >();
 	protected Set< UUID > entities = new HashSet< UUID >();
 	
 	protected Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 	
-	protected final void finalStart() {
+	protected final void finalStart( File baseDir ) {
+		this.baseDir = baseDir;
 		start();
 	}
 	
@@ -61,6 +67,10 @@ public abstract class Minigame implements Tickable {
 		}
 		participants.remove( entity.getUUID() );
 	}
+	
 	public abstract void start();
 	public abstract void stop();
+	
+	public void onCommand( CommandSender sender, String[] args ) {
+	}
 }

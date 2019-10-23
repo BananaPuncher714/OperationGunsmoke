@@ -18,6 +18,7 @@ import io.github.bananapuncher714.operation.gunsmoke.api.nms.PacketHandler;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1.NMSUtils;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.BukkitUtil;
+import io.github.bananapuncher714.operation.gunsmoke.core.util.FileUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GunsmokeUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.ReflectionUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
@@ -41,6 +42,11 @@ public class Gunsmoke extends JavaPlugin {
 	protected BukkitEntityTracker bukkitEntityTracker;
 	
 	protected GunsmokeCache cache;
+	protected GunsmokeFileManager fileManager;
+	
+	protected GunsmokeImplementation implementation;
+	
+	private boolean isFirstEnable;
 	
 	@Override
 	public void onEnable() {
@@ -61,6 +67,7 @@ public class Gunsmoke extends JavaPlugin {
 		zoomManager = new ZoomManager( this );
 		npcManager = new NPCManager( this );
 		bukkitEntityTracker = new BukkitEntityTracker( this );
+		fileManager = new GunsmokeFileManager( this, new File( getDataFolder() + "/" + "cache" ) );
 		
 		NGui.init( this );
 		
@@ -71,7 +78,13 @@ public class Gunsmoke extends JavaPlugin {
 			protocol.getPlayerConnection( player.getName() );
 		}
 		
-		new GunsmokeImplementation( this );
+		implementation = new GunsmokeImplementation( this );
+		
+		File readme = new File( getDataFolder() + "/" + "README.md" );
+		isFirstEnable = !readme.exists();
+		if ( isFirstEnable ) {
+			FileUtil.saveToFile( getResource( "README.md" ), new File( getDataFolder() + "/" + "README.md" ), true );
+		}
 	}
 	
 	@Override
@@ -80,6 +93,8 @@ public class Gunsmoke extends JavaPlugin {
 		NGui.disable();
 		
 		npcManager.disable();
+		
+		implementation.disable();
 	}
 	
 	/**
@@ -169,5 +184,13 @@ public class Gunsmoke extends JavaPlugin {
 	
 	public GunsmokeCache getCache() {
 		return cache;
+	}
+	
+	public GunsmokeFileManager getFileManager() {
+		return fileManager;
+	}
+	
+	public boolean isFirstEnable() {
+		return isFirstEnable;
 	}
 }

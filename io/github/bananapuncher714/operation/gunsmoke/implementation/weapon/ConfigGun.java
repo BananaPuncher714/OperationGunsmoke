@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 
@@ -121,6 +120,8 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 			
 			projectile.setVelocity( newVec );
 		}
+		
+		GunsmokeUtil.flash( holder );
 		
 		lastShot = time;
 		bullets--;

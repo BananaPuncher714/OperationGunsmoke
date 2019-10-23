@@ -13,4 +13,12 @@ public class GeneralUtil {
 			list.set( reverseIndex, temp );
 		}
 	}
+	
+	public static String[] pop( String[] array ) {
+		String[] array2 = new String[ Math.max( 0, array.length - 1 ) ];
+		for ( int i = 1; i < array.length; i++ ) {
+			array2[ i - 1 ] = array[ i ];
+		}
+		return array2;
+	}
 }

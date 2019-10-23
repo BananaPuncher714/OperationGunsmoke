@@ -13,6 +13,13 @@ public class PlayerSaveData {
 	protected Location location;
 	protected int slot;
 	
+	public PlayerSaveData( NBTCompound compound, GameMode gamemode, Location location, int slot ) {
+		this.tags = compound;
+		this.gamemode = gamemode;
+		this.location = location;
+		this.slot = slot;
+	}
+	
 	public PlayerSaveData( Player player ) {
 		tags = GunsmokeUtil.getPlugin().getProtocol().getHandler().getPlayerCompound( player );
 		gamemode = player.getGameMode();
@@ -26,6 +33,18 @@ public class PlayerSaveData {
 	
 	public void apply( Player player ) {
 		applyAt( player, location );
+	}
+	
+	public NBTCompound getCompound() {
+		return tags;
+	}
+	
+	public int getSlot() {
+		return slot;
+	}
+	
+	public GameMode getGamemode() {
+		return gamemode;
 	}
 	
 	public void applyAt( Player player, Location location ) {

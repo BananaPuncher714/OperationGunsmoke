@@ -1,0 +1,33 @@
+name: "&7Ruger Precision Rifle"
+model: 104000
+
+bullet: "NATO223"
+automatic: false
+shoot-delay: 3500
+recoil-yaw: 3
+recoil-pitch: 10
+spread-start: 15
+spread-end: 15
+spread-shots: 1
+spread-recover-time: 0
+
+shots: 1
+bullet-spread: 0
+
+use-ammo: true
+clip-size: 10
+reload-delay: 8000
+reload-amount: 10
+
+scope: true
+zoom-level: "_14"
+scoped-recoil-yaw: 0
+scoped-recoil-pitch: 7
+scoped-spread-start: 0
+scoped-spread-end: 0
+scoped-spread-shots: 1
+scoped-spread-recover-time: 0
+scope-delay: 700
+scope-speed: 1
+
+switch-delay: 5000

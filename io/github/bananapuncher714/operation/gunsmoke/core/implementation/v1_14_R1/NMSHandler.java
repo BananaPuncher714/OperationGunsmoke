@@ -1,5 +1,8 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.implementation.v1_14_R1;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -78,6 +81,7 @@ import net.minecraft.server.v1_14_R1.ItemStack;
 import net.minecraft.server.v1_14_R1.LightEngine;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.MovingObjectPositionBlock;
+import net.minecraft.server.v1_14_R1.NBTCompressedStreamTools;
 import net.minecraft.server.v1_14_R1.NBTTagCompound;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInAdvancements;
@@ -938,6 +942,30 @@ public class NMSHandler implements PacketHandler {
 			throw new IllegalArgumentException( compound + " is not of the right NMS version!" );
 		}
 		
+	}
+	
+	@Override
+	public void saveNBTCompound( NBTCompound compound, OutputStream stream ) {
+		if ( compound instanceof NBTCompoundNMS ) {
+			try {
+				NBTCompressedStreamTools.a( ( ( NBTCompoundNMS ) compound ).compound, stream );
+			} catch ( IOException e ) {
+				e.printStackTrace();
+			}
+		} else {
+			throw new IllegalArgumentException( compound + " is not of the right NMS version!" );
+		}
+	}
+	
+	@Override
+	public NBTCompound loadNBTCompound( InputStream stream ) {
+		try {
+			NBTTagCompound tag = NBTCompressedStreamTools.a( stream );
+			return new NBTCompoundNMS( tag );
+		} catch ( IOException e ) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	// @Override

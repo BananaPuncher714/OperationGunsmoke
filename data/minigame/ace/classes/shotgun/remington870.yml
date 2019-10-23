@@ -1,0 +1,33 @@
+name: "&7Remington 870"
+model: 101000
+
+bullet: "bore410"
+automatic: false
+shoot-delay: 400
+recoil-yaw: 5
+recoil-pitch: 10
+spread-start: 15
+spread-end: 15
+spread-shots: 1
+spread-recover-time: 0
+
+shots: 6
+bullet-spread: 10
+
+use-ammo: true
+clip-size: 6
+reload-delay: 600
+reload-amount: 1
+
+scope: true
+zoom-level: "_9"
+scoped-recoil-yaw: 3
+scoped-recoil-pitch: 7
+scoped-spread-start: 0
+scoped-spread-end: 0
+scoped-spread-shots: 1
+scoped-spread-recover-time: 0
+scope-delay: 400
+scope-speed: 5
+
+switch-delay: 1000
