@@ -28,5 +28,4 @@ explosion: "example_explosion"
 # Bounce?
 bounce: true
 velocity-reduction: 0
-bounceable-blocks:
-- "RED_STAINED_GLASS"
+bounceable-blocks: []

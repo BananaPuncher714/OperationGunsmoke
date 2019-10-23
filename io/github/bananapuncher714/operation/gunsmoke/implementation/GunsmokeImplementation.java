@@ -7,23 +7,18 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.FileUtil;
-import io.github.bananapuncher714.operation.gunsmoke.core.util.MDChat;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.armor.ConfigArmorOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.projectile.bullet.ConfigBulletOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.weapon.ConfigWeaponOptions;
 import io.github.bananapuncher714.operation.gunsmoke.implementation.world.ConfigExplosion;
 import io.github.bananapuncher714.operation.gunsmoke.minigame.ace.MinigameFactoryAce;
-import io.github.bananapuncher714.operation.gunsmoke.minigame.base.Minigame;
-import io.github.bananapuncher714.operation.gunsmoke.minigame.base.MinigameFactory;
 import io.github.bananapuncher714.operation.gunsmoke.minigame.base.MinigameManager;
-import net.md_5.bungee.api.ChatMessageType;
 
 public class GunsmokeImplementation {
 	private static GunsmokeImplementation INSTANCE;
@@ -98,6 +93,16 @@ public class GunsmokeImplementation {
 			FileUtil.saveToFile( plugin.getResource( "data/explosions/example_explosion.yml" ), new File( EXPLOSION_FOLDER + "/" + "example_explosion.yml" ), false );
 			FileUtil.saveToFile( plugin.getResource( "data/guns/example_gun.yml" ), new File( WEAPON_FOLDER + "/" + "example_gun.yml" ), false );
 			FileUtil.saveToFile( plugin.getResource( "data/armor/example_armor.yml" ), new File( ARMOR_FOLDER + "/" + "example_armor.yml" ), false );
+			
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/assault/ar15.yml" ), new File( WEAPON_FOLDER + "/" + "ar15.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/sniper/rpr.yml" ), new File( WEAPON_FOLDER + "/" + "rpr.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/common/laser-pistol.yml" ), new File( WEAPON_FOLDER + "/" + "laser-pistol.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/support/m249.yml" ), new File( WEAPON_FOLDER + "/" + "m249.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/shotgun/remington870.yml" ), new File( WEAPON_FOLDER + "/" + "remington870.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/common/bore410.yml" ), new File( BULLET_FOLDER + "/" + "bore410.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/common/mm45.yml" ), new File( BULLET_FOLDER + "/" + "mm45.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/common/laser.yml" ), new File( BULLET_FOLDER + "/" + "laser.yml" ), false );
+			FileUtil.saveToFile( plugin.getResource( "data/minigame/ace/classes/common/NATO223.yml" ), new File( BULLET_FOLDER + "/" + "NATO223.yml" ), false );
 		}
 		
 		loadExplosions();

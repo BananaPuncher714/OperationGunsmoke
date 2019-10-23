@@ -169,6 +169,10 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	public boolean onCommand( CommandSender sender, Command command, String label, String[] args ) {
 		if ( sender instanceof Player ) {
 			Player player = ( Player ) sender;
+			if ( !sender.isOp() ) {
+				sender.sendMessage( ChatColor.RED + "You must be opped to run this command!" );
+				return false;
+			}
 			
 			if ( args.length == 1 ) {
 				if ( args[ 0 ].equalsIgnoreCase( "sneak" ) ) {

@@ -1,5 +1,5 @@
 name: "&7Laser pistol"
-model: 103000
+model: 100000
 
 bullet: "laser"
 automatic: false

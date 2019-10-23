@@ -23,7 +23,7 @@ public class MinigameCommand implements CommandExecutor {
 		// Instead I'm going to throw something together since this is a project I just want done
 		try {
 			if ( args.length == 0 ) {
-				sender.sendMessage( ChatColor.RED + "Arguments required!" );
+				sender.sendMessage( ChatColor.RED + "Arguments required! Usage: /minigame <join|leave|list> [...]" );
 			} else if ( args.length > 0 ) {
 				String option = args[ 0 ];
 				args = GeneralUtil.pop( args );
@@ -48,6 +48,7 @@ public class MinigameCommand implements CommandExecutor {
 	}
 	
 	private void create( CommandSender sender, String[] args ) {
+		Validate.isTrue( sender.hasPermission( "gunsmoke.minigame.command.create" ), ChatColor.RED + "You do not have permission to run this command!" );
 		Validate.isTrue( args.length > 1, ChatColor.RED + "Incorrect number of arguments! /minigame create <id> <type> [...]" );
 		String id = args[ 0 ];
 		String type = args[ 1 ];
@@ -64,6 +65,7 @@ public class MinigameCommand implements CommandExecutor {
 	}
 	
 	private void delete( CommandSender sender, String[] args ) {
+		Validate.isTrue( sender.hasPermission( "gunsmoke.minigame.command.create" ), ChatColor.RED + "You do not have permission to run this command!" );
 		Validate.isTrue( args.length == 1, ChatColor.RED + "Must provide a minigame id! /minigame delete <id>" );
 		String id = args[ 0 ];
 		
@@ -75,6 +77,7 @@ public class MinigameCommand implements CommandExecutor {
 	}
 	
 	private void list( CommandSender sender, String[] args ) {
+		Validate.isTrue( sender.hasPermission( "gunsmoke.minigame.command.create" ), ChatColor.RED + "You do not have permission to run this command!" );
 		if ( manager.getMinigames().isEmpty() ) {
 			sender.sendMessage( ChatColor.BLUE + "No minigames exist!" );
 		} else {
@@ -87,11 +90,14 @@ public class MinigameCommand implements CommandExecutor {
 	
 	private void join( CommandSender sender, String[] args ) {
 		Validate.isTrue( sender instanceof Player, ChatColor.RED + "You must be a player to run this command!" );
+		Player player = ( Player ) sender;
+		GunsmokeEntity entity = manager.getPlugin().getItemManager().getEntityWrapper( player );
+		
 		Validate.isTrue( args.length == 1, ChatColor.RED + "You must provide an id!" );
 		Validate.isTrue( manager.getGame( args[ 0 ] ) != null, ChatColor.RED + "That is not a valid game!" );
+		Validate.isTrue( manager.participating( entity ) == null, ChatColor.RED + "You are already in a game!" );
 		
-		Player player = ( Player ) sender;
-		manager.join( args[ 0 ], manager.getPlugin().getItemManager().getEntityWrapper( player ) );
+		manager.join( args[ 0 ], entity );
 		player.sendMessage( "You have joined the game" );
 	}
 	
