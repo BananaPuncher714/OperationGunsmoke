@@ -9,9 +9,10 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumEventResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.Nameable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 
-public class GunsmokeEntityWrapper extends GunsmokeEntity {
+public class GunsmokeEntityWrapper extends GunsmokeEntity implements Nameable {
 	protected Entity entity;
 	
 	public GunsmokeEntityWrapper( Entity entity ) {
@@ -70,5 +71,15 @@ public class GunsmokeEntityWrapper extends GunsmokeEntity {
 	
 	public EnumEventResult onEvent( EntityDamageEvent event ) {
 		return EnumEventResult.SKIPPED;
+	}
+
+	@Override
+	public String getName() {
+		return entity.getCustomName() == null ? entity.getName() : entity.getCustomName();
+	}
+
+	@Override
+	public void setName( String name ) {
+		entity.setCustomName( name );
 	}
 }

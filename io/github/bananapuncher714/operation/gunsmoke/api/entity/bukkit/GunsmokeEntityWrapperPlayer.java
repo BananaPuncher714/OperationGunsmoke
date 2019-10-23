@@ -1,12 +1,9 @@
 package io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit;
 
 import org.bukkit.GameMode;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 
 public class GunsmokeEntityWrapperPlayer extends GunsmokeEntityWrapperLivingEntity {
 	protected Player entity;

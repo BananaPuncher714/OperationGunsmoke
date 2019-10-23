@@ -18,8 +18,8 @@ import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeEntityWrapperFa
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.block.GunsmokeBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
-import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
+import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.CollisionResultBlock;
 import io.github.bananapuncher714.operation.gunsmoke.api.util.ProjectileTarget;

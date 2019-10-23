@@ -32,11 +32,13 @@ import org.bukkit.scoreboard.Team.OptionStatus;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
 import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
+import io.github.bananapuncher714.operation.gunsmoke.api.Nameable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapper;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperLivingEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.projectile.GunsmokeProjectile;
+import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageByEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.GunsmokeEntityDamageEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.entity.projectile.GunsmokeProjectileHitEntityEvent;
 import io.github.bananapuncher714.operation.gunsmoke.api.events.player.PlayerPressRespawnButtonEvent;
@@ -51,20 +53,21 @@ import io.github.bananapuncher714.operation.gunsmoke.minigame.ace.classes.Weapon
 import io.github.bananapuncher714.operation.gunsmoke.minigame.base.Minigame;
 
 public class Ace extends Minigame implements Listener {
-	protected final Gunsmoke plugin;
 	protected final AceSettings settings;
 	
 	protected AceCommand command;
 	
 	protected Map< String, WeaponClass > weaponClasses = new HashMap< String, WeaponClass >();
 	protected Map< UUID, String > assignedClasses = new HashMap< UUID, String >();
+	protected Map< UUID, Integer > kills = new HashMap< UUID, Integer >();
+	
 	protected String defClass;
 	
 	protected Team red;
 	protected Team blue;
 	
 	public Ace( Gunsmoke plugin, AceSettings settings ) {
-		this.plugin = plugin;
+		super( plugin );
 		this.settings = settings;
 		
 		red = scoreboard.registerNewTeam( "Red" );
@@ -72,12 +75,14 @@ public class Ace extends Minigame implements Listener {
 		red.setOption( Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM );
 		red.setColor( ChatColor.RED );
 		red.setAllowFriendlyFire( false );
+		red.setOption( Option.DEATH_MESSAGE_VISIBILITY, OptionStatus.NEVER );
 		
 		blue = scoreboard.registerNewTeam( "Blue" );
 		blue.setCanSeeFriendlyInvisibles( true );
 		blue.setOption( Option.NAME_TAG_VISIBILITY, OptionStatus.FOR_OWN_TEAM );
 		blue.setColor( ChatColor.BLUE );
 		blue.setAllowFriendlyFire( false );
+		blue.setOption( Option.DEATH_MESSAGE_VISIBILITY, OptionStatus.NEVER );
 		
 		weaponClasses.put( "assault", new WeaponClassAssault() );
 		weaponClasses.put( "sniper", new WeaponClassSniper() );
@@ -105,6 +110,13 @@ public class Ace extends Minigame implements Listener {
 			blue.addEntry( gEntity.getUUID().toString() );
 		}
 		
+		if ( gEntity instanceof Nameable ) {
+			Nameable nameable = ( Nameable ) gEntity;
+			broadcast( ChatColor.GRAY + nameable.getName() + " has joined the game" );
+		} else {
+			broadcast( ChatColor.GRAY + "Someone has joined the game" );
+		}
+		
 		spawn( gEntity );
 		
 		return true;
@@ -117,6 +129,15 @@ public class Ace extends Minigame implements Listener {
 		blue.removeEntry( gEntity.getUUID().toString() );
 		
 		removeGunsmokeProperty( gEntity );
+		
+		if ( gEntity instanceof Nameable ) {
+			Nameable nameable = ( Nameable ) gEntity;
+			broadcast( ChatColor.GRAY + nameable.getName() + " has left the game" );
+		} else {
+			broadcast( ChatColor.GRAY + "Someone has left the game" );
+		}
+		
+		kills.remove( gEntity.getUUID() );
 	}
 	
 	@Override
@@ -217,8 +238,49 @@ public class Ace extends Minigame implements Listener {
 		if ( !isParticipating( gEntity ) ) {
 			return;
 		}
-
+		
 		if ( gEntity.getHealth() - event.getDamage() <= 0 ) {
+			// See if they deserve a killed by message or if they died mysteriously
+			String name = "Someone";
+			if ( gEntity instanceof Nameable ) {
+				name = ( ( Nameable ) gEntity ).getName();
+			}
+			
+			if ( event instanceof GunsmokeEntityDamageByEntityEvent ) {
+				GunsmokeEntityDamageByEntityEvent damageEvent = ( GunsmokeEntityDamageByEntityEvent ) event;
+				GunsmokeEntity damager = damageEvent.getDamager();
+				String damagerName = "Someone";
+				if ( damager instanceof Nameable ) {
+					damagerName = ( ( Nameable ) damager ).getName();
+				} else if ( damager instanceof ConfigBullet ) {
+					GunsmokeEntity shooter = ( ( ConfigBullet ) damager ).getShooter();
+					if ( shooter instanceof Nameable ) {
+						damagerName = ( ( Nameable ) shooter ).getName();
+					}
+					damager = shooter;
+				}
+				
+				int killAmount = kills.getOrDefault( gEntity.getUUID(), 0 );
+				killAmount++;
+				kills.put( gEntity.getUUID(), killAmount );
+				
+				if ( damager instanceof GunsmokeEntityWrapperPlayer ) {
+					GunsmokeEntityWrapperPlayer playerWrapper = ( GunsmokeEntityWrapperPlayer ) damager;
+					Player player = playerWrapper.getEntity();
+					
+					player.setLevel( killAmount );
+				}
+				
+				broadcast( ChatColor.WHITE + name + " was killed by " + damagerName );
+				
+			} else {
+				broadcast( ChatColor.WHITE + name + " has died mysteriously" );
+			}
+			
+			int killAmount = kills.getOrDefault( gEntity.getUUID(), 0 );
+			kills.remove( gEntity.getUUID() );
+			broadcast( ChatColor.WHITE + name + " died with " + killAmount + " kills" );
+			
 			// We don't want the player really dying, so we're going to cancel their death and "kill" them ourselves
 			
 			// There are no real custom entities that can act as players, so for now (20191018) we're going to see if they're a player.

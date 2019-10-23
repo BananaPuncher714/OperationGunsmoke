@@ -1,9 +1,7 @@
 package io.github.bananapuncher714.operation.gunsmoke.core.pathing;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 

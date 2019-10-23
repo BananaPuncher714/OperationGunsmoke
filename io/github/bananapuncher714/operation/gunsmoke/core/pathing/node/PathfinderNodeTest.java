@@ -8,7 +8,6 @@ import java.util.TreeSet;
 
 import org.bukkit.util.Vector;
 
-import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Corner;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.Path;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.PathRegion;

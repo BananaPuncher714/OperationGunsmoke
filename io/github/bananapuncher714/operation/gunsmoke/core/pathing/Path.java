@@ -5,10 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.bukkit.Location;
 import org.bukkit.util.Vector;
-
-import com.google.common.collect.Lists;
 
 import io.github.bananapuncher714.operation.gunsmoke.core.util.GeneralUtil;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;

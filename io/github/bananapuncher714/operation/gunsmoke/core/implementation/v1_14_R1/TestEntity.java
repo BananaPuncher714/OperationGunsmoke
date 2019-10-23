@@ -21,7 +21,6 @@ import net.minecraft.server.v1_14_R1.EntityTypes;
 import net.minecraft.server.v1_14_R1.MinecraftServer;
 import net.minecraft.server.v1_14_R1.Packet;
 import net.minecraft.server.v1_14_R1.PacketPlayInEntityAction;
-import net.minecraft.server.v1_14_R1.PacketPlayInSettings;
 import net.minecraft.server.v1_14_R1.PacketPlayOutNamedEntitySpawn;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerInfo;
 import net.minecraft.server.v1_14_R1.PacketPlayOutPlayerInfo.EnumPlayerInfoAction;

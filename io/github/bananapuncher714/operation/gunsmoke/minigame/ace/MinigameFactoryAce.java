@@ -1,7 +1,6 @@
 package io.github.bananapuncher714.operation.gunsmoke.minigame.ace;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 
 import org.bukkit.command.CommandSender;
 

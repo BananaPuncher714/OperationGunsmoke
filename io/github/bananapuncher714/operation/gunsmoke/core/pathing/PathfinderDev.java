@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,7 +14,6 @@ import org.bukkit.util.Vector;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.util.AABB;
 import io.github.bananapuncher714.operation.gunsmoke.core.pathing.node.NodeGenerator;
-import io.github.bananapuncher714.operation.gunsmoke.core.pathing.test.RegionPanel;
 import io.github.bananapuncher714.operation.gunsmoke.core.util.VectorUtil;
 
 public class PathfinderDev implements Pathfinder {

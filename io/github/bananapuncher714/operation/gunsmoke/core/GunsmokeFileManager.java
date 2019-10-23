@@ -2,7 +2,6 @@ package io.github.bananapuncher714.operation.gunsmoke.core;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 

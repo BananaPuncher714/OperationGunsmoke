@@ -6,14 +6,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.scoreboard.Scoreboard;
 
 import io.github.bananapuncher714.operation.gunsmoke.api.EnumTickResult;
+import io.github.bananapuncher714.operation.gunsmoke.api.GunsmokeRepresentable;
 import io.github.bananapuncher714.operation.gunsmoke.api.Tickable;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.GunsmokeEntity;
 import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeEntityWrapperPlayer;
+import io.github.bananapuncher714.operation.gunsmoke.core.Gunsmoke;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 /**
  * A minimal minigame concept class
@@ -22,12 +24,17 @@ import io.github.bananapuncher714.operation.gunsmoke.api.entity.bukkit.GunsmokeE
  * They can be in any location or world, and the participants can be anyone.
  */
 public abstract class Minigame implements Tickable {
+	protected final Gunsmoke plugin;
 	protected File baseDir;
 	
 	protected Set< UUID > participants = new HashSet< UUID >();
 	protected Set< UUID > entities = new HashSet< UUID >();
 	
 	protected Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+	
+	public Minigame( Gunsmoke plugin ) {
+		this.plugin = plugin;
+	}
 	
 	protected final void finalStart( File baseDir ) {
 		this.baseDir = baseDir;
@@ -66,6 +73,28 @@ public abstract class Minigame implements Tickable {
 			gEntity.getEntity().setScoreboard( Bukkit.getScoreboardManager().getMainScoreboard() );
 		}
 		participants.remove( entity.getUUID() );
+	}
+	
+	public void broadcast( String message ) {
+		for ( UUID uuid : participants ) {
+			GunsmokeRepresentable representable = plugin.getItemManager().get( uuid );
+			if ( representable instanceof GunsmokeEntity ) {
+				GunsmokeEntity entity = ( GunsmokeEntity ) representable;
+				
+				entity.sendMessage( message );
+			}
+		}
+	}
+	
+	public void broadcast( BaseComponent component ) {
+		for ( UUID uuid : participants ) {
+			GunsmokeRepresentable representable = plugin.getItemManager().get( uuid );
+			if ( representable instanceof GunsmokeEntity ) {
+				GunsmokeEntity entity = ( GunsmokeEntity ) representable;
+				
+				entity.sendMessage( component );
+			}
+		}
 	}
 	
 	public abstract void start();
