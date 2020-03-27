@@ -22,6 +22,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -103,11 +105,16 @@ public class Ace extends Minigame implements Listener {
 		
 		int redSize = red.getEntries().size();
 		int blueSize = blue.getEntries().size();
+
+		String id = gEntity.getUUID().toString();
+		if ( gEntity instanceof Nameable ) {
+			id = ( ( Nameable ) gEntity ).getName();
+		}
 		
-		if ( redSize > blueSize ) {
-			red.addEntry( gEntity.getUUID().toString() );
+		if ( redSize < blueSize ) {
+			red.addEntry( id );
 		} else {
-			blue.addEntry( gEntity.getUUID().toString() );
+			blue.addEntry( id );
 		}
 		
 		if ( gEntity instanceof Nameable ) {
@@ -125,8 +132,14 @@ public class Ace extends Minigame implements Listener {
 	@Override
 	public void leave( GunsmokeEntity gEntity ) {
 		super.leave( gEntity );
-		red.removeEntry( gEntity.getUUID().toString() );
-		blue.removeEntry( gEntity.getUUID().toString() );
+		
+		String id = gEntity.getUUID().toString();
+		if ( gEntity instanceof Nameable ) {
+			id = ( ( Nameable ) gEntity ).getName();
+		}
+		
+		red.removeEntry( id );
+		blue.removeEntry( id );
 		
 		removeGunsmokeProperty( gEntity );
 		
@@ -194,12 +207,17 @@ public class Ace extends Minigame implements Listener {
 	
 	protected void spawn( GunsmokeEntity entity ) {
 		List< PlayerSaveData > dataList;
-		if ( red.hasEntry( entity.getUUID().toString() ) ) {
+		String name = entity.getUUID().toString();
+		if ( entity instanceof Nameable ) {
+			name = ( ( Nameable ) entity ).getName();
+		}
+		
+		if ( red.hasEntry( name ) ) {
 			dataList = settings.getRedSpawns();
 		} else {
 			dataList = settings.getBlueSpawns();
 		}
-		PlayerSaveData data = dataList.get( ThreadLocalRandom.current().nextInt() % dataList.size() );
+		PlayerSaveData data = dataList.get( Math.abs( ThreadLocalRandom.current().nextInt() % dataList.size() ) );
 		
 		if ( entity instanceof GunsmokeEntityWrapperPlayer ) {
 			GunsmokeEntityWrapperPlayer gPEntity = ( GunsmokeEntityWrapperPlayer ) entity;
@@ -233,10 +251,27 @@ public class Ace extends Minigame implements Listener {
 	}
 	
 	@EventHandler
+	private void onDeath( PlayerDeathEvent event ) {
+		GunsmokeEntity gEntity = plugin.getItemManager().getEntityWrapper( event.getEntity() );
+		if ( !isParticipating( gEntity ) ) {
+			return;
+		}
+		event.setDeathMessage( "" );
+	}	
+	
+	@EventHandler
 	private void onDeath( GunsmokeEntityDamageEvent event ) {
 		GunsmokeEntity gEntity = event.getRepresentable();
 		if ( !isParticipating( gEntity ) ) {
 			return;
+		}
+		if ( gEntity instanceof GunsmokeEntityWrapperLivingEntity ) {
+			GunsmokeEntityWrapperLivingEntity wrapper = ( GunsmokeEntityWrapperLivingEntity ) gEntity;
+			int ticks = wrapper.getEntity().getTicksLived();
+			if ( ticks < 5 * 20 ) {
+				event.setCancelled( true );
+				return;
+			}
 		}
 		
 		if ( gEntity.getHealth() - event.getDamage() <= 0 ) {
@@ -245,6 +280,11 @@ public class Ace extends Minigame implements Listener {
 			if ( gEntity instanceof Nameable ) {
 				name = ( ( Nameable ) gEntity ).getName();
 			}
+			
+			ChatColor color = red.hasEntry( name ) ? ChatColor.RED : ChatColor.BLUE;
+			
+			int killAmount = kills.getOrDefault( gEntity.getUUID(), 0 );
+			kills.remove( gEntity.getUUID() );
 			
 			if ( event instanceof GunsmokeEntityDamageByEntityEvent ) {
 				GunsmokeEntityDamageByEntityEvent damageEvent = ( GunsmokeEntityDamageByEntityEvent ) event;
@@ -260,26 +300,25 @@ public class Ace extends Minigame implements Listener {
 					damager = shooter;
 				}
 				
-				int killAmount = kills.getOrDefault( gEntity.getUUID(), 0 );
-				killAmount++;
-				kills.put( gEntity.getUUID(), killAmount );
+				ChatColor killerColor = red.hasEntry( damagerName ) ? ChatColor.RED : ChatColor.BLUE;
+				
+				int killerAmount = kills.getOrDefault( damager.getUUID(), 0 );
 				
 				if ( damager instanceof GunsmokeEntityWrapperPlayer ) {
 					GunsmokeEntityWrapperPlayer playerWrapper = ( GunsmokeEntityWrapperPlayer ) damager;
 					Player player = playerWrapper.getEntity();
 					
-					player.setLevel( killAmount );
+					player.setLevel( killerAmount );
 				}
 				
-				broadcast( ChatColor.WHITE + name + " was killed by " + damagerName );
-				
+				broadcast( color + name + ChatColor.WHITE + "(" + ChatColor.GOLD + killAmount + ChatColor.WHITE + ") was killed by " + killerColor + damagerName + ChatColor.WHITE + "(" + ChatColor.GOLD + killerAmount + ChatColor.WHITE + ")" );
+				killerAmount++;
+				kills.put( damager.getUUID(), killerAmount );
 			} else {
-				broadcast( ChatColor.WHITE + name + " has died mysteriously" );
+				broadcast( color + name + ChatColor.WHITE + "(" + ChatColor.GOLD + killAmount + ChatColor.WHITE + ") has died mysteriously" );
 			}
 			
-			int killAmount = kills.getOrDefault( gEntity.getUUID(), 0 );
 			kills.remove( gEntity.getUUID() );
-			broadcast( ChatColor.WHITE + name + " died with " + killAmount + " kills" );
 			
 			// We don't want the player really dying, so we're going to cancel their death and "kill" them ourselves
 			
@@ -293,6 +332,8 @@ public class Ace extends Minigame implements Listener {
 				GunsmokeEntityWrapperPlayer gPlayer = ( GunsmokeEntityWrapperPlayer ) gEntity;
 				Player player = gPlayer.getEntity();
 				
+				player.getInventory().clear();
+				
 				if ( plugin.getProtocol().getHandler().isRealPlayer( player ) ) {
 					// If they're real, then we want to "kill" them
 					
@@ -305,7 +346,6 @@ public class Ace extends Minigame implements Listener {
 				} else {
 					// Deal with the fake NPCs here
 				}
-				player.getInventory().clear();
 			} else if ( gEntity instanceof GunsmokeEntityWrapper ) {
 				// Can't save an entity that can die only once
 				leave( gEntity );
@@ -341,12 +381,22 @@ public class Ace extends Minigame implements Listener {
 			return;
 		}
 		
+		String hitName = entity.getUUID().toString();
+		if ( entity instanceof Nameable ) {
+			hitName = ( ( Nameable ) entity ).getName();
+		}
+		
 		if ( projectile instanceof ConfigBullet ) {
 			ConfigBullet bullet = ( ConfigBullet ) projectile;
 			
 			GunsmokeEntity shooter = bullet.getShooter();
 			
-			if ( entity != shooter && !( red.hasEntry( entity.getUUID().toString() ) ^ red.hasEntry( shooter.getUUID().toString() ) ) ) {
+			String shooterName = shooter.getUUID().toString();
+			if ( shooter instanceof Nameable ) {
+				shooterName = ( ( Nameable ) shooter).getName();
+			}
+			
+			if ( entity != shooter && !( red.hasEntry( hitName ) ^ red.hasEntry( shooterName ) ) ) {
 				event.setCancelled( true );
 			}
 		}

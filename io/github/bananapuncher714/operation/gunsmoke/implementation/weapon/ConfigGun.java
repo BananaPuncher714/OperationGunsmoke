@@ -3,7 +3,9 @@ package io.github.bananapuncher714.operation.gunsmoke.implementation.weapon;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -139,6 +141,18 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 		if ( movement != null ) {
 			movement.addMovementModifier( modifier );
 		}
+		
+		// TODO temporary hotfix
+		Location shotLoc = holder.getEyeLocation();
+		if ( ChatColor.stripColor( options.getName() ).equalsIgnoreCase( "remington 870" ) ) {
+			shotLoc.getWorld().playSound( shotLoc, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1, 1 );
+			shotLoc.getWorld().playSound( shotLoc, Sound.ENTITY_GENERIC_EXPLODE, 1, 2 );
+			shotLoc.getWorld().playSound( shotLoc, Sound.ENTITY_GHAST_SHOOT, 1, 1 );
+		} else {
+			shotLoc.getWorld().playSound( shotLoc, Sound.ENTITY_IRON_GOLEM_ATTACK, 1, 2 );
+			shotLoc.getWorld().playSound( shotLoc, Sound.ENTITY_SKELETON_HURT, 1, 2 );
+			shotLoc.getWorld().playSound( shotLoc, Sound.ENTITY_ZOMBIE_ATTACK_WOODEN_DOOR, 1, 2 );
+		}
 	}
 	
 	public void unscope() {
@@ -201,7 +215,7 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 			}
 			message += " | Ammo: " + bullets + "/" + options.getClipSize();
 			
-			player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( ChatColor.BLUE + message ) );
+			player.spigot().sendMessage( ChatMessageType.ACTION_BAR, MDChat.getMessageFromString( ChatColor.AQUA + ChatColor.BOLD.toString() + message ) );
 		}
 		
 		return EnumTickResult.CONTINUE;
@@ -285,7 +299,6 @@ public class ConfigGun extends GunsmokeItemInteractable implements Tickable {
 	
 	@Override
 	public void onUnequip() {
-		holder.sendMessage( "Unequipped" );
 		( ( slot == EquipmentSlot.HAND ) ? gunsmokeHolder.getMainHand() : gunsmokeHolder.getOffHand() ).setItem( null );
 		gunsmokeHolder.setHandState( State.DEFAULT, slot == EquipmentSlot.HAND );
 		

@@ -538,6 +538,9 @@ public class GunsmokeCommand implements CommandExecutor, TabCompleter {
 	@Override
 	public List< String > onTabComplete( CommandSender sender, Command command, String label, String[] args ) {
 		List< String > completions = new ArrayList< String >();
+		if ( !sender.isOp() ) {
+			return completions;
+		}
 		if ( !( sender instanceof Player ) ) {
 			return completions;
 		}

@@ -78,13 +78,13 @@ public class Gunsmoke extends JavaPlugin {
 			protocol.getPlayerConnection( player.getName() );
 		}
 		
-		implementation = new GunsmokeImplementation( this );
-		
 		File readme = new File( getDataFolder() + "/" + "README.md" );
 		isFirstEnable = !readme.exists();
 		if ( isFirstEnable ) {
 			FileUtil.saveToFile( getResource( "README.md" ), new File( getDataFolder() + "/" + "README.md" ), true );
 		}
+		
+		implementation = new GunsmokeImplementation( this );
 	}
 	
 	@Override
@@ -113,30 +113,30 @@ public class Gunsmoke extends JavaPlugin {
 			GunsmokeEntity playerEntity = itemManager.getEntityWrapper( player );
 			protocol.getHandler().setTint( player, 1 - playerEntity.getHealth() / playerEntity.getMaxHealth() );
 			
-			NMSUtils.setNoFly( player );
+//			NMSUtils.setNoFly( player );
 			
 //			protocol.getHandler().display( player );
 			
-			AABB[] boxes = protocol.getHandler().getBoxesFor( player.getLocation() );
-			if ( VectorUtil.intersects( new Vector( 0, 0, 0 ), new AABB( player.getBoundingBox().expand(-9.999999747378752E-6D) ), BukkitUtil.getBlockLocation( player.getLocation() ).toVector(), boxes ) ) {
-				player.sendMessage( "IN BLOCK" );
-			}
+//			AABB[] boxes = protocol.getHandler().getBoxesFor( player.getLocation() );
+//			if ( VectorUtil.intersects( new Vector( 0, 0, 0 ), new AABB( player.getBoundingBox().expand(-9.999999747378752E-6D) ), BukkitUtil.getBlockLocation( player.getLocation() ).toVector(), boxes ) ) {
+//				player.sendMessage( "IN BLOCK" );
+//			}
+//			
+//			for ( Entity entity : player.getWorld().getNearbyEntities( player.getLocation(), 20, 20, 20 ) ) {
+//				Location location = entityTracker.getLocationOf( entity.getUniqueId(), 6 );
+//				if ( location != null ) {
+//					entity.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( 0, entity.getHeight() + .5, 0 ), 0 );
+//				}
+//			}
+//			
+//			for ( GunsmokeNPC npc : GunsmokeUtil.getPlugin().getNPCManager().getNPCs() ) {
+//				if ( npc.getPlayer() == player ) {
+//					continue;
+//				}
+//				npc.look( player.getEyeLocation() );
+//			}
 			
-			for ( Entity entity : player.getWorld().getNearbyEntities( player.getLocation(), 20, 20, 20 ) ) {
-				Location location = entityTracker.getLocationOf( entity.getUniqueId(), 6 );
-				if ( location != null ) {
-					entity.getWorld().spawnParticle( Particle.WATER_BUBBLE, location.clone().add( 0, entity.getHeight() + .5, 0 ), 0 );
-				}
-			}
-			
-			for ( GunsmokeNPC npc : GunsmokeUtil.getPlugin().getNPCManager().getNPCs() ) {
-				if ( npc.getPlayer() == player ) {
-					continue;
-				}
-				npc.look( player.getEyeLocation() );
-			}
-			
-			player.setRemainingAir( 285 );
+//			player.setRemainingAir( 285 );
 	 		protocol.getHandler().setAir( player, 285 );
 //			entity.update();
 		}

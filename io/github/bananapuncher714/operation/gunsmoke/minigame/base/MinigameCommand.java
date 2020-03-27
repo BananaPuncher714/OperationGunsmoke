@@ -98,7 +98,6 @@ public class MinigameCommand implements CommandExecutor {
 		Validate.isTrue( manager.participating( entity ) == null, ChatColor.RED + "You are already in a game!" );
 		
 		manager.join( args[ 0 ], entity );
-		player.sendMessage( "You have joined the game" );
 	}
 	
 	private void leave( CommandSender sender, String[] args ) {
